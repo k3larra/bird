@@ -1,3 +1,85 @@
 h1 {
     color:blueviolet;
   }
+
+._collapse {
+    visibility: collapse;
+}
+
+._hidden {
+  visibility: hidden;
+}
+
+._visible {
+  visibility: visible;
+}
+
+
+
+._debug{
+  color:red;
+  font-size: xx-small;
+}
+
+.image-container {
+  position: relative; /* Make the container a positioning context */
+  display: inline-block; /* Allow the container to size itself based on its contents */
+}
+
+.checkmark img {
+  width: 12px;
+  height: 12px;
+}
+.checkmark_positive {
+  position: absolute; /* Position it relative to the container */
+  top: 2px; /* Place it at the top of the container */
+  left: 2px; /* Place it at the left of the container */
+  color: green; /* Set the color of the checkmark */
+  font-size: 10px; /* Adjust the size of the checkmark */
+  /* background-color: None; */
+} 
+
+.checkmark_negative {
+  position: absolute; /* Position it relative to the container */
+  top: 2px; /* Place it at the top of the container */
+  left: 2px; /* Place it at the left of the container */
+  color: red; /* Set the color of the checkmark */
+  font-size: 10px; /* Adjust the size of the checkmark */
+  /* background-color: None; */
+} 
+
+.checkmark{
+  position: absolute; /* Position it relative to the container */
+  top: 2px; /* Place it at the top of the container */
+  left: 2px; /* Place it at the left of the container */
+  font-size: 10px; 
+}
+
+/*tooltip*/
+/* Tooltip container */
+._tooltip {
+  border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+._tooltip ._tooltiptext {
+  visibility: hidden;
+  width: 50px;
+  background-color: gray;
+  color: #fff;
+  text-align: center;
+  padding: 0px 0;
+  border-radius: 6px;
+  font-size: 8px; 
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  left: 14px;
+  top: 6px;
+  z-index: 1;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+._tooltip:hover ._tooltiptext {
+  visibility: visible;
+}
+
