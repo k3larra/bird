@@ -3,7 +3,8 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.3.0/firebase
 import { getDatabase, ref, set, child, push, update,onValue} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-database.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js"; 
 //import { getAuth, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/9.5.0/firebase-auth-compat.js"
-import {loggedIn}   from "./script.js";
+import {loggedIn, build_image_containers, select_training_data}   from "./script.js";
+import { getBirds, setBirds } from './script.js';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -91,3 +92,161 @@ function _setLoggedInVisibility(loggedIn,user){
 } 
 
 export {getDatabase, ref, set, child, push, update,user,onValue,auth};
+
+/*Misc database functions*/
+export function save_new_training_set_to_databasebase(userID, jsonfile) {
+  const db = getDatabase();
+  const key = push(child(ref(db), userID + "/trainingsets"), jsonfile).key;
+  if (key) {
+    //metadata
+    const meta = {
+      "description": jsonfile.description,
+      "version": jsonfile.version,
+      "title": jsonfile.title,
+      "default": false
+    };
+    set(child(ref(db), userID + "/metadata/"+key), meta);
+    console.log('Data has been successfully saved and key is: ', key);
+    build_image_containers();
+  } else {
+    console.log('Something went wrong saving the data to the database.');
+  }
+  if (key) {
+    return key;
+  }else{
+    return false;
+  }
+}
+
+export function update_training_set(userID, training_set_ref, jsonfile) {
+  const db = getDatabase();
+  // let v = parseInt(jsonfile.version);
+  // jsonfile.version = (v + 1).toString();
+  // console.log("version", jsonfile.version)
+  update(child(ref(db), userID + "/trainingsets/" + training_set_ref), jsonfile).then(() => {
+    console.log('Data has been successfully updated in the database');
+    build_image_containers();
+  })
+    .catch((error) => {
+      console.error('Error updating data:', error);
+    });
+  const meta = {
+    "description": jsonfile.description,
+    "version": jsonfile.version,
+    "title": jsonfile.title
+  };
+  update(child(ref(db), userID + "/metadata/" + training_set_ref), meta).then(() => {
+    console.log('Metadata has been successfully updated in the database');
+    get_training_sets_metadata(userID)
+    //build_image_containers();
+  })
+    .catch((error) => {
+      console.error('Error updating Metadata:', error);
+    });
+}
+
+//create a function that collects a list of trainingset from firebase
+//this is where all the training sets are stored and can be selected from
+/**
+ * Retrieves training sets metadata for a given user ID from Firebase Realtime Database.
+ * @param {string} userID - The ID of the user whose training sets metadata is to be retrieved.
+ */
+export function get_training_sets_metadata(userID) {
+  const db = getDatabase();
+  const trainingSetRef = ref(db, userID + "/metadata");
+  onValue(trainingSetRef, (snapshot) => {
+    select_training_data(snapshot);
+    // snapshot.forEach((doc) => {
+    //   const description = doc.val().description;
+    //   console.log("Key: ",doc.key)
+    //   console.log("TITLE: ",doc.val().title)
+    //   console.log("description: ", description);
+    //   console.log("versrion: ",doc.val().version)
+    // });
+
+    //const data = snapshot.val();
+    //console.log(data);
+    //birds=data;
+    //build_image_containers();
+  }, {
+    onlyOnce: true
+  });
+}
+export function downloadJson(birds) {
+  //var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(birds));
+  var dataStr = JSON.stringify(birds);
+  const blob = new Blob([dataStr], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = "try.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+
+export function setDefaultProject(key) {
+  console.log("set_defaultProject", key );
+  const db = getDatabase();
+  var authData = auth.currentUser;
+  const trainingSetRef = ref(db, authData.uid + "/metadata");
+  onValue(trainingSetRef, (snapshot) => {
+    snapshot.forEach((doc) => {
+      if (doc.key == key) {
+        const meta = {
+          "description": doc.val().description,
+          "version": doc.val().version,
+          "title": doc.val().title,
+          "default": true
+        };
+        update(child(ref(db), authData.uid + "/metadata/" + key), meta).then(() => {
+          console.log('Metadata has been successfully updated in the database');
+          get_training_sets_metadata(authData.uid)
+          //build_image_containers();
+        })
+          .catch((error) => {
+            console.error('Error updating Metadata:', error);
+          });
+      } else {  //set all other to false
+        const meta = {
+          "description": doc.val().description,
+          "version": doc.val().version,
+          "title": doc.val().title,
+          "default": false
+        };
+        update(child(ref(db), authData.uid + "/metadata/" + doc.key), meta).then(() => {
+          console.log('Metadata has been successfully updated in the database');
+          get_training_sets_metadata(authData.uid)
+          //build_image_containers();
+        })
+          .catch((error) => {
+            console.error('Error updating Metadata:', error);
+          });
+      }
+      
+    });
+    get_training_sets_metadata(authData.uid);
+    //const data = snapshot.val();
+    //console.log(data);
+    //birds=data;
+    //build_image_containers();
+  }, {
+    onlyOnce: true
+  });
+}
+
+export function read_training_data(userID, training_set_ref) {
+  const db = getDatabase();
+  const starCountRef = ref(db, userID + "/trainingsets/" + training_set_ref);
+  onValue(starCountRef, (snapshot) => {
+    const data = snapshot.val();
+    setBirds(data);
+    build_image_containers();
+  }, {
+    onlyOnce: true
+  });
+
+}
+// 
+
+
