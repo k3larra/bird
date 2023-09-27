@@ -5,6 +5,7 @@ import { downloadJson } from "./firebase-module.js";
 import { update_training_set } from "./firebase-module.js";
 import {getDatabase, set, user,auth} from "./firebase-module.js";
 import {setDefaultProject} from "./firebase-module.js";
+import {delete_training_set} from "./firebase-module.js";
 
 let testjson=  {"description": "Training data for the Crafoord Crafoord AI project",
 "version": "1.0",
@@ -92,7 +93,7 @@ function displayStatistics(){
   text +="Number of images: "+statistics.number_of_images+"<br>";
   text += "Number of concepts: "+statistics.number_of_concepts+"<br>";
   text += "Number of unlabelled images: "+statistics.number_of_void_images+"<br>";
-  for (const concept in unique_concepts) {
+  for (const concept in unique_concepts) {  //Add also for unused concepts in getMetadata().concept ??
     text += unique_concepts[concept]+": "+statistics[unique_concepts[concept]]+"<br>";
   }
   
@@ -131,34 +132,51 @@ async function populate_json() {
 
 export function select_training_data(metadata,uid) {
   const dropdown = document.getElementById("drop_training")
+  let foundDefault = false;
   while (dropdown.firstChild) {
     dropdown.removeChild(dropdown.lastChild);
   }
+
   metadata.forEach((doc) => {
     const description = doc.val().description;
-    console.log("Key: ",doc.key);
-    console.log("TITLE: ",doc.val().title);
-    console.log("description: ", description);
-    console.log("version: ",doc.val().version);
-    console.log("default: ",doc.val().default);
+    // console.log("Key: ",doc.key);
+    // console.log("TITLE: ",doc.val().title);
+    // console.log("description: ", description);
+    // console.log("version: ",doc.val().version);
+    // console.log("default: ",doc.val().default);
     const li = document.createElement('li');
     const a = document.createElement('a');
     a.classList.add('dropdown-item');
     a.value = '#';
     a.dataset.id = doc.key;
-    a.textContent = doc.val().title+":"+doc.val().default;
+    a.textContent = doc.val().title;
     li.appendChild(a);
+    //add delete button to <li>
+    if(!doc.val().default){
+      const button = document.createElement('button');
+      li.style.display = "flex";
+      button.setAttribute('type', 'button');
+      button.innerHTML = '<span aria-hidden="true">&times;</span>';
+      button.setAttribute('aria-label', 'Close');
+      button.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        var authData = auth.currentUser;
+        delete_training_set(authData.uid,doc.key);
+      });
+      li.appendChild(button);  
+   }  
     const ul = document.querySelector('ul.dropdown-menu');
     ul.appendChild(li);
     //drop_training
     if(doc.val().default){
       // read_training_data(uid,doc.key);
+      foundDefault = true;
       _metadata = doc.val();
       _metadata["training_set_ref"] = doc.key;
       setMetadata(_metadata);
       read_training_data("vKFIvuQHJbMDmdaACZZMyRJXyMs1",doc.key);
     }
-   
   });
   
   dropdown.addEventListener("click",(event)=>{  
@@ -168,28 +186,9 @@ export function select_training_data(metadata,uid) {
     const title = a.innerHTML
     console.log(key,title)
     // read_training_data(uid,doc.key);
-    read_training_data("vKFIvuQHJbMDmdaACZZMyRJXyMs1",key);
+    //read_training_data("vKFIvuQHJbMDmdaACZZMyRJXyMs1",key);
     setDefaultProject(key);
   });
-  // fetch('./resources/modal.html')
-  // .then(response => response.text())
-  // .then(html => {
-  //   const modalContainer = document.createElement('div');
-  //   modalContainer.innerHTML = html;
-  //   document.body.appendChild(modalContainer);
-  //   var myModal = document.getElementById('exampleModal')
-  //   var myInput = document.getElementById('myInput')
-  //   myModal.addEventListener('shown.bs.modal', function () {
-  //       myInput.focus()
-  //   })
-  // });
-  // console.log("metadata: ",metadata)
-  // for (const key in metadata) {
-  //   if (Object.hasOwnProperty.call(metadata, key)) {
-  //     const value = metadata[key];
-  //     console.log(key, value);
-  //   }
-  // }
 }
 
 export function build_image_containers(){
@@ -199,22 +198,8 @@ export function build_image_containers(){
     image_data_article.lastChild.removeEventListener("click", function(){});
     image_data_article.removeChild(image_data_article.lastChild);
   } 
-  updateUniqueConcepts();
-  const dropdown = document.getElementById("inputGroupSelect03")
-  document.getElementById("concept_section").style.display = "none"; //REMOVE LATER
-  //clear dropdown and populate with unique concepts
-  //Here is a flat concept hierachy were all concepts need to be excluding and not ovelapping.
-  while (dropdown.firstChild) {
-    dropdown.removeChild(dropdown.lastChild);
-  }
-  unique_concepts.forEach((item)=>{
-    const option = document.createElement("option")
-    option.value = item
-    option.text = item
-    dropdown.appendChild(option)
-  });
-  //Create and populate a container for all "void" images (Does not belong to any used concept)
- 
+  getMetadata().concept = updateUniqueConcepts();
+  console.log("getMetadata()",getMetadata())
   let imageContainer = createContainer("void","Label training data using the concepts created above");
   populate_void_container(getBirds(),imageContainer)
   document.getElementById("image_data").appendChild(imageContainer);
@@ -232,7 +217,7 @@ export function build_image_containers(){
 }
 
 function populate_void_container(data,element) {
-  const maxNumbrItems = 36;
+  const maxNumbrItems = 72;
   let row,lastRow=-1,column,i=0;
   let rowElement;
   let randomNumbers = [];
@@ -288,14 +273,14 @@ function add_image_container_listener(id,imageContainer){
     if (event.target.tagName === 'IMG') {
       const clickedImage = event.target;
       const tooltiptext_e = clickedImage.nextElementSibling;
-      const index = unique_concepts.indexOf(tooltiptext_e.textContent);
+      const index = getMetadata().concept.indexOf(tooltiptext_e.textContent);
       //console.log("Index:"+index+" length:"+unique_concepts.length+" unique_concepts:"+unique_concepts)
       if (index == -1){
-        tooltiptext_e.textContent=unique_concepts[0];
-      } else if (index == unique_concepts.length-1){
+        tooltiptext_e.textContent=getMetadata().concept[0];
+      } else if (index == getMetadata().concept.length-1){
         tooltiptext_e.textContent="";
       } else {
-        tooltiptext_e.textContent=unique_concepts[index+1];
+        tooltiptext_e.textContent=getMetadata().concept[index+1];
       }
       let path = clickedImage.src.split(imageFolder)[1]
       //replace all letter 'a' with blank in path
@@ -309,31 +294,31 @@ function add_image_container_listener(id,imageContainer){
 /*************/
 function listeners(){
   //dropdown
-  const button = document.getElementById("addConcept")
-  const dropdown = document.getElementById("inputGroupSelect03")
-  button.addEventListener("click",(event)=>{
-    event.preventDefault()
-    const input = document.getElementById("conceptInput")
-    const option = document.createElement("option")
-    if (input.value == "") return
-    for (let i=0; i<dropdown.length; i++){
-      if (dropdown[i].value == input.value) return
-    };
-    var ret="";
-    input.value,ret = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
-    unique_concepts.push(ret)
-    if (input.value.length > 10) input.value = input.value.slice(0,10) + "..."
-    option.value = ret
-    option.text = input.value
-    input.value = ""
-    dropdown.appendChild(option)
-  });
+  // const button = document.getElementById("addConcept")
+  // const dropdown = document.getElementById("inputGroupSelect03")
+  // button.addEventListener("click",(event)=>{
+  //   event.preventDefault()
+  //   const input = document.getElementById("conceptInput")
+  //   const option = document.createElement("option")
+  //   if (input.value == "") return
+  //   for (let i=0; i<dropdown.length; i++){
+  //     if (dropdown[i].value == input.value) return
+  //   };
+  //   var ret="";
+  //   input.value,ret = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
+  //   unique_concepts.push(ret)
+  //   if (input.value.length > 10) input.value = input.value.slice(0,10) + "..."
+  //   option.value = ret
+  //   option.text = input.value
+  //   input.value = ""
+  //   dropdown.appendChild(option)
+  // });
 
-  dropdown.addEventListener("click",(event)=>{
-    event.preventDefault()
-    const input = document.getElementById("conceptInput")
-    const result = dropdown.value
-  });
+  // dropdown.addEventListener("click",(event)=>{
+  //   event.preventDefault()
+  //   const input = document.getElementById("conceptInput")
+  //   const result = dropdown.value
+  // });
 }
 
 /*Create containers and content*/
@@ -383,6 +368,7 @@ function createbuttons(text1,text2,text3,text4){
     build_image_containers()
     });
   // //update dataset buttom
+  edit_concepts(div)
   firebase_save(div);
   firebase_save_as(div);
   
@@ -463,6 +449,63 @@ function collapsable(){
   });
 }
 
+function edit_concepts(parent){
+  fetch('./resources/modal_concept.html')
+  .then(response => response.text())
+  .then(html => {
+    const modalContainer = document.createElement('div');
+    modalContainer.innerHTML = html;
+    parent.appendChild(modalContainer);
+    var myModal = document.getElementById('myModal_concept')
+    var myInput = document.getElementById('myInput_concept')
+    myModal.addEventListener('shown.bs.modal', function () {
+        myInput.focus()
+    });
+    myInput.innerHTML = "Edit concepts";
+    const dropdown = document.getElementById("inputGroupSelect03")
+    //document.getElementById("concept_section").style.display = "none"; //REMOVE LATER
+    //clear dropdown and populate with unique concepts
+    //Here is a flat concept hierachy were all concepts need to be excluding and not ovelapping.
+    while (dropdown.firstChild) {
+      dropdown.removeChild(dropdown.lastChild);
+    }
+    //unique_concepts.forEach((item)=>{
+    getMetadata().concept.forEach((item)=>{
+      const option = document.createElement("option")
+      option.value = item
+      option.text = item
+      dropdown.appendChild(option)
+    });
+
+    const button = document.getElementById("addConcept")
+    //const dropdown = document.getElementById("inputGroupSelect03")
+    button.addEventListener("click",(event)=>{
+      event.preventDefault()
+      const input = document.getElementById("conceptInput")
+      const option = document.createElement("option")
+      if (input.value == "") return
+      for (let i=0; i<dropdown.length; i++){
+        if (dropdown[i].value == input.value) return
+      };
+      var ret="";
+      input.value,ret = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
+      //unique_concepts.push(ret)
+      getMetadata().concept.push(ret);
+      if (input.value.length > 10) input.value = input.value.slice(0,10) + "..."
+      option.value = ret
+      option.text = input.value
+      input.value = ""
+      dropdown.appendChild(option)
+    });
+  
+    dropdown.addEventListener("click",(event)=>{
+      event.preventDefault()
+      const input = document.getElementById("conceptInput")
+      const result = dropdown.value
+    });
+  });
+}
+
 function firebase_save(parent){
   fetch('./resources/modal_save.html')
   .then(response => response.text())
@@ -520,7 +563,7 @@ function firebase_save(parent){
       const db = getDatabase();
       console.log("authData: ", authData.uid)
       if (authData) {
-         update_training_set(authData.uid, getMetadata().training_set_ref, getBirds())
+         update_training_set(authData.uid, getMetadata(), getBirds())
       }
       console.log("metadata: ", getMetadata())
       //cast div to modal to bootstrap modal
@@ -602,7 +645,7 @@ export function loggedIn(user){
     //get_training_sets_metadata(user.uid)
     console.log("Logged in (onAuthStateChanged)",user.displayName);
     populate_json()
-    listeners()
+    //listeners()
     collapsable();
   }else{
     console.log("Not logged in (onAuthStateChanged)");
