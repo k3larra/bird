@@ -1,0 +1,37 @@
+<button type="button" id="myInput_concept" class="btn btn-secondary btn-sm me-1" data-bs-toggle="modal" data-bs-target="#myModal_concept">
+    Save
+  </button>
+
+<div class="modal fade" id="myModal_concept" tabindex="-1">
+<div class="modal-dialog">
+    <div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle_concept">Edit/view concept</h5><br>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+        <p style="font-size: 0.8rem!important;" id="modalInput_concept"></p>
+        <p style="font-size: 0.6rem!important;" id="modalSubtitle_concept"></p>
+        <section class="container" id="concept_section">
+            <div class="row justify-content-start">
+              <!-- <div class="col-md-6"> -->
+                <div class="input-group input-group-sm mb-3">
+                  <input type="text" class="form-control" id="conceptInput"
+                    aria-label="Text input with segmented dropdown button">
+                  <button class="btn btn-outline-secondary" type="button" id="addConcept">Add concept</button>
+                  <select class="form-select" id="inputGroupSelect03" aria-label="Example select with button addon">
+                    <option selected>Choose...</option>
+                  </select>
+                </div>
+              <!-- </div> -->
+            </div>
+          </section>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        <button type="button" id="saveChanges_concept" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Save concept changes</button>
+    </div>
+    </div>
+</div>
+</div>
+
