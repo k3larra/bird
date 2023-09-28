@@ -120,9 +120,6 @@ export function save_new_training_set_to_databasebase(userID, jsonfile) {
 
 export function update_training_set(userID, meta, jsonfile) {
   const db = getDatabase();
-  // let v = parseInt(jsonfile.version);
-  // jsonfile.version = (v + 1).toString();
-  // console.log("version", jsonfile.version)
   update(child(ref(db), userID + "/trainingsets/" + meta.training_set_ref), jsonfile).then(() => {
     console.log('Data has been successfully updated in the database');
     build_image_containers();
@@ -130,11 +127,6 @@ export function update_training_set(userID, meta, jsonfile) {
     .catch((error) => {
       console.error('Error updating data:', error);
     });
-  // const meta = {
-  //   "description": jsonfile.description,
-  //   "version": jsonfile.version,
-  //   "title": jsonfile.title
-  // };
   console.log("meta", meta)
     console.log("meta.training_set_ref", meta.training_set_ref)
   update(child(ref(db), userID + "/metadata/" + meta.training_set_ref), meta).then(() => {

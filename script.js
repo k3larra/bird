@@ -36,7 +36,7 @@ let testjson=  {"description": "Training data for the Crafoord Crafoord AI proje
 ///////////////////////////////////////////////////////////
 const jsonFilePath = './ottenbyresized/birds.json'
 const imageFolder = 'ottenbyresized/'
-const unique_concepts = [] //This is central aand needs some more protection....
+let unique_concepts = [] //This is central aand needs some more protection....
 
 let _metadata = null;
 export function getMetadata() {
@@ -55,11 +55,12 @@ export function getBirds() {
 export function setBirds(value) {
   // Add any additional logic or validation here
   _birds = value;
-  console.log(getStatistics());
+  //console.log(getStatistics());
 }
 
 
 function updateUniqueConcepts() {
+  unique_concepts=[];
   for (const [key, value] of Object.entries(getBirds().images)) {
     if (value.concept == "void") continue;
     if (unique_concepts.indexOf(value.concept) === -1) unique_concepts.push(value.concept);
@@ -68,7 +69,9 @@ function updateUniqueConcepts() {
 }
 
 function getStatistics(){
-  updateUniqueConcepts();
+  console.log("unique")
+  let a = updateUniqueConcepts();
+  console.log(a)
   const statistics = {
     "number_of_images": Object.keys(getBirds().images).length,
     "number_of_concepts": unique_concepts.length,
@@ -136,14 +139,11 @@ export function select_training_data(metadata,uid) {
   while (dropdown.firstChild) {
     dropdown.removeChild(dropdown.lastChild);
   }
+  setBirds(null);
+  setMetadata(null);
 
   metadata.forEach((doc) => {
     const description = doc.val().description;
-    // console.log("Key: ",doc.key);
-    // console.log("TITLE: ",doc.val().title);
-    // console.log("description: ", description);
-    // console.log("version: ",doc.val().version);
-    // console.log("default: ",doc.val().default);
     const li = document.createElement('li');
     const a = document.createElement('a');
     a.classList.add('dropdown-item');
@@ -151,7 +151,6 @@ export function select_training_data(metadata,uid) {
     a.dataset.id = doc.key;
     a.textContent = doc.val().title;
     li.appendChild(a);
-    //add delete button to <li>
     if(!doc.val().default){
       const button = document.createElement('button');
       li.style.display = "flex";
@@ -175,6 +174,7 @@ export function select_training_data(metadata,uid) {
       _metadata = doc.val();
       _metadata["training_set_ref"] = doc.key;
       setMetadata(_metadata);
+      console.log("metadata: ",getMetadata());
       read_training_data("vKFIvuQHJbMDmdaACZZMyRJXyMs1",doc.key);
     }
   });
@@ -185,8 +185,6 @@ export function select_training_data(metadata,uid) {
     const key = a.dataset.id
     const title = a.innerHTML
     console.log(key,title)
-    // read_training_data(uid,doc.key);
-    //read_training_data("vKFIvuQHJbMDmdaACZZMyRJXyMs1",key);
     setDefaultProject(key);
   });
 }
@@ -198,7 +196,6 @@ export function build_image_containers(){
     image_data_article.lastChild.removeEventListener("click", function(){});
     image_data_article.removeChild(image_data_article.lastChild);
   } 
-  getMetadata().concept = updateUniqueConcepts();
   console.log("getMetadata()",getMetadata())
   let imageContainer = createContainer("void","Label training data using the concepts created above");
   populate_void_container(getBirds(),imageContainer)
@@ -207,12 +204,16 @@ export function build_image_containers(){
   
   add_image_container_listener("void",imageContainer)
   //Create a container for each concept 
-  unique_concepts.forEach((item)=>{
-    imageContainer = createContainer(item,"Images labelled "+item);
-    populate_container(findImageIndexWithConcept(item),item,imageContainer)
-    document.getElementById("image_data").appendChild(imageContainer);
-    add_image_container_listener(item,imageContainer)
-  });
+  try {
+    getMetadata().concept.forEach((item)=>{
+      imageContainer = createContainer(item,"Images labelled "+item);
+      populate_container(findImageIndexWithConcept(item),item,imageContainer)
+      document.getElementById("image_data").appendChild(imageContainer);
+      add_image_container_listener(item,imageContainer)
+    });
+  } catch (error) {       
+    console.log("No concepts found in metadata")
+  }
   displayStatistics();
 }
 
@@ -368,43 +369,10 @@ function createbuttons(text1,text2,text3,text4){
     build_image_containers()
     });
   // //update dataset buttom
-  edit_concepts(div)
+  clear_all_concepts(div);
+  edit_concepts(div);
   firebase_save(div);
-  firebase_save_as(div);
-  
-  // button = document.createElement("button")
-  // button.type="button"
-  // button.id="myInput"
-  // button.classList.add("btn","btn-secondary","btn-sm","me-1")
-  // button.textContent=text2
-  // div.appendChild(button)
-  // button.addEventListener("click",(event)=>{
-  //   event.preventDefault()
-  //   var authData = auth.currentUser;
-  //   const db = getDatabase();
-  //   console.log("authData: ",authData.uid)
-  //   if (authData) { 
-  //     update_training_set(authData.uid,"-NeS3F4ipXpjEBnuEAqa",getBirds())
-  //     //click on button to update database Organise images and load new unlabelled images.
-
-  //   }else{console.log("Not logged in")}
-  // });  
-  //save as new dataset buttom
-  
-  // button = document.createElement("button")
-  // button.type="button"
-  // button.classList.add("btn","btn-secondary","btn-sm","me-1")
-  // button.textContent=text3
-  // div.appendChild(button)
-  // button.addEventListener("click",(event)=>{
-  //   event.preventDefault()
-  //   var authData = auth.currentUser;
-  //   const db = getDatabase();
-  //   console.log(authData.uid)
-  //   if (authData) { 
-  //     save_new_training_set_to_databasebase(authData.uid,getBirds())
-  //   }else{console.log("Not logged in")}
-  // });  
+  firebase_save_as(div); 
   //download json   
   button = document.createElement("button")
   button.type="button"
@@ -470,12 +438,17 @@ function edit_concepts(parent){
       dropdown.removeChild(dropdown.lastChild);
     }
     //unique_concepts.forEach((item)=>{
-    getMetadata().concept.forEach((item)=>{
-      const option = document.createElement("option")
-      option.value = item
-      option.text = item
-      dropdown.appendChild(option)
-    });
+    try {
+      getMetadata().concept.forEach((item)=>{
+        const option = document.createElement("option")
+        option.value = item
+        option.text = item
+        dropdown.appendChild(option)
+      });
+    } catch (error) { 
+      console.log("No concepts found in metadata")
+    }
+
 
     const button = document.getElementById("addConcept")
     //const dropdown = document.getElementById("inputGroupSelect03")
@@ -490,6 +463,7 @@ function edit_concepts(parent){
       var ret="";
       input.value,ret = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
       //unique_concepts.push(ret)
+      console.log("ret",getMetadata())
       getMetadata().concept.push(ret);
       if (input.value.length > 10) input.value = input.value.slice(0,10) + "..."
       option.value = ret
@@ -639,6 +613,45 @@ function firebase_save_as(parent) {
       });
     });
 }
+
+function clear_all_concepts(parent){
+  fetch('./resources/modal_clear_all_concepts.html')
+  .then(response => response.text())
+  .then(html => {
+    const modalContainer = document.createElement('div');
+    modalContainer.innerHTML = html;
+    parent.appendChild(modalContainer);
+    var myInput = document.getElementById('myInput_clear_all_concepts')
+    var myModal = document.getElementById('myModal_clear_all_concepts')
+    myModal.addEventListener('shown.bs.modal', function () {
+        myInput.focus()
+    });
+    myInput.innerHTML = "Clear all concepts";
+    document.getElementById("clear_all_concepts").addEventListener("click",(event)=>{
+      event.preventDefault()
+      console.log ("getMeta",getMetadata());
+      let clear = getMetadata().concept;
+      //let clear = updateUniqueConcepts();
+      console.log ("clear",clear);
+      if (clear.length == 0) return;
+      clear.forEach((item)=>{
+        clear_concept(item);
+      });
+      build_image_containers();
+    });
+  });
+}
+
+function clear_concept(concept){
+  getBirds().images.forEach((item)=>{
+    if (item.concept == concept) item.concept = "void";
+  });
+  //remove concept from the array getMetadata().concept
+  getMetadata().concept = getMetadata().concept.filter(item => item !== concept);
+}
+
+
+
 export function loggedIn(user){
   
   if(user){
@@ -652,164 +665,3 @@ export function loggedIn(user){
   }
 }
 
-//set it up
-function setup() {
-    console.log(location.host);
-}
-setup();
-
-/*Old things mosty on using csv instead of json*/
-//const csvFilePath = './ottenbyresized/birds.csv'
-
-//let csvFile = null; //Here convert this to JSON
-  // birds_subset.forEach((bird)=>{
-  //   row=Math.trunc((i/12));
-  //   if (row>lastRow){
-  //     rowElement = createRowInGrid(element);
-  //     element.appendChild(rowElement);
-  //     lastRow=row;
-  //   }
-  //   column=i%12
-  //   createImageItem(rowElement,bird.path);
-  //   i++;
-  // });      
-
-// async function populate_container_old(e) {
-//   let row,lastRow=-1,column,i=0;
-//   let rowElement;
-//   fetch(csvFilePath)
-//     .then(response => response.text())
-//     .then(data => {
-//       let lines = data.split('\n');
-//       csvFile = lines;
-//       lines.shift(); 
-//       lines = lines.sort(() => Math.random() - Math.random()).slice(0, 144);
-//       for (const line of lines) {
-//         row=Math.trunc((i/12));
-//         if (row>lastRow){
-//           rowElement = createRowInGrid(e);
-//           e.appendChild(rowElement);
-//           lastRow=row;
-//         }
-//         column=i%12
-//         const columns = line.split(',');
-//         if (columns.length > 0) {
-//           const firstColumn = columns[0];
-//           createImageItem(rowElement,firstColumn);
-//         }
-//         i++;
-//       }
-//     })
-//     .catch(error => {
-//       console.error('Error fetching CSV file:', error);
-//     });
-// }
-//function create_reload_button(parent,text1){
-  //     const div = document.createElement("div")
-  //     //div.classList.add("d-grid","gap-2")
-  //     div.id  = "button_div.."
-  //     let button = document.createElement("button")
-  //     button.type="button"
-  //     button.classList.add("btn","btn-secondary","btn-sm")
-  //     button.textContent=text1
-  //     div.appendChild(button)
-  //     parent.appendChild(div)
-  //     button.addEventListener("click",(event)=>{
-  //       event.preventDefault()
-  //       build_image_containers()
-  
-  //       });
-  //     //update dataset buttom
-  //     button = document.createElement("button")
-  //     button.type="button"
-  //     button.classList.add("btn","btn-secondary","btn-sm")
-  //     button.textContent=text1
-  //     div.appendChild(button)
-  //     button.addEventListener("click",(event)=>{
-  //       event.preventDefault()
-  //       var authData = auth.currentUser;
-  //       const db = getDatabase();
-  //       console.log("authData: ",authData.uid)
-  //       if (authData) { 
-  //         update_training_set(authData.uid,"-NeS3F4ipXpjEBnuEAqa",birds)
-  //         //click on button to update database Organise images and load new unlabelled images.
-  
-  //       }else{console.log("Not logged in")}
-  //     });  
-  //     //save as new dataset buttom
-  //     button = document.createElement("button")
-  //     button.type="button"
-  //     button.classList.add("btn","btn-secondary","btn-sm")
-  //     button.textContent=text2
-  //     div.appendChild(button)
-  //     button.addEventListener("click",(event)=>{
-  //       event.preventDefault()
-  //       var authData = auth.currentUser;
-  //       const db = getDatabase();
-  //       console.log(authData.uid)
-  //       if (authData) { 
-  //         save_new_training_set_to_databasebase(authData.uid,birds)
-  //       }else{console.log("Not logged in")}
-  //     });  
-  //     //download json   
-  //     button = document.createElement("button")
-  //     button.type="button"
-  //     button.classList.add("btn","btn-secondary","btn-sm")
-  //     button.textContent=text3
-  //     div.appendChild(button)
-  //         button.addEventListener("click",(event)=>{
-  //           event.preventDefault()
-  //           downloadJson(birds);
-  //         });
-  //     parent.appendChild(div)      
-  // }
-  
-  // function create_save_to_database_Button(parent,text1,text2,text3){
-  //     //Create a container for the buttons
-  //     const div = document.createElement("div")
-  //     //div.classList.add("d-grid","gap-2")
-  //     div.id  = "button_div_2"
-  //     //update dataset buttom
-  //     let button = document.createElement("button")
-  //     button.type="button"
-  //     button.classList.add("btn","btn-secondary","btn-sm")
-  //     button.textContent=text1
-  //     div.appendChild(button)
-  //     button.addEventListener("click",(event)=>{
-  //       event.preventDefault()
-  //       var authData = auth.currentUser;
-  //       const db = getDatabase();
-  //       console.log("authData: ",authData.uid)
-  //       if (authData) { 
-  //         update_training_set(authData.uid,"-NeS3F4ipXpjEBnuEAqa",birds)
-  //         //click on button to update database Organise images and load new unlabelled images.
-  
-  //       }else{console.log("Not logged in")}
-  //     });  
-  //   //save as new dataset buttom
-  //   button = document.createElement("button")
-  //   button.type="button"
-  //   button.classList.add("btn","btn-secondary","btn-sm")
-  //   button.textContent=text2
-  //   div.appendChild(button)
-  //   button.addEventListener("click",(event)=>{
-  //     event.preventDefault()
-  //     var authData = auth.currentUser;
-  //     const db = getDatabase();
-  //     console.log(authData.uid)
-  //     if (authData) { 
-  //       save_new_training_set_to_databasebase(authData.uid,birds)
-  //     }else{console.log("Not logged in")}
-  //   });  
-  //   //download json   
-  //   button = document.createElement("button")
-  //   button.type="button"
-  //   button.classList.add("btn","btn-secondary","btn-sm")
-  //   button.textContent=text3
-  //   div.appendChild(button)
-  //       button.addEventListener("click",(event)=>{
-  //         event.preventDefault()
-  //         downloadJson(birds);
-  //       });
-  //   parent.appendChild(div)      
-  // }
