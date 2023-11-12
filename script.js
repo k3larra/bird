@@ -1,13 +1,13 @@
-import { get_training_sets_metadata } from "./firebase-module.js";
-import { read_training_data } from "./firebase-module.js";
-import { save_new_training_set_to_databasebase } from "./firebase-module.js";
-import { downloadJson } from "./firebase-module.js";
-import { update_training_set } from "./firebase-module.js";
+import {get_training_sets_metadata} from "./firebase-module.js";
+import {read_training_data} from "./firebase-module.js";
+import {save_new_training_set_to_databasebase} from "./firebase-module.js";
+import {downloadJson} from "./firebase-module.js";
+import {update_training_set} from "./firebase-module.js";
 import {getDatabase, set, user,auth} from "./firebase-module.js";
 import {setDefaultProject} from "./firebase-module.js";
 import {delete_training_set} from "./firebase-module.js";
 
-let testjson=  {"description": "Training data for the Crafoord Crafoord AI project",
+/* let testjson=  {"description": "Training data for the Crafoord Crafoord AI project",
 "version": "1.0",
 "images": {
     "0": {
@@ -31,12 +31,12 @@ let testjson=  {"description": "Training data for the Crafoord Crafoord AI proje
         "concept": "donkey"
     }
   }
-}
+} */
 
-///////////////////////////////////////////////////////////
-const jsonFilePath = './ottenbyresized/birds.json'
+///////////////////////////////////////
+//const jsonFilePath = './ottenbyresized/birds.json'
 const imageFolder = 'ottenbyresized/'
-let unique_concepts = [] //This is central aand needs some more protection....
+let unique_concepts = [] //This is central and needs some more protection....
 
 let _metadata = null;
 export function getMetadata() {
@@ -45,7 +45,6 @@ export function getMetadata() {
 export function setMetadata(value) {
   // Add any additional logic or validation here
   _metadata = value;
-  console.log(getMetadata());
 }
 
 let _birds = null;
@@ -55,9 +54,7 @@ export function getBirds() {
 export function setBirds(value) {
   // Add any additional logic or validation here
   _birds = value;
-  //console.log(getStatistics());
 }
-
 
 function updateUniqueConcepts() {
   unique_concepts=[];
@@ -68,10 +65,16 @@ function updateUniqueConcepts() {
   return unique_concepts;
 }
 
+/**
+ * Returns an object containing statistics about the images and concepts in the application.
+ * @returns {Object} An object with the following properties:
+ * - number_of_images: The total number of images in the application.
+ * - number_of_concepts: The total number of unique concepts associated with the images.
+ * - number_of_void_images: The number of images that have the concept "void" associated with them.
+ * - [concept]: The number of images that have the specified concept associated with them. This property is repeated for each unique concept.
+ */
 function getStatistics(){
-  console.log("unique")
   let a = updateUniqueConcepts();
-  console.log(a)
   const statistics = {
     "number_of_images": Object.keys(getBirds().images).length,
     "number_of_concepts": unique_concepts.length,
@@ -99,11 +102,10 @@ function displayStatistics(){
   for (const concept in unique_concepts) {  //Add also for unused concepts in getMetadata().concept ??
     text += unique_concepts[concept]+": "+statistics[unique_concepts[concept]]+"<br>";
   }
-  
   document.getElementById("text_1").innerHTML =text;
 }
 
-//Set static texts (Not used at the moment)
+//Set static texts from jsonfile, instead of hardcoding them (Not used at the moment);
 async function populate() {
   let requestURL = 'resources/texts.json';
   let request = new Request(requestURL);
@@ -116,24 +118,7 @@ async function populate() {
   document.getElementById("text_2").innerHTML=texts.text_2;
 }
 
-
-
-async function populate_json() {
-  // fetch(jsonFilePath)
-  // .then(response => {
-  //     if (!response.ok) {throw new Error("Network error");}
-  //     return response.json(); 
-  // }).then(data => 
-  //     birds = data;
-  //     build_image_containers();
-  // })
-  // .catch(error => {console.error("Fetch problem:", error);});
-  // build_image_containers();
-  get_training_sets_metadata("vKFIvuQHJbMDmdaACZZMyRJXyMs1")
-  //read_training_data("vKFIvuQHJbMDmdaACZZMyRJXyMs1","-NeS3F4ipXpjEBnuEAqa");
-}
-
-export function select_training_data(metadata,uid) {
+export function select_training_data(metadata) {
   const dropdown = document.getElementById("drop_training")
   let foundDefault = false;
   while (dropdown.firstChild) {
@@ -141,7 +126,6 @@ export function select_training_data(metadata,uid) {
   }
   setBirds(null);
   setMetadata(null);
-
   metadata.forEach((doc) => {
     const description = doc.val().description;
     const li = document.createElement('li');
@@ -161,7 +145,7 @@ export function select_training_data(metadata,uid) {
         e.stopPropagation();
         e.preventDefault();
         var authData = auth.currentUser;
-        delete_training_set(authData.uid,doc.key);
+        delete_training_set(authData.uid,doc.key); //deletes a training set from the database
       });
       li.appendChild(button);  
    }  
@@ -169,22 +153,19 @@ export function select_training_data(metadata,uid) {
     ul.appendChild(li);
     //drop_training
     if(doc.val().default){
-      // read_training_data(uid,doc.key);
       foundDefault = true;
       _metadata = doc.val();
       _metadata["training_set_ref"] = doc.key;
       setMetadata(_metadata);
       console.log("metadata: ",getMetadata());
-      read_training_data("vKFIvuQHJbMDmdaACZZMyRJXyMs1",doc.key);
+      read_training_data(auth.currentUser.uid,doc.key);
     }
   });
-  
   dropdown.addEventListener("click",(event)=>{  
     event.preventDefault()
     const a = event.target;
     const key = a.dataset.id
     const title = a.innerHTML
-    console.log(key,title)
     setDefaultProject(key);
   });
 }
@@ -196,12 +177,10 @@ export function build_image_containers(){
     image_data_article.lastChild.removeEventListener("click", function(){});
     image_data_article.removeChild(image_data_article.lastChild);
   } 
-  console.log("getMetadata()",getMetadata())
   let imageContainer = createContainer("void","Label training data using the concepts created above");
   populate_void_container(getBirds(),imageContainer)
   document.getElementById("image_data").appendChild(imageContainer);
   createbuttons("Organise & reload","Save","Save as...","Download")
-  
   add_image_container_listener("void",imageContainer)
   //Create a container for each concept 
   try {
@@ -275,7 +254,6 @@ function add_image_container_listener(id,imageContainer){
       const clickedImage = event.target;
       const tooltiptext_e = clickedImage.nextElementSibling;
       const index = getMetadata().concept.indexOf(tooltiptext_e.textContent);
-      //console.log("Index:"+index+" length:"+unique_concepts.length+" unique_concepts:"+unique_concepts)
       if (index == -1){
         tooltiptext_e.textContent=getMetadata().concept[0];
       } else if (index == getMetadata().concept.length-1){
@@ -347,7 +325,6 @@ function createImageItem(e,path,concept,index){
   const tooltip_e = document.createElement('span');
   tooltip_e.classList.add("_tooltiptext")
   tooltip_e.classList.add("visible")
-  //console.log(concept)
   if (concept != "void") tooltip_e.textContent=concept; 
   row_e.appendChild(image_e);
   row_e.appendChild(tooltip_e);
@@ -361,14 +338,14 @@ function createbuttons(text1,text2,text3,text4){
   let button = document.createElement("button")
   button.type="button"
   button.classList.add("btn","btn-secondary","btn-sm","me-1")
-  button.textContent=text1
+  button.textContent=text1 //"Organise & reload"
   div.appendChild(button)
   //parent.appendChild(div)
   button.addEventListener("click",(event)=>{
     event.preventDefault()
-    build_image_containers()
-    });
-  // //update dataset buttom
+    //build_image_containers()
+  });
+  // //update dataset button
   clear_all_concepts(div);
   edit_concepts(div);
   firebase_save(div);
@@ -424,6 +401,7 @@ function edit_concepts(parent){
     const modalContainer = document.createElement('div');
     modalContainer.innerHTML = html;
     parent.appendChild(modalContainer);
+    document.addEventListener('DOMContentLoaded', function() {
     var myModal = document.getElementById('myModal_concept')
     var myInput = document.getElementById('myInput_concept')
     myModal.addEventListener('shown.bs.modal', function () {
@@ -448,10 +426,7 @@ function edit_concepts(parent){
     } catch (error) { 
       console.log("No concepts found in metadata")
     }
-
-
     const button = document.getElementById("addConcept")
-    //const dropdown = document.getElementById("inputGroupSelect03")
     button.addEventListener("click",(event)=>{
       event.preventDefault()
       const input = document.getElementById("conceptInput")
@@ -463,7 +438,7 @@ function edit_concepts(parent){
       var ret="";
       input.value,ret = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
       //unique_concepts.push(ret)
-      console.log("ret",getMetadata())
+      console.log("getMetadata()",getMetadata())
       getMetadata().concept.push(ret);
       if (input.value.length > 10) input.value = input.value.slice(0,10) + "..."
       option.value = ret
@@ -478,6 +453,7 @@ function edit_concepts(parent){
       const result = dropdown.value
     });
   });
+});
 }
 
 function firebase_save(parent){
@@ -487,6 +463,7 @@ function firebase_save(parent){
     const modalContainer = document.createElement('div');
     modalContainer.innerHTML = html;
     parent.appendChild(modalContainer);
+    document.addEventListener('DOMContentLoaded', function() {
     var myModal = document.getElementById('myModal_save')
     var myInput = document.getElementById('myInput_save')
     myModal.addEventListener('shown.bs.modal', function () {
@@ -539,14 +516,9 @@ function firebase_save(parent){
       if (authData) {
          update_training_set(authData.uid, getMetadata(), getBirds())
       }
-      console.log("metadata: ", getMetadata())
-      //cast div to modal to bootstrap modal
-      // var myModal = document.getElementById('exampleModal')
-      // const bootstrapModal = new bootstrap.Modal(myModal);
-      // bootstrapModal.hide();
-      //from stackoverflow
     });
   });
+});
 }
 
 function firebase_save_as(parent) {
@@ -556,13 +528,13 @@ function firebase_save_as(parent) {
       const modalContainer = document.createElement('div');
       modalContainer.innerHTML = html;
       parent.appendChild(modalContainer);
+      document.addEventListener('DOMContentLoaded', function() {
       var myModal = document.getElementById('myModal_saveAs')
       var myInput = document.getElementById('myInput_saveAs')
       myModal.addEventListener('shown.bs.modal', function () {
         myInput.focus()
       });
       myInput.innerHTML = "Save as";
-      //document.getElementById("saveChanges").innerHTML = "Save as new dataset on server";
       const modalSubtitle = document.getElementById("modalSubtitle_saveAs");
       modalSubtitle.innerHTML = "Version: " + getMetadata().version;
       const title = document.getElementById("modalTitle_saveAs");
@@ -570,7 +542,6 @@ function firebase_save_as(parent) {
       title.setAttribute("contenteditable", true); // make h5 editable
       title.addEventListener("click", function () {
         title.setAttribute("contenteditable", true);
-        //title.focus();
       });
       title.addEventListener("blur", function () {
         title.setAttribute("contenteditable", false);
@@ -580,7 +551,6 @@ function firebase_save_as(parent) {
       description.setAttribute("contenteditable", true); // make h5 editable
       description.addEventListener("click", function () {
         description.setAttribute("contenteditable", true);
-        //title.focus();
       });
       description.addEventListener("blur", function () {
         description.setAttribute("contenteditable", false);
@@ -590,10 +560,6 @@ function firebase_save_as(parent) {
         event.preventDefault()
         const title = document.getElementById("modalTitle_saveAs").innerHTML;
         const description = document.getElementById("modalInput_saveAs").innerHTML;
-        console.log("In SAVE AS")
-        console.log(document.getElementById("modalInput_saveAs").innerHTML);
-        console.log(document.getElementById("modalTitle_saveAs").innerHTML);
-
         getMetadata().title = title;
         getMetadata().description = description;
         getBirds().title = title;
@@ -606,11 +572,9 @@ function firebase_save_as(parent) {
           const key = save_new_training_set_to_databasebase(authData.uid, getBirds());
           if (key) {
             setDefaultProject(authData.uid, key);
-            //get_training_sets_metadata(userID);
-            //read_training_data(authData.uid, key);
           }
-        console.log("metadata: ", getMetadata())
       });
+    });
     });
 }
 
@@ -621,23 +585,25 @@ function clear_all_concepts(parent){
     const modalContainer = document.createElement('div');
     modalContainer.innerHTML = html;
     parent.appendChild(modalContainer);
-    var myInput = document.getElementById('myInput_clear_all_concepts')
-    var myModal = document.getElementById('myModal_clear_all_concepts')
-    myModal.addEventListener('shown.bs.modal', function () {
-        myInput.focus()
-    });
-    myInput.innerHTML = "Clear all concepts";
-    document.getElementById("clear_all_concepts").addEventListener("click",(event)=>{
-      event.preventDefault()
-      console.log ("getMeta",getMetadata());
-      let clear = getMetadata().concept;
-      //let clear = updateUniqueConcepts();
-      console.log ("clear",clear);
-      if (clear.length == 0) return;
-      clear.forEach((item)=>{
-        clear_concept(item);
+    document.addEventListener('DOMContentLoaded', function() {
+      var myInput = document.getElementById('myInput_clear_all_concepts');
+      var myModal = document.getElementById('myModal_clear_all_concepts');
+      myModal.addEventListener('shown.bs.modal', function () {
+          myInput.focus()
       });
-      build_image_containers();
+      myInput.innerHTML = "Clear all concepts";
+      document.getElementById("clear_all_concepts").addEventListener("click",(event)=>{
+        event.preventDefault()
+        console.log ("getMeta",getMetadata());
+        let clear = getMetadata().concept;
+        //let clear = updateUniqueConcepts();
+        console.log ("clear",clear);
+        if (clear.length == 0) return;
+        clear.forEach((item)=>{
+          clear_concept(item);
+        });
+        build_image_containers();
+      });
     });
   });
 }
@@ -655,9 +621,9 @@ function clear_concept(concept){
 export function loggedIn(user){
   
   if(user){
-    //get_training_sets_metadata(user.uid)
     console.log("Logged in (onAuthStateChanged)",user.displayName);
-    populate_json()
+    get_training_sets_metadata(user.uid);
+    //populate_json();
     //listeners()
     collapsable();
   }else{
