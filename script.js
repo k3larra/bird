@@ -7,34 +7,6 @@ import {getDatabase, set, user,auth} from "./firebase-module.js";
 import {setDefaultProject} from "./firebase-module.js";
 import {delete_training_set} from "./firebase-module.js";
 
-/* let testjson=  {"description": "Training data for the Crafoord Crafoord AI project",
-"version": "1.0",
-"images": {
-    "0": {
-        "image_location": "ACSCI\\HÖST\\10\\CP 41137 ACSCI 10 2011-10-02\\DSC_7901.JPG",
-        "concept": "bird"
-    },
-    "1": {
-        "image_location": "ACSCI\\HÖST\\10\\CP 41137 ACSCI 10 2011-10-02\\DSC_7902.JPG",
-        "concept": "horse"
-    },
-    "2": {
-        "image_location": "ACSCI\\HÖST\\10\\CP 41137 ACSCI 10 2011-10-02\\DSC_7903.JPG",
-        "concept": "dude"
-    },
-    "3": {
-        "image_location": "ACSCI\\HÖST\\10\\CP 41137 ACSCI 10 2011-10-02\\DSC_7904.JPG",
-        "concept": "void"
-    },
-    "4": {
-        "image_location": "ACSCI\\HÖST\\10\\CP 41137 ACSCI 10 2011-10-02\\DSC_7906.JPG",
-        "concept": "donkey"
-    }
-  }
-} */
-
-///////////////////////////////////////
-//const jsonFilePath = './ottenbyresized/birds.json'
 const imageFolder = 'ottenbyresized/'
 let unique_concepts = [] //This is central and needs some more protection....
 
@@ -119,7 +91,10 @@ async function populate() {
 }
 
 export function select_training_data(metadata) {
-  const dropdown = document.getElementById("drop_training")
+  console.log("In select_training_data");
+  const dropdown = document.getElementById("drop_training");
+  dropdown.removeEventListener("click",dropdownListener);
+  dropdown.removeEventListener("click",deleteListener);
   let foundDefault = false;
   while (dropdown.firstChild) {
     dropdown.removeChild(dropdown.lastChild);
@@ -139,14 +114,21 @@ export function select_training_data(metadata) {
       const button = document.createElement('button');
       li.style.display = "flex";
       button.setAttribute('type', 'button');
-      button.innerHTML = '<span aria-hidden="true">&times;</span>';
+      //button.innerHTML = '<span aria-hidden="true">&times;</span>';
       button.setAttribute('aria-label', 'Close');
-      button.addEventListener('click', (e) => {
+      
+      const span = document.createElement('span');
+      span.setAttribute('aria-hidden', 'true');
+      span.innerHTML = '&times;';
+      span.dataset.id = doc.key;
+      button.appendChild(span);
+      /* button.addEventListener('click', (e) => {
         e.stopPropagation();
         e.preventDefault();
         var authData = auth.currentUser;
         delete_training_set(authData.uid,doc.key); //deletes a training set from the database
-      });
+      }); */
+      button.addEventListener('click', deleteListener);
       li.appendChild(button);  
    }  
     const ul = document.querySelector('ul.dropdown-menu');
@@ -161,17 +143,41 @@ export function select_training_data(metadata) {
       read_training_data(auth.currentUser.uid,doc.key);
     }
   });
-  dropdown.addEventListener("click",(event)=>{  
-    event.preventDefault()
+  dropdown.addEventListener("click",dropdownListener);
+}
+
+function dropdownListener(event){
+  event.preventDefault()
     const a = event.target;
     const key = a.dataset.id
     const title = a.innerHTML
     setDefaultProject(key);
-  });
+}
+
+function deleteListener(event){
+  event.stopPropagation();
+  event.preventDefault()
+  var id = auth.currentUser.uid;
+  console.log("id",id);
+  console.log("html",event.target.dataset.id);
+  delete_training_set(id,event.target.dataset.id); //deletes a training set from the database
 }
 
 export function build_image_containers(){
+  console.log("In build_image_containers");
   //Delete all children of main and their listners
+  //First make sure that all listeners are removed
+  //using the spread operator to convert the HTMLCollection to an array 
+  [...document.getElementsByClassName("btn-listener")].forEach((item)=>{
+    item.removeEventListener("click", handleChildClickButton);
+  });
+  [...document.getElementsByClassName("modal")].forEach((item)=>{
+    item.remove;
+  });
+  /* var buttonDiv = document.getElementById("button_div");
+  if (buttonDiv!=null){
+  buttonDiv.innerHTML = "";
+  } */
   const image_data_article = document.getElementById("image_data");
   while (image_data_article.firstChild) {
     image_data_article.lastChild.removeEventListener("click", function(){});
@@ -180,7 +186,7 @@ export function build_image_containers(){
   let imageContainer = createContainer("void","Label training data using the concepts created above");
   populate_void_container(getBirds(),imageContainer)
   document.getElementById("image_data").appendChild(imageContainer);
-  createbuttons("Organise & reload","Save","Save as...","Download")
+  createbuttons("Organise & reload","Download")
   add_image_container_listener("void",imageContainer)
   //Create a container for each concept 
   try {
@@ -270,35 +276,6 @@ function add_image_container_listener(id,imageContainer){
   });
   
 }
-/*************/
-function listeners(){
-  //dropdown
-  // const button = document.getElementById("addConcept")
-  // const dropdown = document.getElementById("inputGroupSelect03")
-  // button.addEventListener("click",(event)=>{
-  //   event.preventDefault()
-  //   const input = document.getElementById("conceptInput")
-  //   const option = document.createElement("option")
-  //   if (input.value == "") return
-  //   for (let i=0; i<dropdown.length; i++){
-  //     if (dropdown[i].value == input.value) return
-  //   };
-  //   var ret="";
-  //   input.value,ret = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
-  //   unique_concepts.push(ret)
-  //   if (input.value.length > 10) input.value = input.value.slice(0,10) + "..."
-  //   option.value = ret
-  //   option.text = input.value
-  //   input.value = ""
-  //   dropdown.appendChild(option)
-  // });
-
-  // dropdown.addEventListener("click",(event)=>{
-  //   event.preventDefault()
-  //   const input = document.getElementById("conceptInput")
-  //   const result = dropdown.value
-  // });
-}
 
 /*Create containers and content*/
 function createContainer(id,header){
@@ -331,37 +308,125 @@ function createImageItem(e,path,concept,index){
   e.appendChild(row_e)
 }
 
-function createbuttons(text1,text2,text3,text4){
-  const div = document.createElement("div")
-  div.classList.add("container","overflow-auto","border" ,"border-2","rounded-3","p-1","m-1","bg-light","bg-gradient","d-flex", "justify-content-center")
-  div.id  = "button_div.."
+function handleModalFocus(event) {
+  event.preventDefault();
+  if (event.target.id == "myModal_concept") {
+    document.getElementById('myInput_concept').focus();
+  }
+  if(event.target.id == "myModal_save"){
+    document.getElementById('myInput_save').focus();
+  }
+  if(event.target.id == "myModal_saveAs"){
+    document.getElementById('myInput_saveAs').focus();
+  }
+  if(event.target.id == "myModal_discard_changes"){
+    document.getElementById('myInput_discard_changes').focus();
+  }
+}
+
+
+function handleChildClickButton(event) {
+  event.preventDefault();
+  console.log("In handleChildClick");
+  if (event.target.id == "addConcept") {
+    console.log("in edit Concepts");
+    const input = document.getElementById("conceptInput")
+    const option = document.createElement("option")
+    const dropdown = document.getElementById("inputGroupSelect03")
+    if (input.value == "") return
+    for (let i = 0; i < dropdown.length; i++) {
+      if (dropdown[i].value == input.value) return
+    };
+    var ret = "";
+    input.value, ret = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
+    //unique_concepts.push(ret)
+    console.log("getMetadata()", getMetadata())
+    getMetadata().concept.push(ret);
+    if (input.value.length > 10) input.value = input.value.slice(0, 10) + "..."
+    option.value = ret
+    option.text = input.value
+    input.value = ""
+    dropdown.appendChild(option)
+  }
+  if (event.target.id == "saveChanges_save") {
+    console.log("firebase_save");
+    const title = document.getElementById("modalTitle_save").innerHTML;
+    const description = document.getElementById("modalInput_save").innerHTML;
+    console.log("In SAVE")
+    console.log(document.getElementById("modalInput_save").innerHTML);
+    console.log(document.getElementById("modalTitle_save").innerHTML);
+    getMetadata().title = title;
+    getMetadata().description = description;
+    getBirds().title = title;
+    getBirds().description = description;
+
+    let v = parseInt(getBirds().version);
+    getBirds().version = (v + 1).toString();
+    getMetadata().version = (v + 1).toString();
+    console.log("version", getMetadata().version)
+    var authData = auth.currentUser;
+    const db = getDatabase();
+    console.log("authData: ", authData.uid)
+    if (authData) {
+      update_training_set(authData.uid, getMetadata(), getBirds())
+    }
+  }
+  if(event.target.id == "saveChanges_saveAs"){
+    console.log("in firebase_save_as");
+    const title = document.getElementById("modalTitle_saveAs").innerHTML;
+    const description = document.getElementById("modalInput_saveAs").innerHTML;
+    getMetadata().title = title;
+    getMetadata().description = description;
+    getBirds().title = title;
+    getBirds().description = description;
+    getBirds().version = 1;
+    getMetadata().version = 1;
+    var authData = auth.currentUser;
+    const db = getDatabase();
+    console.log("authData: ", authData.uid)
+      const key = save_new_training_set_to_databasebase(authData.uid, getBirds());
+      if (key) {
+        setDefaultProject(authData.uid, key);
+      }
+  }
+  if (event.target.id == "discard_changes") {
+    console.log("In discard changes");
+    get_training_sets_metadata(auth.currentUser.uid);
+    //build_image_containers();
+  }
+
+}
+
+function createbuttons(text1,text4){
+  console.log("In createbuttons");
+  const buttonDiv = document.createElement("div")
+  buttonDiv.classList.add("container","overflow-auto","border" ,"border-2","rounded-3","p-1","m-1","bg-light","bg-gradient","d-flex", "justify-content-center")
+  buttonDiv.id  = "button_div"
+  document.getElementById("image_data").appendChild(buttonDiv);
   let button = document.createElement("button")
   button.type="button"
   button.classList.add("btn","btn-secondary","btn-sm","me-1")
   button.textContent=text1 //"Organise & reload"
-  div.appendChild(button)
+  buttonDiv.appendChild(button)
   //parent.appendChild(div)
   button.addEventListener("click",(event)=>{
     event.preventDefault()
-    //build_image_containers()
+    build_image_containers()
   });
-  // //update dataset button
-  clear_all_concepts(div);
-  edit_concepts(div);
-  firebase_save(div);
-  firebase_save_as(div); 
-  //download json   
   button = document.createElement("button")
   button.type="button"
   button.classList.add("btn","btn-secondary","btn-sm","me-1")
-  button.textContent=text4
-  div.appendChild(button)
+  button.textContent=text4 //"Download"
+  buttonDiv.appendChild(button)
       button.addEventListener("click",(event)=>{
         event.preventDefault()
         downloadJson(getBirds());
       });
-  document.getElementById("image_data").appendChild(div);
-  //parent.appendChild(div)      
+  document.getElementById("image_data").appendChild(buttonDiv);
+  edit_concepts();
+  firebase_save();
+  firebase_save_as(); 
+  discard_changes();
 }
 
 function changeConcept(index,concept){
@@ -394,19 +459,32 @@ function collapsable(){
   });
 }
 
-function edit_concepts(parent){
+function edit_concepts(){
+  var myInput = document.getElementById('myInput_concept');
+  var myModal = document.getElementById('myModal_concept');
+  console.log("EXIST myModal",myModal);
+  console.log("EXIST myInput",myInput);
+  if(myModal != null&&myInput != null){
+    myModal.remove();
+    myInput.remove();
+  }
   fetch('./resources/modal_concept.html')
   .then(response => response.text())
   .then(html => {
+    const buttonDiv = document.getElementById("button_div");
     const modalContainer = document.createElement('div');
     modalContainer.innerHTML = html;
-    parent.appendChild(modalContainer);
-    document.addEventListener('DOMContentLoaded', function() {
-    var myModal = document.getElementById('myModal_concept')
-    var myInput = document.getElementById('myInput_concept')
-    myModal.addEventListener('shown.bs.modal', function () {
+    console.log("modalContainer",modalContainer);
+    buttonDiv.appendChild(modalContainer);
+    console.log("perent",parent);
+    //document.addEventListener('DOMContentLoaded', function() {
+    //var myModal = document.getElementById('myModal_concept')
+    var myInput = document.getElementById('myInput_concept');
+    //console.log("myModal",myModal);
+    console.log("myInput",myInput);
+    /* myModal.addEventListener('shown.bs.modal', function () {
         myInput.focus()
-    });
+    }); */
     myInput.innerHTML = "Edit concepts";
     const dropdown = document.getElementById("inputGroupSelect03")
     //document.getElementById("concept_section").style.display = "none"; //REMOVE LATER
@@ -426,9 +504,10 @@ function edit_concepts(parent){
     } catch (error) { 
       console.log("No concepts found in metadata")
     }
-    const button = document.getElementById("addConcept")
-    button.addEventListener("click",(event)=>{
-      event.preventDefault()
+    document.getElementById("addConcept").addEventListener("click",handleChildClickButton);
+/*     button.addEventListener("click",(event)=>{
+      event.preventDefault();
+      console.log("in edit Concepts");
       const input = document.getElementById("conceptInput")
       const option = document.createElement("option")
       if (input.value == "") return
@@ -445,96 +524,104 @@ function edit_concepts(parent){
       option.text = input.value
       input.value = ""
       dropdown.appendChild(option)
-    });
+    }); */
   
     dropdown.addEventListener("click",(event)=>{
       event.preventDefault()
       const input = document.getElementById("conceptInput")
       const result = dropdown.value
     });
-  });
+  //});
 });
 }
 
-function firebase_save(parent){
+function firebase_save() {
   fetch('./resources/modal_save.html')
-  .then(response => response.text())
-  .then(html => {
-    const modalContainer = document.createElement('div');
-    modalContainer.innerHTML = html;
-    parent.appendChild(modalContainer);
-    document.addEventListener('DOMContentLoaded', function() {
-    var myModal = document.getElementById('myModal_save')
-    var myInput = document.getElementById('myInput_save')
-    myModal.addEventListener('shown.bs.modal', function () {
-        myInput.focus()
-    });
-    myInput.innerHTML = "Save";
-    //document.getElementById("saveChanges").innerHTML = "Update dataset on server";
-    const modalSubtitle = document.getElementById("modalSubtitle_save");
-    modalSubtitle.innerHTML = "Version: " + getMetadata().version;
-    const title = document.getElementById("modalTitle_save");
-    title.innerHTML = getMetadata().title;
-    title.setAttribute("contenteditable", true); // make h5 editable
-    title.addEventListener("click", function () {
-      title.setAttribute("contenteditable", true);
-      //title.focus();
-    });
-    title.addEventListener("blur", function () {
-      title.setAttribute("contenteditable", false);
-    });
-    const description = document.getElementById("modalInput_save")
-    description.innerHTML = getMetadata().description;
-    description.setAttribute("contenteditable", true); // make h5 editable
-    description.addEventListener("click", function () {
-      description.setAttribute("contenteditable", true);
-      //title.focus();
-    });
-    description.addEventListener("blur", function () {
-      description.setAttribute("contenteditable", false);
-    });
+    .then(response => response.text())
+    .then(html => {
+      const buttonDiv = document.getElementById("button_div");
+      const modalContainer = document.createElement('div');
+      modalContainer.innerHTML = html;
+      buttonDiv.appendChild(modalContainer);
+      //document.addEventListener('DOMContentLoaded', function () {
+        //var myModal = document.getElementById('myModal_save')
+        var myInput = document.getElementById('myInput_save')
+        //console.log("myModal",myModal);
+      console.log("myInput",myInput);
+        /* myModal.addEventListener('shown.bs.modal', function () {
+          myInput.focus()
+        }); */
+        myInput.innerHTML = "Save changes to server";
+        //document.getElementById("saveChanges").innerHTML = "Update dataset on server";
+        const modalSubtitle = document.getElementById("modalSubtitle_save");
+        modalSubtitle.innerHTML = "Version: " + getMetadata().version;
+        const title = document.getElementById("modalTitle_save");
+        title.innerHTML = getMetadata().title;
+        title.setAttribute("contenteditable", true); // make h5 editable
+        title.addEventListener("click", function () {
+          title.setAttribute("contenteditable", true);
+          //title.focus();
+        });
+        title.addEventListener("blur", function () {
+          title.setAttribute("contenteditable", false);
+        });
+        const description = document.getElementById("modalInput_save")
+        description.innerHTML = getMetadata().description;
+        description.setAttribute("contenteditable", true); // make h5 editable
+        description.addEventListener("click", function () {
+          description.setAttribute("contenteditable", true);
+          //title.focus();
+        });
+        description.addEventListener("blur", function () {
+          description.setAttribute("contenteditable", false);
+        });
+        document.getElementById("saveChanges_save").addEventListener("click",handleChildClickButton);
+        /* document.getElementById("saveChanges_save").addEventListener("click", (event) => {
+          event.preventDefault()
+          console.log("firebase_save");
+          const title = document.getElementById("modalTitle_save").innerHTML;
+          const description = document.getElementById("modalInput_save").innerHTML;
+          console.log("In SAVE")
+          console.log(document.getElementById("modalInput_save").innerHTML);
+          console.log(document.getElementById("modalTitle_save").innerHTML);
+          getMetadata().title = title;
+          getMetadata().description = description;
+          getBirds().title = title;
+          getBirds().description = description;
 
-    document.getElementById("saveChanges_save").addEventListener("click", (event) => {
-      event.preventDefault()
-      const title = document.getElementById("modalTitle_save").innerHTML;
-      const description = document.getElementById("modalInput_save").innerHTML;
-      console.log("In SAVE")
-      console.log(document.getElementById("modalInput_save").innerHTML);
-      console.log(document.getElementById("modalTitle_save").innerHTML);
-      getMetadata().title = title;
-      getMetadata().description = description;
-      getBirds().title = title;
-      getBirds().description = description;
-
-      let v = parseInt(getBirds().version);
-      getBirds().version = (v + 1).toString();
-      getMetadata().version = (v + 1).toString();
-      console.log("version", getMetadata().version)
-      var authData = auth.currentUser;
-      const db = getDatabase();
-      console.log("authData: ", authData.uid)
-      if (authData) {
-         update_training_set(authData.uid, getMetadata(), getBirds())
-      }
+          let v = parseInt(getBirds().version);
+          getBirds().version = (v + 1).toString();
+          getMetadata().version = (v + 1).toString();
+          console.log("version", getMetadata().version)
+          var authData = auth.currentUser;
+          const db = getDatabase();
+          console.log("authData: ", authData.uid)
+          if (authData) {
+            update_training_set(authData.uid, getMetadata(), getBirds())
+          }
+        }); */
+      //});
     });
-  });
-});
 }
 
-function firebase_save_as(parent) {
+function firebase_save_as() {
   fetch('./resources/modal_save_as.html')
     .then(response => response.text())
     .then(html => {
+      const buttonDiv = document.getElementById("button_div");
       const modalContainer = document.createElement('div');
       modalContainer.innerHTML = html;
-      parent.appendChild(modalContainer);
-      document.addEventListener('DOMContentLoaded', function() {
-      var myModal = document.getElementById('myModal_saveAs')
+      buttonDiv.appendChild(modalContainer);
+      //document.addEventListener('DOMContentLoaded', function() {
+      //var myModal = document.getElementById('myModal_saveAs')
       var myInput = document.getElementById('myInput_saveAs')
-      myModal.addEventListener('shown.bs.modal', function () {
+      //console.log("myModal",myModal);
+      console.log("myInput",myInput);
+      document.getElementById('myModal_saveAs').addEventListener('shown.bs.modal', handleModalFocus);
+      /* myModal.addEventListener('shown.bs.modal', function () {
         myInput.focus()
-      });
-      myInput.innerHTML = "Save as";
+      }); */
+      myInput.innerHTML = "Save as new dataset";
       const modalSubtitle = document.getElementById("modalSubtitle_saveAs");
       modalSubtitle.innerHTML = "Version: " + getMetadata().version;
       const title = document.getElementById("modalTitle_saveAs");
@@ -555,9 +642,10 @@ function firebase_save_as(parent) {
       description.addEventListener("blur", function () {
         description.setAttribute("contenteditable", false);
       });
-
-      document.getElementById("saveChanges_saveAs").addEventListener("click", (event) => {
+      document.getElementById("saveChanges_saveAs").addEventListener("click",handleChildClickButton);
+      /* document.getElementById("saveChanges_saveAs").addEventListener("click", (event) => {
         event.preventDefault()
+        console.log("in firebase_save_as");
         const title = document.getElementById("modalTitle_saveAs").innerHTML;
         const description = document.getElementById("modalInput_saveAs").innerHTML;
         getMetadata().title = title;
@@ -573,42 +661,51 @@ function firebase_save_as(parent) {
           if (key) {
             setDefaultProject(authData.uid, key);
           }
-      });
-    });
+      }); */
+    //});
     });
 }
 
-function clear_all_concepts(parent){
-  fetch('./resources/modal_clear_all_concepts.html')
+function discard_changes(){
+  fetch('./resources/discard_changes.html')
   .then(response => response.text())
   .then(html => {
+    const buttonDiv = document.getElementById("button_div");
     const modalContainer = document.createElement('div');
     modalContainer.innerHTML = html;
-    parent.appendChild(modalContainer);
-    document.addEventListener('DOMContentLoaded', function() {
-      var myInput = document.getElementById('myInput_clear_all_concepts');
-      var myModal = document.getElementById('myModal_clear_all_concepts');
-      myModal.addEventListener('shown.bs.modal', function () {
+    console.log("modalContainer",modalContainer);
+    buttonDiv.appendChild(modalContainer);
+    //document.addEventListener('DOMContentLoaded', function() {
+      var myInput = document.getElementById('myInput_discard_changes');
+      var myModal = document.getElementById('myModal_discard_changes');
+      console.log("myModal",myModal);
+      console.log("myInput",myInput);
+     /*  myModal.addEventListener('shown.bs.modal', function () {
           myInput.focus()
-      });
-      myInput.innerHTML = "Clear all concepts";
-      document.getElementById("clear_all_concepts").addEventListener("click",(event)=>{
-        event.preventDefault()
-        console.log ("getMeta",getMetadata());
-        let clear = getMetadata().concept;
-        //let clear = updateUniqueConcepts();
-        console.log ("clear",clear);
-        if (clear.length == 0) return;
-        clear.forEach((item)=>{
-          clear_concept(item);
-        });
-        build_image_containers();
-      });
+      }); */
+      document.getElementById('myModal_discard_changes').addEventListener('shown.bs.modal', handleModalFocus);
+      myInput.innerHTML = "Discard changes";
+      console.log("Before event listener");
+      document.getElementById("discard_changes").addEventListener("click",handleChildClickButton);
+      /* document.getElementById("discard_changes").addEventListener("click",(event)=>{
+        event.preventDefault();
+        console.log("In discard changes");
+        get_training_sets_metadata(auth.currentUser.uid);
+        //build_image_containers();
+      }); */
     });
-  });
+  //});
 }
 
 function clear_concept(concept){
+/*   console.log ("getMeta",getMetadata());
+  let clear = getMetadata().concept;
+  //let clear = updateUniqueConcepts();
+  console.log ("clear",clear);
+  if (clear.length == 0) return;
+  clear.forEach((item)=>{
+    clear_concept(item);
+  }); */
   getBirds().images.forEach((item)=>{
     if (item.concept == concept) item.concept = "void";
   });
@@ -619,7 +716,6 @@ function clear_concept(concept){
 
 
 export function loggedIn(user){
-  
   if(user){
     console.log("Logged in (onAuthStateChanged)",user.displayName);
     get_training_sets_metadata(user.uid);

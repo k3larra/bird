@@ -1,0 +1,22 @@
+<button type="button" id="myInput_discard_changes" class="btn btn-secondary btn-sm me-1" data-bs-toggle="modal" data-bs-target="#myModal_discard_changes">
+    Discard changes.
+  </button>
+
+<div class="modal fade" id="myModal_discard_changes" tabindex="-1">
+<div class="modal-dialog">
+    <div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle_confirm">Confirm discard changes</h5><br>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+        <p id="modalInput_discard_changes"> This resets all changes made during this session that has not been saved to the server.</p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        <button type="button" id="discard_changes" class="btn btn-secondary btn-sm btn-listener" data-bs-dismiss="modal">Discard changes</button>
+    </div>
+    </div>
+</div>
+</div>
+

@@ -179,8 +179,8 @@ export function downloadJson(birds) {
   a.click();
   URL.revokeObjectURL(url);
   //try
-  var authData = auth.currentUser;
-  delete_training_set(authData.key, "-NfLoDusAbfTn8qV8mT8")
+  /* var authData = auth.currentUser;
+  delete_training_set(authData.key, "-NfLoDusAbfTn8qV8mT8") */
 }
 
 
@@ -246,7 +246,7 @@ export function delete_training_set(userID, training_set_ref) {
     });
   set(metadataRef, null).then(() => {
     console.log('Metadata has been successfully deleted from the database');
-    get_training_sets_metadata(userID)
+    //get_training_sets_metadata(userID)
   })
     .catch((error) => {
       console.error('Error deleting Metadata:', error);
