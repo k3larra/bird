@@ -9,6 +9,7 @@ import {delete_training_set} from "./firebase-module.js";
 
 const imageFolder = 'ottenbyresized/'
 let unique_concepts = [] //This is central and needs some more protection....
+let deleteModal=null;
 
 let _metadata = null;
 export function getMetadata() {
@@ -101,6 +102,21 @@ export function select_training_data(metadata) {
   }
   setBirds(null);
   setMetadata(null);
+  fetch('./resources/delete_confirm.html')
+  .then(response => response.text())
+  .then(html => {
+    //const buttonDiv = document.getElementById("button_div");
+    const modalContainer = document.createElement('div');
+    modalContainer.innerHTML = html;
+    const headerElement = document.getElementsByTagName("header")[0];
+    console.log("headerElement",headerElement);
+    headerElement.appendChild(modalContainer);
+    //const deleteModal = document.getElementById('myModal_delete_dataset');
+    //console.log("myModal",deleteModal);
+    //modalContainer.appendChild(deleteModal);
+    //fix content
+  });
+  //document.addEventListener('DOMContentLoaded', function() {
   metadata.forEach((doc) => {
     const description = doc.val().description;
     const li = document.createElement('li');
@@ -110,29 +126,62 @@ export function select_training_data(metadata) {
     a.dataset.id = doc.key;
     a.textContent = doc.val().title;
     li.appendChild(a);
-    if(!doc.val().default){
+    li.style.display = "flex";
+   if(!doc.val().default){
       const button = document.createElement('button');
-      li.style.display = "flex";
       button.setAttribute('type', 'button');
+      button.id = doc.key;
+      button.classList.add('btn','btn-outline-danger','btn-sm');
+      button.setAttribute('data-bs-toggle', 'modal');
+      button.setAttribute('data-toggle', 'tooltip'); // Enable tooltip
+      button.setAttribute('data-title', 'Delete dataset: '+doc.val().title); // Set the tooltip message
+      button.setAttribute('data-bs-target', '#myModal_delete_dataset');
+      button.setAttribute('data-lhtitle', doc.val().title);
+      button.setAttribute('data-lhdescription', doc.val().description);
+      button.innerHTML = 'X';
+      button.style.display = 'inline-flex';
       //button.innerHTML = '<span aria-hidden="true">&times;</span>';
-      button.setAttribute('aria-label', 'Close');
+      console.log("doc.val().title",doc.val().title);
+      console.log("doc.val().description",doc.val().description);
+      const modal = document.getElementById('modalInput_delete_dataset');
+      console.log("modal",modal);
+      li.appendChild(button);
+       // or button.style.display = 'inline-flex';
+      //document.addEventListener('DOMContentLoaded', function() {
+      //button.addEventListener('click', () => {
+      //  document.getElementById('myModal_delete_dataset').show();
+      //});
+    }
+      //button.addEventListener('click',deleteListener);
+      //button.setAttribute('aria-label', 'Close');
       
-      const span = document.createElement('span');
-      span.setAttribute('aria-hidden', 'true');
-      span.innerHTML = '&times;';
-      span.dataset.id = doc.key;
-      button.appendChild(span);
+      //const span = document.createElement('span');
+      //span.setAttribute('aria-hidden', 'true');
+      //span.innerHTML = '&times;';
+      //span.dataset.id = doc.key;
+      //button.appendChild(span);
       /* button.addEventListener('click', (e) => {
         e.stopPropagation();
         e.preventDefault();
         var authData = auth.currentUser;
         delete_training_set(authData.uid,doc.key); //deletes a training set from the database
       }); */
-      button.addEventListener('click', deleteListener);
-      li.appendChild(button);  
-   }  
-    const ul = document.querySelector('ul.dropdown-menu');
-    ul.appendChild(li);
+/*           console.log("doc.val().title",doc.val().title);
+        console.log("doc.val().description",doc.val().description);
+        const header = document.getElementById('modalInput_delete_dataset');
+        header.innerHTML=doc.val().title;
+        document.getElementById('modalSubtitle_delete_dataset').innerHTML=doc.val().description;
+        //buttonDiv.appendChild(modalContainer);
+        //document.addEventListener('DOMContentLoaded', function() {
+        //var myModal = document.getElementById('myModal_concept')
+        //var myInput = document.getElementById('myInput_delete_dataset');
+        //myInput.addEventListener('click', deleteListener);
+        var myDeleteButton = document.getElementById('delete_dataset_confirm');
+        myDeleteButton.dataset.id=doc.key;
+        myDeleteButton.addEventListener('click', deleteListener); */
+
+   //}  
+    
     //drop_training
     if(doc.val().default){
       foundDefault = true;
@@ -142,25 +191,48 @@ export function select_training_data(metadata) {
       console.log("metadata: ",getMetadata());
       read_training_data(auth.currentUser.uid,doc.key);
     }
+    
+    const ul = document.querySelector('ul.dropdown-menu');
+    ul.appendChild(li);
+    console.log("ul",ul);
+    console.log("li",li);
+    ul.appendChild(li);
   });
   dropdown.addEventListener("click",dropdownListener);
 }
 
 function dropdownListener(event){
   event.preventDefault()
+  if (event.target.tagName === 'A') {
     const a = event.target;
     const key = a.dataset.id
     const title = a.innerHTML
     setDefaultProject(key);
+  }
+  if(event.target.tagName === 'BUTTON'){
+   /*  if (deleteModal==null){
+      deleteModal= new bootstrap.Modal(document.getElementById('myModal_delete_dataset'));
+      
+    } */
+    console.log("event.target",event.target.dataset);
+    document.getElementById("delete_dataset_confirm").addEventListener("click",deleteListener);
+    console.log("In dropdownListener Button",deleteModal);
+    document.getElementById("modalTitle_delete").innerHTML=event.target.dataset.lhtitle;
+    document.getElementById('modalSubtitle_delete_dataset').innerHTML=event.target.dataset.lhdescription;
+    document.getElementById("delete_dataset_confirm").dataset.id=event.target.id;
+    //deleteModal.show();
+    
+  }
+
 }
 
 function deleteListener(event){
   event.stopPropagation();
-  event.preventDefault()
-  var id = auth.currentUser.uid;
-  console.log("id",id);
-  console.log("html",event.target.dataset.id);
-  delete_training_set(id,event.target.dataset.id); //deletes a training set from the database
+  event.preventDefault();
+  var uid = auth.currentUser.uid;
+  console.log("id",uid);
+  console.log("dataset_id",event.target.dataset.id);
+  delete_training_set(uid,event.target.dataset.id); //deletes a training set from the database
 }
 
 export function build_image_containers(){
@@ -329,7 +401,7 @@ function handleChildClickButton(event) {
   event.preventDefault();
   console.log("In handleChildClick");
   if (event.target.id == "addConcept") {
-    console.log("in edit Concepts");
+    //console.log("in edit Concepts");
     const input = document.getElementById("conceptInput")
     const option = document.createElement("option")
     const dropdown = document.getElementById("inputGroupSelect03")
@@ -341,20 +413,25 @@ function handleChildClickButton(event) {
     input.value, ret = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
     //unique_concepts.push(ret)
     console.log("getMetadata()", getMetadata())
+    if (getMetadata().concept == null) {
+      getMetadata().concept = []
+    };
     getMetadata().concept.push(ret);
-    if (input.value.length > 10) input.value = input.value.slice(0, 10) + "..."
+    if (input.value.length > 10) {
+      input.value = input.value.slice(0, 10) + "..."
+    }
     option.value = ret
     option.text = input.value
     input.value = ""
     dropdown.appendChild(option)
   }
   if (event.target.id == "saveChanges_save") {
-    console.log("firebase_save");
+    //console.log("firebase_save");
     const title = document.getElementById("modalTitle_save").innerHTML;
     const description = document.getElementById("modalInput_save").innerHTML;
-    console.log("In SAVE")
-    console.log(document.getElementById("modalInput_save").innerHTML);
-    console.log(document.getElementById("modalTitle_save").innerHTML);
+    //console.log("In SAVE")
+    //console.log(document.getElementById("modalInput_save").innerHTML);
+    //console.log(document.getElementById("modalTitle_save").innerHTML);
     getMetadata().title = title;
     getMetadata().description = description;
     getBirds().title = title;
@@ -363,24 +440,24 @@ function handleChildClickButton(event) {
     let v = parseInt(getBirds().version);
     getBirds().version = (v + 1).toString();
     getMetadata().version = (v + 1).toString();
-    console.log("version", getMetadata().version)
+    //console.log("version", getMetadata().version)
     var authData = auth.currentUser;
     const db = getDatabase();
-    console.log("authData: ", authData.uid)
+    //console.log("authData: ", authData.uid)
     if (authData) {
       update_training_set(authData.uid, getMetadata(), getBirds())
     }
   }
   if(event.target.id == "saveChanges_saveAs"){
-    console.log("in firebase_save_as");
+    //console.log("in firebase_save_as");
     const title = document.getElementById("modalTitle_saveAs").innerHTML;
     const description = document.getElementById("modalInput_saveAs").innerHTML;
-    getMetadata().title = title;
-    getMetadata().description = description;
+    //getMetadata().title = title;
+    //getMetadata().description = description;
     getBirds().title = title;
     getBirds().description = description;
     getBirds().version = 1;
-    getMetadata().version = 1;
+    //getMetadata().version = 1;
     var authData = auth.currentUser;
     const db = getDatabase();
     console.log("authData: ", authData.uid)

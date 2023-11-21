@@ -3,7 +3,7 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.3.0/firebase
 import { getDatabase, ref, set, child, push, update,onValue} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-database.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js"; 
 //import { getAuth, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/9.5.0/firebase-auth-compat.js"
-import {loggedIn, build_image_containers, select_training_data}   from "./script.js";
+import {loggedIn, build_image_containers, select_training_data, getMetadata}   from "./script.js";
 import { getBirds, setBirds } from './script.js';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -103,7 +103,9 @@ export function save_new_training_set_to_databasebase(userID, jsonfile) {
       "description": jsonfile.description,
       "version": jsonfile.version,
       "title": jsonfile.title,
-      "default": false
+      "default": false,
+      "training_set_ref": key,
+      "concept": getMetadata().concept
     };
     set(child(ref(db), userID + "/metadata/"+key), meta);
     console.log('Data has been successfully saved and key is: ', key);
