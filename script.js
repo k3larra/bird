@@ -73,7 +73,7 @@ function displayStatistics(){
   text += "Number of concepts: "+statistics.number_of_concepts+"<br>";
   text += "Number of unlabelled images: "+statistics.number_of_void_images+"<br>";
   for (const concept in unique_concepts) {  //Add also for unused concepts in getMetadata().concept ??
-    text += unique_concepts[concept]+": "+statistics[unique_concepts[concept]]+"<br>";
+    text += unique_concepts[concept]+": "+statistics[unique_concepts[concept]]+"<br>";l
   }
   document.getElementById("text_1").innerHTML =text;
 }
@@ -96,7 +96,6 @@ export function select_training_data(metadata) {
   const dropdown = document.getElementById("drop_training");
   dropdown.removeEventListener("click",dropdownListener);
   dropdown.removeEventListener("click",deleteListener);
-  let foundDefault = false;
   while (dropdown.firstChild) {
     dropdown.removeChild(dropdown.lastChild);
   }
@@ -105,20 +104,12 @@ export function select_training_data(metadata) {
   fetch('./resources/delete_confirm.html')
   .then(response => response.text())
   .then(html => {
-    //const buttonDiv = document.getElementById("button_div");
     const modalContainer = document.createElement('div');
     modalContainer.innerHTML = html;
     const headerElement = document.getElementsByTagName("header")[0];
-    console.log("headerElement",headerElement);
     headerElement.appendChild(modalContainer);
-    //const deleteModal = document.getElementById('myModal_delete_dataset');
-    //console.log("myModal",deleteModal);
-    //modalContainer.appendChild(deleteModal);
-    //fix content
   });
-  //document.addEventListener('DOMContentLoaded', function() {
   metadata.forEach((doc) => {
-    const description = doc.val().description;
     const li = document.createElement('li');
     const a = document.createElement('a');
     a.classList.add('dropdown-item');
@@ -127,75 +118,45 @@ export function select_training_data(metadata) {
     a.textContent = doc.val().title;
     li.appendChild(a);
     li.style.display = "flex";
-   if(!doc.val().default){
       const button = document.createElement('button');
       button.setAttribute('type', 'button');
       button.id = doc.key;
       button.classList.add('btn','btn-outline-danger','btn-sm');
       button.setAttribute('data-bs-toggle', 'modal');
-      button.setAttribute('data-toggle', 'tooltip'); // Enable tooltip
-      button.setAttribute('data-title', 'Delete dataset: '+doc.val().title); // Set the tooltip message
       button.setAttribute('data-bs-target', '#myModal_delete_dataset');
       button.setAttribute('data-lhtitle', doc.val().title);
       button.setAttribute('data-lhdescription', doc.val().description);
-      button.innerHTML = 'X';
+      button.innerHTML = '<small>X</small>';
       button.style.display = 'inline-flex';
-      //button.innerHTML = '<span aria-hidden="true">&times;</span>';
-      console.log("doc.val().title",doc.val().title);
-      console.log("doc.val().description",doc.val().description);
       const modal = document.getElementById('modalInput_delete_dataset');
-      console.log("modal",modal);
-      li.appendChild(button);
-       // or button.style.display = 'inline-flex';
-      //document.addEventListener('DOMContentLoaded', function() {
-      //button.addEventListener('click', () => {
-      //  document.getElementById('myModal_delete_dataset').show();
-      //});
-    }
-      //button.addEventListener('click',deleteListener);
-      //button.setAttribute('aria-label', 'Close');
-      
-      //const span = document.createElement('span');
-      //span.setAttribute('aria-hidden', 'true');
-      //span.innerHTML = '&times;';
-      //span.dataset.id = doc.key;
-      //button.appendChild(span);
-      /* button.addEventListener('click', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        var authData = auth.currentUser;
-        delete_training_set(authData.uid,doc.key); //deletes a training set from the database
-      }); */
-/*           console.log("doc.val().title",doc.val().title);
-        console.log("doc.val().description",doc.val().description);
-        const header = document.getElementById('modalInput_delete_dataset');
-        header.innerHTML=doc.val().title;
-        document.getElementById('modalSubtitle_delete_dataset').innerHTML=doc.val().description;
-        //buttonDiv.appendChild(modalContainer);
-        //document.addEventListener('DOMContentLoaded', function() {
-        //var myModal = document.getElementById('myModal_concept')
-        //var myInput = document.getElementById('myInput_delete_dataset');
-        //myInput.addEventListener('click', deleteListener);
-        var myDeleteButton = document.getElementById('delete_dataset_confirm');
-        myDeleteButton.dataset.id=doc.key;
-        myDeleteButton.addEventListener('click', deleteListener); */
-
-   //}  
-    
-    //drop_training
+      const tooltip = document.createElement('span');
+      tooltip.textContent = 'Delete dataset: '+doc.val().title;
+      tooltip.style.display = 'none';
+      tooltip.style.position = 'absolute';
+      tooltip.style.backgroundColor = 'Whitesmoke';
+      tooltip.style.border = '1px solid black';
+      tooltip.style.color = 'white';
+      tooltip.style.padding = '2px';
+      tooltip.style.borderRadius = '4px';
+      tooltip.classList.add('fw-normal', 'text-dark');
+      tooltip.style.width = '100px';
+      tooltip.style.left= '160px';
+      tooltip.style.fontFamily = 'Helvetica Neue, Arial, sans-serif';
+      button.addEventListener('mouseenter', () => {
+        tooltip.style.display = 'inline';
+      });
+      button.addEventListener('mouseleave', () => {
+        tooltip.style.display = 'none';
+      });
+     button.appendChild(tooltip);
+     li.appendChild(button);
     if(doc.val().default){
-      foundDefault = true;
-      _metadata = doc.val();
-      _metadata["training_set_ref"] = doc.key;
-      setMetadata(_metadata);
-      console.log("metadata: ",getMetadata());
+      li.style.backgroundColor = "Whitesmoke";
+      setMetadata(doc.val());
       read_training_data(auth.currentUser.uid,doc.key);
     }
-    
     const ul = document.querySelector('ul.dropdown-menu');
     ul.appendChild(li);
-    console.log("ul",ul);
-    console.log("li",li);
     ul.appendChild(li);
   });
   dropdown.addEventListener("click",dropdownListener);
@@ -210,18 +171,12 @@ function dropdownListener(event){
     setDefaultProject(key);
   }
   if(event.target.tagName === 'BUTTON'){
-   /*  if (deleteModal==null){
-      deleteModal= new bootstrap.Modal(document.getElementById('myModal_delete_dataset'));
-      
-    } */
     console.log("event.target",event.target.dataset);
     document.getElementById("delete_dataset_confirm").addEventListener("click",deleteListener);
     console.log("In dropdownListener Button",deleteModal);
-    document.getElementById("modalTitle_delete").innerHTML=event.target.dataset.lhtitle;
+    document.getElementById("modalTitle_delete").innerHTML+=event.target.dataset.lhtitle;
     document.getElementById('modalSubtitle_delete_dataset').innerHTML=event.target.dataset.lhdescription;
     document.getElementById("delete_dataset_confirm").dataset.id=event.target.id;
-    //deleteModal.show();
-    
   }
 
 }
@@ -246,10 +201,6 @@ export function build_image_containers(){
   [...document.getElementsByClassName("modal")].forEach((item)=>{
     item.remove;
   });
-  /* var buttonDiv = document.getElementById("button_div");
-  if (buttonDiv!=null){
-  buttonDiv.innerHTML = "";
-  } */
   const image_data_article = document.getElementById("image_data");
   while (image_data_article.firstChild) {
     image_data_article.lastChild.removeEventListener("click", function(){});
@@ -309,7 +260,6 @@ function populate_void_container(data,element) {
 function populate_container(data,concept,element) {
   let row,lastRow=-1,column,i=0;
   let rowElement;
-  //iterate over data
   data.forEach((item)=>{
     row=Math.trunc((i/12));
     if (row>lastRow){
@@ -325,7 +275,6 @@ function populate_container(data,concept,element) {
 }
 
 function add_image_container_listener(id,imageContainer){
-  // const imageContainer = document.getElementById(id);
   imageContainer.addEventListener('click', function(event) {
     event.preventDefault(); //Stop reloading
     if (event.target.tagName === 'IMG') {
@@ -340,7 +289,6 @@ function add_image_container_listener(id,imageContainer){
         tooltiptext_e.textContent=getMetadata().concept[index+1];
       }
       let path = clickedImage.src.split(imageFolder)[1]
-      //replace all letter 'a' with blank in path
       path = decodeURIComponent(path);
       changeConcept(clickedImage.getAttribute('data-image-index'),tooltiptext_e.textContent)
       findImageIndexWithConcept(tooltiptext_e.textContent)
@@ -401,7 +349,6 @@ function handleChildClickButton(event) {
   event.preventDefault();
   console.log("In handleChildClick");
   if (event.target.id == "addConcept") {
-    //console.log("in edit Concepts");
     const input = document.getElementById("conceptInput")
     const option = document.createElement("option")
     const dropdown = document.getElementById("inputGroupSelect03")
@@ -411,7 +358,6 @@ function handleChildClickButton(event) {
     };
     var ret = "";
     input.value, ret = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
-    //unique_concepts.push(ret)
     console.log("getMetadata()", getMetadata())
     if (getMetadata().concept == null) {
       getMetadata().concept = []
@@ -426,12 +372,8 @@ function handleChildClickButton(event) {
     dropdown.appendChild(option)
   }
   if (event.target.id == "saveChanges_save") {
-    //console.log("firebase_save");
     const title = document.getElementById("modalTitle_save").innerHTML;
     const description = document.getElementById("modalInput_save").innerHTML;
-    //console.log("In SAVE")
-    //console.log(document.getElementById("modalInput_save").innerHTML);
-    //console.log(document.getElementById("modalTitle_save").innerHTML);
     getMetadata().title = title;
     getMetadata().description = description;
     getBirds().title = title;
@@ -440,24 +382,18 @@ function handleChildClickButton(event) {
     let v = parseInt(getBirds().version);
     getBirds().version = (v + 1).toString();
     getMetadata().version = (v + 1).toString();
-    //console.log("version", getMetadata().version)
     var authData = auth.currentUser;
     const db = getDatabase();
-    //console.log("authData: ", authData.uid)
     if (authData) {
       update_training_set(authData.uid, getMetadata(), getBirds())
     }
   }
   if(event.target.id == "saveChanges_saveAs"){
-    //console.log("in firebase_save_as");
     const title = document.getElementById("modalTitle_saveAs").innerHTML;
     const description = document.getElementById("modalInput_saveAs").innerHTML;
-    //getMetadata().title = title;
-    //getMetadata().description = description;
     getBirds().title = title;
     getBirds().description = description;
     getBirds().version = 1;
-    //getMetadata().version = 1;
     var authData = auth.currentUser;
     const db = getDatabase();
     console.log("authData: ", authData.uid)
@@ -469,7 +405,6 @@ function handleChildClickButton(event) {
   if (event.target.id == "discard_changes") {
     console.log("In discard changes");
     get_training_sets_metadata(auth.currentUser.uid);
-    //build_image_containers();
   }
 
 }
@@ -485,7 +420,6 @@ function createbuttons(text1,text4){
   button.classList.add("btn","btn-secondary","btn-sm","me-1")
   button.textContent=text1 //"Organise & reload"
   buttonDiv.appendChild(button)
-  //parent.appendChild(div)
   button.addEventListener("click",(event)=>{
     event.preventDefault()
     build_image_containers()
@@ -528,10 +462,8 @@ function collapsable(){
   header_1.addEventListener('click', function () {
     if (content.style.display === 'none' || content.style.display === '') {
       content.style.display = 'block';
-      //header_1.innerHTML = header_1.innerHTML;
     } else {
       content.style.display = 'none';
-      //header_1.innerHTML = "Select and label training data...";
     }
   });
 }
@@ -554,23 +486,14 @@ function edit_concepts(){
     console.log("modalContainer",modalContainer);
     buttonDiv.appendChild(modalContainer);
     console.log("perent",parent);
-    //document.addEventListener('DOMContentLoaded', function() {
-    //var myModal = document.getElementById('myModal_concept')
     var myInput = document.getElementById('myInput_concept');
-    //console.log("myModal",myModal);
-    console.log("myInput",myInput);
-    /* myModal.addEventListener('shown.bs.modal', function () {
-        myInput.focus()
-    }); */
     myInput.innerHTML = "Edit concepts";
     const dropdown = document.getElementById("inputGroupSelect03")
-    //document.getElementById("concept_section").style.display = "none"; //REMOVE LATER
     //clear dropdown and populate with unique concepts
     //Here is a flat concept hierachy were all concepts need to be excluding and not ovelapping.
     while (dropdown.firstChild) {
       dropdown.removeChild(dropdown.lastChild);
     }
-    //unique_concepts.forEach((item)=>{
     try {
       getMetadata().concept.forEach((item)=>{
         const option = document.createElement("option")
@@ -582,33 +505,11 @@ function edit_concepts(){
       console.log("No concepts found in metadata")
     }
     document.getElementById("addConcept").addEventListener("click",handleChildClickButton);
-/*     button.addEventListener("click",(event)=>{
-      event.preventDefault();
-      console.log("in edit Concepts");
-      const input = document.getElementById("conceptInput")
-      const option = document.createElement("option")
-      if (input.value == "") return
-      for (let i=0; i<dropdown.length; i++){
-        if (dropdown[i].value == input.value) return
-      };
-      var ret="";
-      input.value,ret = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
-      //unique_concepts.push(ret)
-      console.log("getMetadata()",getMetadata())
-      getMetadata().concept.push(ret);
-      if (input.value.length > 10) input.value = input.value.slice(0,10) + "..."
-      option.value = ret
-      option.text = input.value
-      input.value = ""
-      dropdown.appendChild(option)
-    }); */
-  
     dropdown.addEventListener("click",(event)=>{
       event.preventDefault()
       const input = document.getElementById("conceptInput")
       const result = dropdown.value
     });
-  //});
 });
 }
 
@@ -620,16 +521,8 @@ function firebase_save() {
       const modalContainer = document.createElement('div');
       modalContainer.innerHTML = html;
       buttonDiv.appendChild(modalContainer);
-      //document.addEventListener('DOMContentLoaded', function () {
-        //var myModal = document.getElementById('myModal_save')
-        var myInput = document.getElementById('myInput_save')
-        //console.log("myModal",myModal);
-      console.log("myInput",myInput);
-        /* myModal.addEventListener('shown.bs.modal', function () {
-          myInput.focus()
-        }); */
+      var myInput = document.getElementById('myInput_save')
         myInput.innerHTML = "Save changes to server";
-        //document.getElementById("saveChanges").innerHTML = "Update dataset on server";
         const modalSubtitle = document.getElementById("modalSubtitle_save");
         modalSubtitle.innerHTML = "Version: " + getMetadata().version;
         const title = document.getElementById("modalTitle_save");
@@ -637,7 +530,6 @@ function firebase_save() {
         title.setAttribute("contenteditable", true); // make h5 editable
         title.addEventListener("click", function () {
           title.setAttribute("contenteditable", true);
-          //title.focus();
         });
         title.addEventListener("blur", function () {
           title.setAttribute("contenteditable", false);
@@ -647,37 +539,11 @@ function firebase_save() {
         description.setAttribute("contenteditable", true); // make h5 editable
         description.addEventListener("click", function () {
           description.setAttribute("contenteditable", true);
-          //title.focus();
         });
         description.addEventListener("blur", function () {
           description.setAttribute("contenteditable", false);
         });
         document.getElementById("saveChanges_save").addEventListener("click",handleChildClickButton);
-        /* document.getElementById("saveChanges_save").addEventListener("click", (event) => {
-          event.preventDefault()
-          console.log("firebase_save");
-          const title = document.getElementById("modalTitle_save").innerHTML;
-          const description = document.getElementById("modalInput_save").innerHTML;
-          console.log("In SAVE")
-          console.log(document.getElementById("modalInput_save").innerHTML);
-          console.log(document.getElementById("modalTitle_save").innerHTML);
-          getMetadata().title = title;
-          getMetadata().description = description;
-          getBirds().title = title;
-          getBirds().description = description;
-
-          let v = parseInt(getBirds().version);
-          getBirds().version = (v + 1).toString();
-          getMetadata().version = (v + 1).toString();
-          console.log("version", getMetadata().version)
-          var authData = auth.currentUser;
-          const db = getDatabase();
-          console.log("authData: ", authData.uid)
-          if (authData) {
-            update_training_set(authData.uid, getMetadata(), getBirds())
-          }
-        }); */
-      //});
     });
 }
 
@@ -689,21 +555,17 @@ function firebase_save_as() {
       const modalContainer = document.createElement('div');
       modalContainer.innerHTML = html;
       buttonDiv.appendChild(modalContainer);
-      //document.addEventListener('DOMContentLoaded', function() {
-      //var myModal = document.getElementById('myModal_saveAs')
       var myInput = document.getElementById('myInput_saveAs')
-      //console.log("myModal",myModal);
       console.log("myInput",myInput);
       document.getElementById('myModal_saveAs').addEventListener('shown.bs.modal', handleModalFocus);
-      /* myModal.addEventListener('shown.bs.modal', function () {
-        myInput.focus()
-      }); */
       myInput.innerHTML = "Save as new dataset";
       const modalSubtitle = document.getElementById("modalSubtitle_saveAs");
       modalSubtitle.innerHTML = "Version: " + getMetadata().version;
       const title = document.getElementById("modalTitle_saveAs");
       title.innerHTML = getMetadata().title;
       title.setAttribute("contenteditable", true); // make h5 editable
+      title.classList.add('p-2');
+      title.style.border = '1px dotted black';
       title.addEventListener("click", function () {
         title.setAttribute("contenteditable", true);
       });
@@ -713,6 +575,8 @@ function firebase_save_as() {
       const description = document.getElementById("modalInput_saveAs")
       description.innerHTML = getMetadata().description;
       description.setAttribute("contenteditable", true); // make h5 editable
+      description.classList.add('p-2');
+      description.style.border = '1px dotted black';
       description.addEventListener("click", function () {
         description.setAttribute("contenteditable", true);
       });
@@ -720,26 +584,6 @@ function firebase_save_as() {
         description.setAttribute("contenteditable", false);
       });
       document.getElementById("saveChanges_saveAs").addEventListener("click",handleChildClickButton);
-      /* document.getElementById("saveChanges_saveAs").addEventListener("click", (event) => {
-        event.preventDefault()
-        console.log("in firebase_save_as");
-        const title = document.getElementById("modalTitle_saveAs").innerHTML;
-        const description = document.getElementById("modalInput_saveAs").innerHTML;
-        getMetadata().title = title;
-        getMetadata().description = description;
-        getBirds().title = title;
-        getBirds().description = description;
-        getBirds().version = 1;
-        getMetadata().version = 1;
-        var authData = auth.currentUser;
-        const db = getDatabase();
-        console.log("authData: ", authData.uid)
-          const key = save_new_training_set_to_databasebase(authData.uid, getBirds());
-          if (key) {
-            setDefaultProject(authData.uid, key);
-          }
-      }); */
-    //});
     });
 }
 
@@ -752,26 +596,13 @@ function discard_changes(){
     modalContainer.innerHTML = html;
     console.log("modalContainer",modalContainer);
     buttonDiv.appendChild(modalContainer);
-    //document.addEventListener('DOMContentLoaded', function() {
       var myInput = document.getElementById('myInput_discard_changes');
       var myModal = document.getElementById('myModal_discard_changes');
-      console.log("myModal",myModal);
-      console.log("myInput",myInput);
-     /*  myModal.addEventListener('shown.bs.modal', function () {
-          myInput.focus()
-      }); */
       document.getElementById('myModal_discard_changes').addEventListener('shown.bs.modal', handleModalFocus);
       myInput.innerHTML = "Discard changes";
       console.log("Before event listener");
       document.getElementById("discard_changes").addEventListener("click",handleChildClickButton);
-      /* document.getElementById("discard_changes").addEventListener("click",(event)=>{
-        event.preventDefault();
-        console.log("In discard changes");
-        get_training_sets_metadata(auth.currentUser.uid);
-        //build_image_containers();
-      }); */
     });
-  //});
 }
 
 function clear_concept(concept){
@@ -796,8 +627,6 @@ export function loggedIn(user){
   if(user){
     console.log("Logged in (onAuthStateChanged)",user.displayName);
     get_training_sets_metadata(user.uid);
-    //populate_json();
-    //listeners()
     collapsable();
   }else{
     console.log("Not logged in (onAuthStateChanged)");
