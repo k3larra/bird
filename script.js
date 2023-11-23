@@ -73,7 +73,7 @@ function displayStatistics(){
   text += "Number of concepts: "+statistics.number_of_concepts+"<br>";
   text += "Number of unlabelled images: "+statistics.number_of_void_images+"<br>";
   for (const concept in unique_concepts) {  //Add also for unused concepts in getMetadata().concept ??
-    text += unique_concepts[concept]+": "+statistics[unique_concepts[concept]]+"<br>";l
+    text += unique_concepts[concept]+": "+statistics[unique_concepts[concept]]+"<br>";
   }
   document.getElementById("text_1").innerHTML =text;
 }
@@ -140,7 +140,7 @@ export function select_training_data(metadata) {
       tooltip.style.borderRadius = '4px';
       tooltip.classList.add('fw-normal', 'text-dark');
       tooltip.style.width = '100px';
-      tooltip.style.left= '160px';
+      tooltip.style.left= '250px';
       tooltip.style.fontFamily = 'Helvetica Neue, Arial, sans-serif';
       button.addEventListener('mouseenter', () => {
         tooltip.style.display = 'inline';
@@ -171,9 +171,7 @@ function dropdownListener(event){
     setDefaultProject(key);
   }
   if(event.target.tagName === 'BUTTON'){
-    console.log("event.target",event.target.dataset);
     document.getElementById("delete_dataset_confirm").addEventListener("click",deleteListener);
-    console.log("In dropdownListener Button",deleteModal);
     document.getElementById("modalTitle_delete").innerHTML+=event.target.dataset.lhtitle;
     document.getElementById('modalSubtitle_delete_dataset').innerHTML=event.target.dataset.lhdescription;
     document.getElementById("delete_dataset_confirm").dataset.id=event.target.id;
@@ -185,8 +183,6 @@ function deleteListener(event){
   event.stopPropagation();
   event.preventDefault();
   var uid = auth.currentUser.uid;
-  console.log("id",uid);
-  console.log("dataset_id",event.target.dataset.id);
   delete_training_set(uid,event.target.dataset.id); //deletes a training set from the database
 }
 
@@ -284,7 +280,7 @@ function add_image_container_listener(id,imageContainer){
       if (index == -1){
         tooltiptext_e.textContent=getMetadata().concept[0];
       } else if (index == getMetadata().concept.length-1){
-        tooltiptext_e.textContent="";
+          tooltiptext_e.textContent="";
       } else {
         tooltiptext_e.textContent=getMetadata().concept[index+1];
       }
@@ -350,26 +346,20 @@ function handleChildClickButton(event) {
   console.log("In handleChildClick");
   if (event.target.id == "addConcept") {
     const input = document.getElementById("conceptInput")
-    const option = document.createElement("option")
-    const dropdown = document.getElementById("inputGroupSelect03")
-    if (input.value == "") return
-    for (let i = 0; i < dropdown.length; i++) {
-      if (dropdown[i].value == input.value) return
-    };
-    var ret = "";
-    input.value, ret = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
-    console.log("getMetadata()", getMetadata())
+    const newConcept = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
+    console.log("newConcept",newConcept);
+    if(newConcept == "") return;
+    if(getMetadata().concept.includes(newConcept)){
+      console.log("Concept already exists");
+      return;
+    }
     if (getMetadata().concept == null) {
       getMetadata().concept = []
     };
-    getMetadata().concept.push(ret);
-    if (input.value.length > 10) {
-      input.value = input.value.slice(0, 10) + "..."
-    }
-    option.value = ret
-    option.text = input.value
-    input.value = ""
-    dropdown.appendChild(option)
+    getMetadata().concept.push(newConcept);
+    const list = document.getElementById("concept_list") ;
+    list.appendChild(createRowInConceptList(newConcept));
+    input.value = "";
   }
   if (event.target.id == "saveChanges_save") {
     const title = document.getElementById("modalTitle_save").innerHTML;
@@ -396,11 +386,10 @@ function handleChildClickButton(event) {
     getBirds().version = 1;
     var authData = auth.currentUser;
     const db = getDatabase();
-    console.log("authData: ", authData.uid)
-      const key = save_new_training_set_to_databasebase(authData.uid, getBirds());
-      if (key) {
-        setDefaultProject(authData.uid, key);
-      }
+    const key = save_new_training_set_to_databasebase(authData.uid, getBirds());
+    if (key) {
+      setDefaultProject(authData.uid, key);
+    }
   }
   if (event.target.id == "discard_changes") {
     console.log("In discard changes");
@@ -409,6 +398,25 @@ function handleChildClickButton(event) {
 
 }
 
+function createRowInConceptList(newConcept){
+  const li = document.createElement('li');
+  li.classList.add('list-group-item','d-flex','justify-content-between','align-items-center');
+  const input2 = document.createElement('input');
+  input2.classList.add('form-control','me-1');
+  input2.setAttribute('type', 'text');
+  console.log("newConcept",newConcept); 
+  //set content in input2
+  input2.value = newConcept;
+  //set not editable
+  input2.setAttribute("readonly",true); 
+  input2.setAttribute("disabled",true);   
+  li.appendChild(input2);
+  const span = document.createElement('span');
+  span.classList.add('badge','bg-secondary','rounded-pill');
+  span.innerHTML='&#8942;'; // Add kebab icon
+  li.appendChild(span);
+  return li;
+}
 function createbuttons(text1,text4){
   console.log("In createbuttons");
   const buttonDiv = document.createElement("div")
@@ -471,8 +479,6 @@ function collapsable(){
 function edit_concepts(){
   var myInput = document.getElementById('myInput_concept');
   var myModal = document.getElementById('myModal_concept');
-  console.log("EXIST myModal",myModal);
-  console.log("EXIST myInput",myInput);
   if(myModal != null&&myInput != null){
     myModal.remove();
     myInput.remove();
@@ -483,33 +489,120 @@ function edit_concepts(){
     const buttonDiv = document.getElementById("button_div");
     const modalContainer = document.createElement('div');
     modalContainer.innerHTML = html;
-    console.log("modalContainer",modalContainer);
     buttonDiv.appendChild(modalContainer);
-    console.log("perent",parent);
     var myInput = document.getElementById('myInput_concept');
     myInput.innerHTML = "Edit concepts";
-    const dropdown = document.getElementById("inputGroupSelect03")
-    //clear dropdown and populate with unique concepts
-    //Here is a flat concept hierachy were all concepts need to be excluding and not ovelapping.
-    while (dropdown.firstChild) {
-      dropdown.removeChild(dropdown.lastChild);
+    document.getElementById("addConcept").addEventListener("click",handleChildClickButton);
+    //clean up concept list
+    const conceptList = document.getElementById("concept_list")
+    const conceptInput = document.getElementById("conceptInput");
+    conceptInput.value = "";
+    while (conceptList.firstChild) {
+      conceptList.removeChild(conceptList.lastChild);
     }
     try {
       getMetadata().concept.forEach((item)=>{
-        const option = document.createElement("option")
-        option.value = item
-        option.text = item
-        dropdown.appendChild(option)
+        //list.appendChild();
+        const conceptRow = createRowInConceptList(item);
+        conceptList.appendChild(conceptRow);
+      });
+      //Show a menu when clicking on the kebab icon
+      conceptList.addEventListener("click",(event)=>{
+        event.preventDefault()
+        if (event.target.tagName === 'SPAN') {
+          const kebab = event.target;
+          const concept = kebab.parentElement.textContent;
+          //remove all other menus
+          const menus = document.getElementsByClassName('menu_class');
+          [...menus].forEach((item)=>{
+            item.remove();
+          });
+          //show a hovering meny with edit and delete
+          const menu = document.createElement('div');
+          menu.classList.add('list-group','position-absolute','d-flex','flex-column','align-items-end',"menu_class");
+          menu.style.left = event.clientX;
+          menu.style.top = event.clientY; 
+          menu.style.zIndex = 1;
+          menu.style.width = '100px';
+          menu.style.backgroundColor = 'Whitesmoke';
+          menu.style.border = '1px solid black';
+          menu.style.color = 'white';
+          menu.style.padding = '2px';
+          menu.style.borderRadius = '4px';
+          menu.classList.add('fw-normal', 'text-dark');
+          menu.style.fontFamily = 'Helvetica Neue, Arial, sans-serif';
+          const edit = document.createElement('a');
+          edit.classList.add('list-group-item','list-group-item-action');
+          edit.textContent='Edit';
+          menu.appendChild(edit);
+          const del = document.createElement('a');
+          del.classList.add('list-group-item','list-group-item-action');
+          del.textContent='Delete';
+          menu.appendChild(del);
+          //conceptList.appendChild(menu);
+          kebab.appendChild(menu);
+          //add event listener to edit
+          edit.addEventListener("click",(event)=>{
+            event.preventDefault();
+            console.log("In edit");
+            const editButton = event.target;
+            const input = editButton.parentElement.parentElement.previousSibling;
+            /* const input = row.firstChild;
+            console.log("input",input);*/
+            input.removeAttribute("readonly");
+            input.removeAttribute("disabled");
+            input.focus(); 
+            input.addEventListener("blur", function () {
+              input.setAttribute("readonly", true);
+              input.setAttribute("disabled", true);
+              const oldconcept = input.value;
+              const newConcept = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
+              if(newConcept == "") return;
+              if(getMetadata().concept.includes(newConcept)){
+                console.log("Concept already exists");
+                input.value = newConcept;
+                return;
+              }
+              input.value = newConcept;
+              getMetadata().concept.push(newConcept);
+              //change concept with old value to new value on all images
+              getBirds().images.forEach((item)=>{
+                if (item.concept == oldconcept) item.concept = newConcept;
+              });
+            });
+            kebab.removeChild(menu);
+          });
+          //add event listener to delete
+          del.addEventListener("click",(event)=>{
+            event.preventDefault()
+            console.log("In delete");
+            getMetadata().concept = getMetadata().concept.filter(item => item !== result);
+            //remove concept from all images
+            //clear_concept(result);
+            //rebuild image containers
+            //build_image_containers();
+            //remove the hovering menu
+            kebab.removeChild(menu);
+          });
+        }
+      } );
+      //add hover effect on li when hovering over
+      conceptList.addEventListener("mouseover",(event)=>{
+        event.preventDefault()
+        if (event.target.tagName === 'LI') {
+          event.target.classList.add('list-group-item-secondary');
+        }
+      });
+      //remove hover effect on li when hovering over
+      conceptList.addEventListener("mouseout",(event)=>{
+        event.preventDefault()
+        if (event.target.tagName === 'LI') {
+          event.target.classList.remove('list-group-item-secondary');
+        }
       });
     } catch (error) { 
       console.log("No concepts found in metadata")
     }
-    document.getElementById("addConcept").addEventListener("click",handleChildClickButton);
-    dropdown.addEventListener("click",(event)=>{
-      event.preventDefault()
-      const input = document.getElementById("conceptInput")
-      const result = dropdown.value
-    });
 });
 }
 
@@ -556,7 +649,6 @@ function firebase_save_as() {
       modalContainer.innerHTML = html;
       buttonDiv.appendChild(modalContainer);
       var myInput = document.getElementById('myInput_saveAs')
-      console.log("myInput",myInput);
       document.getElementById('myModal_saveAs').addEventListener('shown.bs.modal', handleModalFocus);
       myInput.innerHTML = "Save as new dataset";
       const modalSubtitle = document.getElementById("modalSubtitle_saveAs");
@@ -594,13 +686,11 @@ function discard_changes(){
     const buttonDiv = document.getElementById("button_div");
     const modalContainer = document.createElement('div');
     modalContainer.innerHTML = html;
-    console.log("modalContainer",modalContainer);
     buttonDiv.appendChild(modalContainer);
       var myInput = document.getElementById('myInput_discard_changes');
       var myModal = document.getElementById('myModal_discard_changes');
       document.getElementById('myModal_discard_changes').addEventListener('shown.bs.modal', handleModalFocus);
       myInput.innerHTML = "Discard changes";
-      console.log("Before event listener");
       document.getElementById("discard_changes").addEventListener("click",handleChildClickButton);
     });
 }

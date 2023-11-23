@@ -83,3 +83,11 @@ h1 {
   visibility: visible;
 }
 
+
+.my-svg-icon {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23374146' fill-rule='evenodd' clip-rule='evenodd'%3E%3Cpath fill='%23374146' fill-rule='evenodd' clip-rule='evenodd' d='M14 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm-2 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z'%3E%3C/path%3E%3C/svg%3E");
+}
+
+.menu_class{
+  border:1px solid black;
+}
