@@ -429,8 +429,8 @@ function createbuttons(text1,text4){
   button.textContent=text1 //"Organise & reload"
   buttonDiv.appendChild(button)
   button.addEventListener("click",(event)=>{
-    event.preventDefault()
-    build_image_containers()
+    event.preventDefault();
+    build_image_containers();
   });
   button = document.createElement("button")
   button.type="button"
@@ -547,41 +547,59 @@ function edit_concepts(){
             console.log("In edit");
             const editButton = event.target;
             const input = editButton.parentElement.parentElement.previousSibling;
-            /* const input = row.firstChild;
-            console.log("input",input);*/
+            const oldconcept = input.value;
             input.removeAttribute("readonly");
             input.removeAttribute("disabled");
             input.focus(); 
             input.addEventListener("blur", function () {
               input.setAttribute("readonly", true);
               input.setAttribute("disabled", true);
-              const oldconcept = input.value;
+              //const oldconcept = input.value;
               const newConcept = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
               if(newConcept == "") return;
+              console.log("not empty");
               if(getMetadata().concept.includes(newConcept)){
                 console.log("Concept already exists");
-                input.value = newConcept;
+                //input.value = newConcept;
                 return;
               }
+              console.log("Note exists in metadata");
+              //remove concept from the array getMetadata().concept
+              getMetadata().concept = getMetadata().concept.filter(item => item !== oldconcept);
               input.value = newConcept;
+              console.log("getMetadata().concept",getMetadata().concept);
               getMetadata().concept.push(newConcept);
+              console.log("getMetadata().concept",getMetadata().concept);
               //change concept with old value to new value on all images
               getBirds().images.forEach((item)=>{
                 if (item.concept == oldconcept) item.concept = newConcept;
               });
+              
             });
+            input.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  input.setAttribute("readonly", true);
+                  input.setAttribute("disabled", true);
+                  input.blur();
+                }
+              }); 
             kebab.removeChild(menu);
           });
           //add event listener to delete
           del.addEventListener("click",(event)=>{
             event.preventDefault()
             console.log("In delete");
-            getMetadata().concept = getMetadata().concept.filter(item => item !== result);
-            //remove concept from all images
-            //clear_concept(result);
-            //rebuild image containers
-            //build_image_containers();
-            //remove the hovering menu
+            const deleteButton = event.target;
+            const input = deleteButton.parentElement.parentElement.previousSibling;
+            const result = input.value;
+            console.log("result",result);
+            clear_concept(input.value)
+            console.log("getMetadata().concept",getMetadata().concept);
+            //delete row from <ul> list
+            const list = input.parentElement.parentElement;
+            console.log("list",list);
+            list.removeChild(input.parentElement);
             kebab.removeChild(menu);
           });
         }
@@ -603,6 +621,12 @@ function edit_concepts(){
     } catch (error) { 
       console.log("No concepts found in metadata")
     }
+    document.getElementById("saveChanges_concept").addEventListener("click",(event)=>{
+      event.preventDefault();
+      console.log("In saveChanges_concept");
+      //rebuild image containers
+      build_image_containers();
+    });
 });
 }
 
@@ -695,15 +719,12 @@ function discard_changes(){
     });
 }
 
+/**
+ * Clears the concept of all images matching the given concept.
+ * Removes the concept from the array of concepts in the metadata.
+ * @param {string} concept - The concept to clear.
+ */
 function clear_concept(concept){
-/*   console.log ("getMeta",getMetadata());
-  let clear = getMetadata().concept;
-  //let clear = updateUniqueConcepts();
-  console.log ("clear",clear);
-  if (clear.length == 0) return;
-  clear.forEach((item)=>{
-    clear_concept(item);
-  }); */
   getBirds().images.forEach((item)=>{
     if (item.concept == concept) item.concept = "void";
   });
