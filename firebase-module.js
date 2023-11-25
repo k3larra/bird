@@ -68,23 +68,15 @@ function _setLoggedInVisibility(loggedIn,user){
   if (loggedIn) {
     console.log("setting loggedin visibility" )
     document.getElementById("signIn").innerHTML = "Sign Out: "+user.displayName;
-    //document.getElementById("not_logged_in").classList.remove=("_visible");
-    //document.getElementById("not_logged_in").classList.add=("_collapse");
     document.getElementById("not_logged_in").style.visibility = "collapse";
     document.getElementById("image_data").style.display = "block";
-    //document.getElementById("logged_in").classList.remove("_collapse");
-    //document.getElementById("logged_in").classList.add("_visible");
     document.getElementById("logged_in").style.visibility = "visible";
     document.getElementById("admin_menu").classList.remove("disabled")
   }else{
     console.log("setting loggedOUT visibility" )
     document.getElementById("signIn").innerHTML = "Sign In";
     document.getElementById("image_data").style.display = "none";
-    //document.getElementById("not_logged_in").classList.remove=("_collapse");
-    //document.getElementById("not_logged_in").classList.add=("_visible");
     document.getElementById("not_logged_in").style.visibility = "visible";
-    // document.getElementById("logged_in").classList.remove("_visible");
-    // document.getElementById("logged_in").classList.add("_collapse");
     document.getElementById("logged_in").style.visibility = "collapse";
     document.getElementById("admin_menu").classList.add("disabled")
   }
@@ -152,18 +144,6 @@ export function get_training_sets_metadata(userID) {
   const trainingSetRef = ref(db, userID + "/metadata");
   onValue(trainingSetRef, (snapshot) => {
     select_training_data(snapshot);
-    // snapshot.forEach((doc) => {
-    //   const description = doc.val().description;
-    //   console.log("Key: ",doc.key)
-    //   console.log("TITLE: ",doc.val().title)
-    //   console.log("description: ", description);
-    //   console.log("versrion: ",doc.val().version)
-    // });
-
-    //const data = snapshot.val();
-    //console.log(data);
-    //birds=data;
-    //build_image_containers();
   }, {
     onlyOnce: true
   });
@@ -202,8 +182,6 @@ export function setDefaultProject(key) {
         };
         update(child(ref(db), authData.uid + "/metadata/" + key), meta).then(() => {
           console.log('Metadata has been successfully updated in the database');
-          //get_training_sets_metadata(authData.uid)
-          //build_image_containers();
         })
           .catch((error) => {
             console.error('Error updating Metadata:', error);
@@ -217,8 +195,6 @@ export function setDefaultProject(key) {
         };
         update(child(ref(db), authData.uid + "/metadata/" + doc.key), meta).then(() => {
           console.log('Metadata has been successfully updated in the database');
-          //get_training_sets_metadata(authData.uid)
-          //build_image_containers();
         })
           .catch((error) => {
             console.error('Error updating Metadata:', error);
@@ -227,10 +203,6 @@ export function setDefaultProject(key) {
       
     });
     get_training_sets_metadata(authData.uid);
-    //const data = snapshot.val();
-    //console.log(data);
-    //birds=data;
-    //build_image_containers();
   }, {
     onlyOnce: true
   });
@@ -269,6 +241,6 @@ export function read_training_data(userID, training_set_ref) {
   });
 
 }
-// 
+
 
 

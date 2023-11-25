@@ -233,10 +233,10 @@ function populate_void_container(data,element) {
     try {
       if (data.images[r].concept != "void") continue;
       
-      if (data.images[r]["image_location"].includes("/_")) {
+      /* if (data.images[r]["image_location"].includes("/_")) {
         console.log("Skipping image with _ in name", data.images[r]["image_location"])
         continue
-      };
+      }; */
     } catch (error) { continue; }
     if (randomNumbers.indexOf(r) === -1) randomNumbers.push(r);
   }
@@ -404,7 +404,6 @@ function createRowInConceptList(newConcept){
   const input2 = document.createElement('input');
   input2.classList.add('form-control','me-1');
   input2.setAttribute('type', 'text');
-  console.log("newConcept",newConcept); 
   //set content in input2
   input2.value = newConcept;
   //set not editable
