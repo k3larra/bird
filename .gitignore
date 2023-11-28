@@ -1,0 +1,15 @@
+# Python related
+__pycache__/
+*.py[cod]
+*.log
+*.env
+.python-version
+
+# Node.js relateddd
+node_modules/
+npm-debug.log
+dist/
+
+# General
+.DS_Store
+Thumbs.db

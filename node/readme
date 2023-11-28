@@ -1,0 +1,2 @@
+node nodebird.js
+npm install firebase-admin --save

@@ -1,0 +1,10 @@
+{
+    "header_1": "Labelling",
+    "text_1": "This side can be used to train a neural network to select the images sort out images useful for the study. This is useful in situations where we have many images and it is tidious to select them by hand.",
+    "link_1": {
+        "text": "Ringers DigiGuide",
+        "href": "https://ringersdigiguide.ottenby.se/moult-ageing/"
+    },
+    "header_2": "Select typical wing images and atypically wing (other)",
+    "text_2": "It is often a good idea, initially, to avoid selecting questionable images and start with typical examples. Depending on the outcome of the first training round you can then select images that are closer to the border between the concepts. This process can be described as \"curriculum learning\" in a human context, initially, you start with establishing the expected concepts clearly and then, in later stages, the more fine-grained the learning experience becomes. The \"other\" concept can be used, as a sort of trashcan, to collect all images that do not belong to any of the named concepts regardless of the inhomogeneity you, as a human, find the concept \"other\" entails."
+}

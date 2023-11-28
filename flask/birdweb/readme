@@ -1,0 +1,19 @@
+Create the venv with the name venv
+mkdir myproject
+cd myproject
+python3 -m venv .venv
+
+Activate .venv
+.venv\Scripts\activate
+
+(deactivate)
+
+To be able to run local scripts:
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+flask --app birdnest run
+
+flask --app hello run --debug //reloads
+
+
+$env:FLASK_APP="birdnest.py"
