@@ -4,7 +4,7 @@ __pycache__/
 *.log
 *.env
 .python-version
-tests/
+flask/birdweb/.venv/Lib/
 Scripts/
 
 # Node.js relateddd
