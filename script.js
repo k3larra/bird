@@ -290,7 +290,6 @@ function add_image_container_listener(id,imageContainer){
       findImageIndexWithConcept(tooltiptext_e.textContent)
     }
   });
-  
 }
 
 /*Create containers and content*/

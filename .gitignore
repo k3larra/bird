@@ -18,3 +18,5 @@ Thumbs.db
 secrets/
 secrets/bird-ad15f-firebase-adminsdk-hzlhg-4ccf1a7271.json
 Notebooks/
+.vscode/
+```
