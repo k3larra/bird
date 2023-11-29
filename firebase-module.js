@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebas
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-analytics.js";
 import { getDatabase, ref, set, child, push, update,onValue} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-database.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js"; 
+import { serverTimestamp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
 //import { getAuth, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/9.5.0/firebase-auth-compat.js"
 import {loggedIn, build_image_containers, select_training_data, getMetadata}   from "./script.js";
 import { getBirds, setBirds } from './script.js';
@@ -91,6 +92,7 @@ export function save_new_training_set_to_databasebase(userID, jsonfile) {
   const key = push(child(ref(db), userID + "/trainingsets"), jsonfile).key;
   if (key) {
     //metadata
+    //console.log("METADATA jsonfile", jsonfile)
     const meta = {
       "description": jsonfile.description,
       "version": jsonfile.version,
@@ -240,6 +242,20 @@ export function read_training_data(userID, training_set_ref) {
     onlyOnce: true
   });
 
+}
+
+export function setTraining_parameters(){
+  console.log("getMetadata()",getMetadata());
+  const db = getDatabase();
+  const metadataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
+  //getMetadata().ended= timestamp;
+    update(metadataRef, getMetadata()).then(() => {
+      console.log('Metadata has been successfully updated in the database');
+      //get_training_sets_metadata(userID)
+    })
+      .catch((error) => {
+        console.error('Error updating Metadata:', error);
+      });
 }
 
 

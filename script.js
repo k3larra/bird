@@ -6,6 +6,7 @@ import {update_training_set} from "./firebase-module.js";
 import {getDatabase, set, user,auth} from "./firebase-module.js";
 import {setDefaultProject} from "./firebase-module.js";
 import {delete_training_set} from "./firebase-module.js";
+import { train_model } from "./train_model.js";
 
 const imageFolder = 'ottenbyresized/'
 let unique_concepts = [] //This is central and needs some more protection....
@@ -94,21 +95,21 @@ async function populate() {
 export function select_training_data(metadata) {
   console.log("In select_training_data");
   const dropdown = document.getElementById("drop_training");
-  dropdown.removeEventListener("click",dropdownListener);
-  dropdown.removeEventListener("click",deleteListener);
+  dropdown.removeEventListener("click", dropdownListener);
+  dropdown.removeEventListener("click", deleteListener);
   while (dropdown.firstChild) {
     dropdown.removeChild(dropdown.lastChild);
   }
   setBirds(null);
   setMetadata(null);
   fetch('./resources/delete_confirm.html')
-  .then(response => response.text())
-  .then(html => {
-    const modalContainer = document.createElement('div');
-    modalContainer.innerHTML = html;
-    const headerElement = document.getElementsByTagName("header")[0];
-    headerElement.appendChild(modalContainer);
-  });
+    .then(response => response.text())
+    .then(html => {
+      const modalContainer = document.createElement('div');
+      modalContainer.innerHTML = html;
+      const headerElement = document.getElementsByTagName("header")[0];
+      headerElement.appendChild(modalContainer);
+    });
   metadata.forEach((doc) => {
     const li = document.createElement('li');
     const a = document.createElement('a');
@@ -118,48 +119,48 @@ export function select_training_data(metadata) {
     a.textContent = doc.val().title;
     li.appendChild(a);
     li.style.display = "flex";
-      const button = document.createElement('button');
-      button.setAttribute('type', 'button');
-      button.id = doc.key;
-      button.classList.add('btn','btn-outline-danger','btn-sm');
-      button.setAttribute('data-bs-toggle', 'modal');
-      button.setAttribute('data-bs-target', '#myModal_delete_dataset');
-      button.setAttribute('data-lhtitle', doc.val().title);
-      button.setAttribute('data-lhdescription', doc.val().description);
-      button.innerHTML = '<small>X</small>';
-      button.style.display = 'inline-flex';
-      const modal = document.getElementById('modalInput_delete_dataset');
-      const tooltip = document.createElement('span');
-      tooltip.textContent = 'Delete dataset: '+doc.val().title;
+    const button = document.createElement('button');
+    button.setAttribute('type', 'button');
+    button.id = doc.key;
+    button.classList.add('btn', 'btn-outline-danger', 'btn-sm');
+    button.setAttribute('data-bs-toggle', 'modal');
+    button.setAttribute('data-bs-target', '#myModal_delete_dataset');
+    button.setAttribute('data-lhtitle', doc.val().title);
+    button.setAttribute('data-lhdescription', doc.val().description);
+    button.innerHTML = '<small>X</small>';
+    button.style.display = 'inline-flex';
+    const modal = document.getElementById('modalInput_delete_dataset');
+    const tooltip = document.createElement('span');
+    tooltip.textContent = 'Delete dataset: ' + doc.val().title;
+    tooltip.style.display = 'none';
+    tooltip.style.position = 'absolute';
+    tooltip.style.backgroundColor = 'Whitesmoke';
+    tooltip.style.border = '1px solid black';
+    tooltip.style.color = 'white';
+    tooltip.style.padding = '2px';
+    tooltip.style.borderRadius = '4px';
+    tooltip.classList.add('fw-normal', 'text-dark');
+    tooltip.style.width = '100px';
+    tooltip.style.left = '250px';
+    tooltip.style.fontFamily = 'Helvetica Neue, Arial, sans-serif';
+    button.addEventListener('mouseenter', () => {
+      tooltip.style.display = 'inline';
+    });
+    button.addEventListener('mouseleave', () => {
       tooltip.style.display = 'none';
-      tooltip.style.position = 'absolute';
-      tooltip.style.backgroundColor = 'Whitesmoke';
-      tooltip.style.border = '1px solid black';
-      tooltip.style.color = 'white';
-      tooltip.style.padding = '2px';
-      tooltip.style.borderRadius = '4px';
-      tooltip.classList.add('fw-normal', 'text-dark');
-      tooltip.style.width = '100px';
-      tooltip.style.left= '250px';
-      tooltip.style.fontFamily = 'Helvetica Neue, Arial, sans-serif';
-      button.addEventListener('mouseenter', () => {
-        tooltip.style.display = 'inline';
-      });
-      button.addEventListener('mouseleave', () => {
-        tooltip.style.display = 'none';
-      });
-     button.appendChild(tooltip);
-     li.appendChild(button);
-    if(doc.val().default){
+    });
+    button.appendChild(tooltip);
+    li.appendChild(button);
+    if (doc.val().default) {
       li.style.backgroundColor = "Whitesmoke";
       setMetadata(doc.val());
-      read_training_data(auth.currentUser.uid,doc.key);
+      read_training_data(auth.currentUser.uid, doc.key);
     }
     const ul = document.querySelector('ul.dropdown-menu');
     ul.appendChild(li);
     ul.appendChild(li);
   });
-  dropdown.addEventListener("click",dropdownListener);
+  dropdown.addEventListener("click", dropdownListener);
 }
 
 function dropdownListener(event){
@@ -444,6 +445,7 @@ function createbuttons(text1,text4){
   firebase_save();
   firebase_save_as(); 
   discard_changes();
+  train_model();
 }
 
 function changeConcept(index,concept){

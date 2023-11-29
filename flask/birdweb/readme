@@ -2,6 +2,9 @@ Create the venv with the name venv
 mkdir myproject
 cd myproject
 python3 -m venv .venv
+python -m flask --app birdnest run --debug 
+
+npm install flask
 
 Activate .venv
 .venv\Scripts\activate
