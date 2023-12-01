@@ -624,6 +624,10 @@ function edit_concepts(){
     document.getElementById("saveChanges_concept").addEventListener("click",(event)=>{
       event.preventDefault();
       console.log("In saveChanges_concept");
+      //repace all conept inon images that are not in the metadata concept list with "void"
+      getBirds().images.forEach((item)=>{
+        if (!getMetadata().concept.includes(item.concept)) item.concept = "void";
+      });
       //rebuild image containers
       build_image_containers();
     });

@@ -42,31 +42,35 @@ var trainingsetRef = db.ref("/"+uid+"/trainingsets");
 metaDataRef.on("child_changed", function(snapshot) {
   //console.log("child changed",snapshot.val());
   if (snapshot.val().ml_train) {
-    trainingsetRef.child(snapshot.val().training_set_ref).once("value", function(snapshot2) {
+    console.log("ml_train",snapshot.val().ml_train);
+    //trainingsetRef.child(snapshot.val().training_set_ref).once("value", function(snapshot2) {
       // Find all images with concept not "void"
-      const json_file = {
-        images: []
-      };
-      snapshot2.val().images.forEach(element => {
-        if (element.concept !== "void") {
+      //const json_file = {
+       // images: []
+      //};
+      //snapshot2.val().images.forEach(element => {
+      //  if (element.concept !== "void") {
           //console.log(element);
-          json_file.images.push(element);
-        }
-      });
+      //    json_file.images.push(element);
+       // }
+      //});
+      /* const json_file = {}
       json_file.training_set_ref = snapshot.val().training_set_ref;
       json_file.ml_epochs = snapshot.val().ml_epochs;
       json_file.uid = snapshot.val().uid;
       json_file.ml_model = snapshot.val().ml_model;
+      json_file.ml_epochs
+      
       console.log(json_file.uid);
-      console.log(json_file.images.length);
+      console.log(json_file.images.length); */
       //Save json file
-      fs.writeFile('json_file.json', JSON.stringify(json_file), function (err) {
+      /* fs.writeFile('json_file.json', JSON.stringify(json_file), function (err) {
         if (err) throw err;
         console.log('Saved!');
-      });
+      }); */
       // callTrain("id", true);
-      train(json_file);
-    });
+      train(snapshot.val());
+    //});
   }
 });
 
