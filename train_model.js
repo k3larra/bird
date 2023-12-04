@@ -1,7 +1,7 @@
 import { getMetadata } from "./script.js";
-import { setTraining_parameters } from "./firebase-module.js";
+import { setTraining_parameters,getTraining_parameters } from "./firebase-module.js";
 import { auth } from "./firebase-module.js";
-
+import { debug } from "./script.js";
 export function train_model() {
   const button = document.createElement("button");
   button.type = "button";
@@ -15,6 +15,8 @@ export function train_model() {
   fetch('./resources/modal_train.html')
     .then(response => response.text())
     .then(html => {
+      getTraining_parameters();
+      console.log("getMetadata()", getMetadata());
       const buttonDiv = document.getElementById("button_div");
       const modalContainer = document.createElement('div');
       modalContainer.innerHTML = html;
@@ -24,16 +26,31 @@ export function train_model() {
       const trainingTimeInSeconds = Math.floor(trainingTimeInMillis / 1000);
       const minutes = Math.floor(trainingTimeInSeconds / 60);
       const seconds = trainingTimeInSeconds % 60;
-      const trainingTime = `${minutes} minutes and ${seconds} seconds`;
+
+
+      let trainingTime = `${minutes} minutes and ${seconds} seconds`;
+      if (seconds <= 0 && minutes<= 0){trainingTime = "Error: 0 seconds"}
 
       const lastTrainingTime = new Date(getMetadata().ml_training_finished_timestamp*1000).toLocaleString();
-      document.getElementById("infoText").innerHTML = "Base model: " + getMetadata().ml_base_model+"</br>"
-      + "Training nbr: " + getMetadata().ml_train_nbr+"</br>"
-      + "Training started: " + new Date(getMetadata().ml_training_started_timestamp).toLocaleString()+"</br>"
-      + "Training ended: " + new Date(getMetadata().ml_training_finished_timestamp).toLocaleString()+"</br>"+"</br>"
-      + "Training ongoing: " + getMetadata().ml_train_ongoing+"</br>"
-      + "Description: " + getMetadata().ml_description+"</br>"
-      + "Last training was " + getMetadata().ml_epochs + " epochs and lasted for " + trainingTime+"</br>";
+      document.getElementById("infoText").innerHTML = "<b> <i>Title:</i> " + getMetadata().title + "</b>" + "</br>"
+      +"<i>Description:</i> " + getMetadata().description + "</br>"
+      +"<i>Base model:</i> " + getMetadata().ml_base_model+"</br>"
+      + "<i>Training nbr:</i> " + getMetadata().ml_train_nbr+"</br>"
+      + "<i>Training started:</i> " + new Date(getMetadata().ml_training_started_timestamp).toLocaleString()+"</br>"
+      + "<i>Training ended:</i> " + new Date(getMetadata().ml_training_finished_timestamp).toLocaleString()+"</br>"
+      + "<i>Training ongoing:</i> " + getMetadata().ml_train_ongoing+"</br>"
+      + "<i>Training description:</i> " + getMetadata().ml_description+"</br>"
+      + "<i>Current epoch:</i> " + getMetadata().ml_epoch+"</br>"
+      + "Last training were over " + getMetadata().ml_epochs + " epochs and lasted for " + trainingTime+"</br>";
+      if(debug){
+        document.getElementById("infoText").innerHTML += "---------</br><i>Training set ref:</i> " + getMetadata().training_set_ref+"</br>"+ 
+        "<i>ML model filename:</i> " + getMetadata().ml_model_filename+"</br>"+
+        "<i>ml_train:</i> " + getMetadata().ml_train+"</br>"+
+        "<i>ml_train_status:</i> " + getMetadata().ml_train_status+"</br>"+
+        "<i>ml_train_ongoing:</i> " + getMetadata().ml_train_ongoing+"</br>"+
+        "<i>ml_train_finished:</i> " + getMetadata().ml_train_finished+"</br>"+
+        "<i>ml_retrain_existing_model:</i> " + getMetadata().ml_retrain_existing_model+"</br>";
+      }
       // Add dropdown elements to modal_train.html
       const parameterList = document.getElementById("train_list");
       parameterList.style.listStyleType = "none";
@@ -68,7 +85,7 @@ export function train_model() {
       descriptionInput.style.marginTop = "10px";
       descriptionInput.style.width = "100%"; // Set the width to 100%
       document.getElementById("train_section").appendChild(descriptionInput);
-
+      
       const modelListItem = document.createElement("li");
       const modelLabel = document.createElement("label");
       modelLabel.innerHTML = "Model: &nbsp;";
@@ -106,21 +123,23 @@ function handleTrainModelButton(event) {
   getMetadata().ml_model = document.getElementById("model").value; // Set the value to the selected value in modelDropdown
   if (getMetadata().ml_model !== "Continue training") {
     getMetadata().ml_base_model= getMetadata().ml_model;
-    getMetadata().ml_retrain_existing_model = true;
-  }else{
     getMetadata().ml_retrain_existing_model = false;
     getMetadata().ml_train_nbr = 0;
+  }else{
+    getMetadata().ml_retrain_existing_model = true;
   }
   getMetadata().ml_training_started_timestamp = 0;
   getMetadata().ml_training_finished_timestamp = 0;
   getMetadata().ml_train_ongoing = false;
   getMetadata().ml_train_finished = false;
-  getMetadata().ml_description = document.getElementById("description").value;
+  const descriptionInput = document.getElementById("description");
+  const descriptionText = descriptionInput.value;
+  getMetadata().ml_description = descriptionText;
   getMetadata().ml_train_nbr = getMetadata().ml_train_nbr + 1;
   getMetadata().uid = auth.currentUser.uid;
   getMetadata().ml_epochs = document.getElementById("epochs").value;
-
-  console.log("getMetadata()", getMetadata());
+  getMetadata().ml_train = true;
+  getMetadata().ml_train_status = "Send to training";  
   /* getMetadata().training_started= unix_timestamp();
   getMetadata().epochs = document.getElementById("epochs").value;
   getMetadata().batch_size = document.getElementById("batch_size").value;
@@ -128,5 +147,5 @@ function handleTrainModelButton(event) {
   getMetadata().loss = document.getElementById("loss").value;
   getMetadata().optimizer = document.getElementById("optimizer").value;
   getMetadata().metrics = document.getElementById("metrics").value; */
-  //setTraining_parameters();
+  setTraining_parameters();
 }

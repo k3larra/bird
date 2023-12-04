@@ -31,8 +31,8 @@ def retrain():
 @app.route('/json_endpoint', methods=['POST'])
 def json_endpoint():
     metaData = request.get_json()
-    num_epochs = metaData["ml_epochs"]
-    annotation_json_file = metaData
+    num_epochs = int(metaData["ml_epochs"])
+    #annotation_json_file = metaData
     image_path_resized = '../../ottenbyresized'
     save_path = "../../models"
     with open(save_path+"testfile.txt", "w") as f:

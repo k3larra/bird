@@ -69,12 +69,12 @@ def getResNet50_model():
     model.eval()
     return model, model_transforms
 
-def get_existing_trained_model(save_path, annotation_json_file):  
+def get_existing_trained_model(save_path, ml_filename):  
     # Loads the model at annotation_json_file["ml_model_filename"] and returns it
-    model = torch.load(os.path.join(save_path, annotation_json_file["ml_model_filename"]))
-    if "ResNet50" in annotation_json_file["ml_model_filename"]:
-        weights = ResNet50_Weights.DEFAULT.transforms()
-    elif "EfficientNet_V2_S" in annotation_json_file["ml_model_filename"]:
+    model = torch.load(os.path.join(save_path, ml_filename))
+    if "ResNet50" in ml_filename:
+        weights = ResNet50_Weights.DEFAULT
+    elif "EfficientNet_V2_S" in ml_filename:
         weights = EfficientNet_V2_S_Weights.DEFAULT
     model_transforms = weights.transforms()
     model.eval()
@@ -136,6 +136,7 @@ def train_and_save(model,model_transforms,annotation_json_file, training_data, i
         "ml_train":False,
         "ml_train_finished":True
     }) 
+    print('Finished Training')
     #return model_file_name
 
 #print(train_and_save(*getResNet50_model(),annotation_json_file, image_path_resized,num_epochs=1))

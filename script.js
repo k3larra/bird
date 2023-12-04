@@ -7,7 +7,7 @@ import {getDatabase, set, user,auth} from "./firebase-module.js";
 import {setDefaultProject} from "./firebase-module.js";
 import {delete_training_set} from "./firebase-module.js";
 import { train_model } from "./train_model.js";
-
+export const debug = true;
 const imageFolder = 'ottenbyresized/'
 let unique_concepts = [] //This is central and needs some more protection....
 let deleteModal=null;

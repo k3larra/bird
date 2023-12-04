@@ -4,7 +4,7 @@ import { getDatabase, ref, set, child, push, update,onValue} from "https://www.g
 import { getAuth, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js"; 
 import { serverTimestamp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
 //import { getAuth, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/9.5.0/firebase-auth-compat.js"
-import {loggedIn, build_image_containers, select_training_data, getMetadata}   from "./script.js";
+import {loggedIn, build_image_containers, select_training_data, getMetadata, setMetadata}   from "./script.js";
 import { getBirds, setBirds } from './script.js';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -257,6 +257,18 @@ export function setTraining_parameters(){
         console.error('Error updating Metadata:', error);
       });
 }
+
+export function getTraining_parameters(){
+  const db = getDatabase();
+  const metadataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
+  onValue(metadataRef, (snapshot) => {
+    const data = snapshot.val();
+    console.log("data",data);
+    setMetadata(data);
+  }, {
+    onlyOnce: true
+  });
+} 
 
 
 
