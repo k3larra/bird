@@ -2,6 +2,7 @@ from flask import Flask
 from flask import request
 from threading import Thread
 import json
+import os
 app = Flask(__name__)
 ##
 
@@ -35,13 +36,13 @@ def json_endpoint():
     #annotation_json_file = metaData
     image_path_resized = '../../ottenbyresized'
     save_path = "../../models"
-    with open(save_path+"testfile.txt", "w") as f:
-        f.write("Hello")
     print(metaData["training_set_ref"])
     print(metaData["uid"])
     print(metaData["ml_model"])
+    epoch_str=str(1)+"/"+str(num_epochs)
     metadataRef = db.reference('/').child(metaData["uid"]).child("metadata").child(metaData["training_set_ref"])
     metadataRef.update({
+        'ml_epoch': epoch_str,
         'ml_train': False,
         'ml_train_ongoing': True,
         'ml_train_status': "running",
@@ -60,6 +61,11 @@ def json_endpoint():
         retrain = True
     else:
         retrain = False
+        # Delete old models since we restart the training
+        if "ml_model_filename" in metaData and metaData["ml_model_filename"]:
+            for filename in os.listdir(save_path):
+                if filename.startswith(metaData["ml_model_filename"]):
+                    os.remove(os.path.join(save_path, filename))
     if "ml_model_filename" in metaData and metaData["ml_model_filename"] and retrain:
         # Load the saved model
         model, model_tranforms = get_existing_trained_model(save_path,metaData["ml_model_filename"])
@@ -86,5 +92,21 @@ def json_endpoint():
     with open(save_path+"testfile.txt", "w") as f:
         f.write("Hello")
     return json.dumps({"status":"running" })
+
+@app.route('/delete_model', methods=['POST'])
+def delete_model():
+    metaData = request.get_json()
+    save_path = "../../models"
+    if "ml_model_filename" in metaData and metaData["ml_model_filename"]:
+        for filename in os.listdir(save_path):
+            if filename.startswith(metaData["ml_model_filename"]):
+                os.remove(os.path.join(save_path, filename))
+    return json.dumps({"status":"deleted" })
+
+
+
+
+
+
 
 #app.run()

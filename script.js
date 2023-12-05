@@ -183,6 +183,7 @@ function dropdownListener(event){
 function deleteListener(event){
   event.stopPropagation();
   event.preventDefault();
+  console.log("In deleteListener");
   var uid = auth.currentUser.uid;
   delete_training_set(uid,event.target.dataset.id); //deletes a training set from the database
 }

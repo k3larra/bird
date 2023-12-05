@@ -40,37 +40,13 @@ var trainingsetRef = db.ref("/"+uid+"/trainingsets");
 // });
 
 metaDataRef.on("child_changed", function(snapshot) {
-  //console.log("child changed",snapshot.val());
   if (snapshot.val().ml_train) {
     console.log("ml_train",snapshot.val().ml_train);
-    //trainingsetRef.child(snapshot.val().training_set_ref).once("value", function(snapshot2) {
-      // Find all images with concept not "void"
-      //const json_file = {
-       // images: []
-      //};
-      //snapshot2.val().images.forEach(element => {
-      //  if (element.concept !== "void") {
-          //console.log(element);
-      //    json_file.images.push(element);
-       // }
-      //});
-      /* const json_file = {}
-      json_file.training_set_ref = snapshot.val().training_set_ref;
-      json_file.ml_epochs = snapshot.val().ml_epochs;
-      json_file.uid = snapshot.val().uid;
-      json_file.ml_model = snapshot.val().ml_model;
-      json_file.ml_epochs
-      
-      console.log(json_file.uid);
-      console.log(json_file.images.length); */
-      //Save json file
-      /* fs.writeFile('json_file.json', JSON.stringify(json_file), function (err) {
-        if (err) throw err;
-        console.log('Saved!');
-      }); */
-      // callTrain("id", true);
       train(snapshot.val());
-    //});
+  }
+  if (snapshot.val().ml_delete) {
+      console.log("ml_delete",snapshot.val().ml_delete);
+      delete_model(snapshot.val());
   }
 });
 
@@ -80,12 +56,6 @@ function train(json_file){
     console.log(res.data.status)
     if (res.data.status === "running") {
       console.log("success")
-      // metaDataRef.child(json_file.training_set_ref).update({
-      //   ml_train: false,
-      //   ml_train_ongoing: true,
-      //   ml_train_status: "running",
-      //   ml_training_started_timestamp:admin.database.ServerValue.TIMESTAMP
-      // });
     } else {
       console.log("fail")
       metaDataRef.child(json_file.training_set_ref).update({
@@ -99,6 +69,15 @@ function train(json_file){
   })
 }
 
+function delete_model(json_file){
+  axios.post('http://127.0.0.1:5000/delete_model', json_file)
+  .then((res) => {
+    console.log(res.data.status)
+  })
+  .catch((error) => {
+    console.error(error)
+  })
+}
 // function train(json_file){
 //   axios.post('http://127.0.0.1:5000/json_endpoint', json_file)
 //   .then((res) => {

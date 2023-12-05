@@ -124,9 +124,10 @@ def train_and_save(model,model_transforms,annotation_json_file, training_data, i
             })
     model_file_name = str(uuid.uuid4())+model._name+'.pth'
     #delete old models in the folder annotation_json_file["ml_model_filename"]
-    for filename in os.listdir(save_path):
-        if filename.startswith(annotation_json_file["ml_model_filename"]):
-            os.remove(os.path.join(save_path, filename))
+    if "ml_model_filename" in annotation_json_file and annotation_json_file["ml_model_filename"]:
+        for filename in os.listdir(save_path):
+            if filename.startswith(annotation_json_file["ml_model_filename"]):
+                os.remove(os.path.join(save_path, filename))
     torch.save(model, os.path.join(save_path,model_file_name))
     ref.update({
         'ml_model_filename': model_file_name,

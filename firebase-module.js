@@ -6,6 +6,7 @@ import { serverTimestamp } from "https://www.gstatic.com/firebasejs/10.3.0/fireb
 //import { getAuth, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/9.5.0/firebase-auth-compat.js"
 import {loggedIn, build_image_containers, select_training_data, getMetadata, setMetadata}   from "./script.js";
 import { getBirds, setBirds } from './script.js';
+//import { get } from "https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -214,6 +215,11 @@ export function delete_training_set(userID, training_set_ref) {
   const db = getDatabase();
   const trainingSetRef = ref(db, userID + "/trainingsets/" + training_set_ref);
   const metadataRef = ref(db, userID + "/metadata/" + training_set_ref);
+  const ml_delete = { "ml_delete": true };
+  update(metadataRef,{ "ml_delete": true } ).then(() => {
+    console.log('Delete added to metadata');
+    //get_training_sets_metadata(userID)
+  });
   set(trainingSetRef, null).then(() => {
     console.log('Data has been successfully deleted from the database');
   })
@@ -265,10 +271,13 @@ export function getTraining_parameters(){
     const data = snapshot.val();
     console.log("data",data);
     setMetadata(data);
+    return getMetadata();
   }, {
     onlyOnce: true
   });
 } 
+
+
 
 
 
