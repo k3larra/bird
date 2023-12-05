@@ -7,6 +7,7 @@ import {getDatabase, set, user,auth} from "./firebase-module.js";
 import {setDefaultProject} from "./firebase-module.js";
 import {delete_training_set} from "./firebase-module.js";
 import { train_model } from "./train_model.js";
+import { predict } from "./predict.js";
 export const debug = true;
 const imageFolder = 'ottenbyresized/'
 let unique_concepts = [] //This is central and needs some more protection....
@@ -39,6 +40,19 @@ function updateUniqueConcepts() {
   return unique_concepts;
 }
 
+function findImageIndexWithPredictedConcept(pred_concept){
+  //Find all rows with concept_pred in column 1 in birds and return them
+  let image_indexes_for_concept = []
+  for (const [key, value] of Object.entries(getBirds().images)) {
+    if (value.concept_pred == null) continue;
+    if (value.concept_pred == "void") continue;
+    if (value.concept_pred == pred_concept){
+      image_indexes_for_concept.push(key)
+    }
+  }
+  return image_indexes_for_concept
+}
+
 /**
  * Returns an object containing statistics about the images and concepts in the application.
  * @returns {Object} An object with the following properties:
@@ -47,15 +61,25 @@ function updateUniqueConcepts() {
  * - number_of_void_images: The number of images that have the concept "void" associated with them.
  * - [concept]: The number of images that have the specified concept associated with them. This property is repeated for each unique concept.
  */
-function getStatistics(){
+export function getStatistics(){
   let a = updateUniqueConcepts();
   const statistics = {
     "number_of_images": Object.keys(getBirds().images).length,
     "number_of_concepts": unique_concepts.length,
-    "number_of_void_images": findImageIndexWithConcept("void").length
+    "number_of_void_images": findImageIndexWithConcept("void").length,
+    "number_of_predicted_images": findImageIndexWithPredictedConcept("concept_pred").length
   }
+  //Add statistics for concepts
+  //get the sum of all concepts in getBirds().images.concept
   unique_concepts.forEach((concept)=>{
     statistics[concept] = findImageIndexWithConcept(concept).length
+  });
+  //Add statistics for predicted concepts
+  //check so entries in getBirds().images.concept_pred is not null
+  //const unique_concepts = [...new Set(getBirds().images.map(item => item.concept_pred))];
+
+  unique_concepts.forEach((pred_concept)=>{
+    statistics[pred_concept] = findImageIndexWithConcept(pred_concept).length
   });
   return statistics;
 }
@@ -447,6 +471,7 @@ function createbuttons(text1,text4){
   firebase_save_as(); 
   discard_changes();
   train_model();
+  predict();
 }
 
 function changeConcept(index,concept){
