@@ -53,34 +53,39 @@ class CustomImageDataset(Dataset):
             label = self.target_transform(label)
         return image, label
 
-def getEfficientNet_V2_S_model():
-    weights = EfficientNet_V2_S_Weights.DEFAULT
-    model_transforms = weights.transforms()
-    model = efficientnet_v2_s(weights=weights)
-    model._name="EfficientNet_V2_S"
-    model.eval()
-    return model, model_transforms
-
-def getResNet50_model():
+def getResNet50_model(num_classes):
     weights = ResNet50_Weights.DEFAULT
     model_transforms = weights.transforms()
     model = resnet50(weights=weights)
     model._name="ResNet50"
+    model.fc =nn.Linear(model.fc.in_features, num_classes)
     model.eval()
     return model, model_transforms
 
-def get_existing_trained_model(save_path, ml_filename):  
+def getEfficientNet_V2_S_model(num_classes):
+    weights = EfficientNet_V2_S_Weights.DEFAULT
+    model_transforms = weights.transforms()
+    model = efficientnet_v2_s(weights=weights)
+    model._name="EfficientNet_V2_S"
+    model._fc = nn.Linear(model._fc.in_features, num_classes)
+    model.eval()
+    return model, model_transforms
+
+
+def get_existing_trained_model(save_path, ml_filename,num_classes):  
     # Loads the model at annotation_json_file["ml_model_filename"] and returns it
     model = torch.load(os.path.join(save_path, ml_filename))
     if "ResNet50" in ml_filename:
-        weights = ResNet50_Weights.DEFAULT
+        weights = ResNet50_Weights.DEFAULT #to get the transforms
+        model.fc =nn.Linear(model.fc.in_features, num_classes)
     elif "EfficientNet_V2_S" in ml_filename:
-        weights = EfficientNet_V2_S_Weights.DEFAULT
+        weights = EfficientNet_V2_S_Weights.DEFAULT #to get the transforms
+        model._fc = nn.Linear(model._fc.in_features, num_classes)
     model_transforms = weights.transforms()
     model.eval()
     return model, model_transforms
 
-def train_model(model, criterion, optimizer,training_loader):
+def train_model(model, criterion, optimizer, training_loader):
     model.train()  
     for inputs, labels in training_loader:
         inputs = inputs.to(device)
@@ -100,6 +105,21 @@ def increment_counter(transaction, ref):
     transaction.put(ref, new_value)
     return new_value
 
+def predict_image(model, model_transforms, image_path_resized, image_name,idx_to_label):
+    #model = torch.load(os.path.join(save_path, annotation_json_file["ml_model_filename"]))
+    print("in predict_image")
+    model.eval()
+    image = read_image(os.path.join(image_path_resized, image_name), ImageReadMode.UNCHANGED)
+    image = image.float()
+    image /= 255.
+    image = model_transforms(image)
+    image = image.unsqueeze(0)
+    image = image.to(device)
+    output = model(image)
+    _, predicted = torch.max(output.data, 1)
+    print("predicted: "+str(idx_to_label[predicted]))
+    return idx_to_label[predicted]
+
 def train_and_save(model,model_transforms,annotation_json_file, training_data, image_path_resized,save_path,batch_size=32,num_epochs=5):
     dataset = training_data["images"]
     print(len(dataset))
@@ -113,10 +133,10 @@ def train_and_save(model,model_transforms,annotation_json_file, training_data, i
     criterion = nn.CrossEntropyLoss()
     optimizer_ft = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
+    ref = db.reference('/').child(annotation_json_file["uid"]).child("metadata").child(annotation_json_file["training_set_ref"])
     for epoch in range(num_epochs):
         train_model(model, criterion, optimizer_ft,training_loader)
         scheduler.step()
-        ref = db.reference('/').child(annotation_json_file["uid"]).child("metadata").child(annotation_json_file["training_set_ref"])
         epoch_str=str(epoch+1)+"/"+str(num_epochs)
         ref.update({
             'ml_epoch': epoch_str,

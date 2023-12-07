@@ -1,6 +1,6 @@
 import { getMetadata } from "./script.js";
 import { setTraining_parameters, getTraining_parameters } from "./firebase-module.js";
-import { auth ,getDatabase,ref,onValue} from "./firebase-module.js";
+import { auth, getDatabase, ref, onValue } from "./firebase-module.js";
 import { debug } from "./script.js";
 export function train_model() {
   const button = document.createElement("button");
@@ -17,7 +17,7 @@ export function train_model() {
     .then(response => response.text())
     .then(html => {
       //getTraining_parameters();
-      console.log("getMetadata()", getMetadata());
+      //console.log("getMetadata()", getMetadata());
       const buttonDiv = document.getElementById("button_div");
       const modalContainer = document.createElement('div');
       modalContainer.innerHTML = html;
@@ -25,6 +25,7 @@ export function train_model() {
       document.getElementById("refresh_training_modal").addEventListener("click", refreshContent);
       document.getElementById("saveChanges_train").addEventListener("click", handleTrainModelButton);
       refreshContent();
+      trainingOngoing();
     });
 
   //document.getElementById("image_data").appendChild(button);
@@ -32,6 +33,7 @@ export function train_model() {
 
 function handleTrainModelButton(event) {
   event.preventDefault();
+  console.log("IN handleTrainModelButton");
   getMetadata().ml_model = document.getElementById("model").value; // Set the value to the selected value in modelDropdown
   if (getMetadata().ml_model !== "Continue training") {
     getMetadata().ml_base_model = getMetadata().ml_model;
@@ -46,7 +48,6 @@ function handleTrainModelButton(event) {
   getMetadata().ml_train_finished = false;
   const descriptionInput = document.getElementById("description");
   const descriptionText = descriptionInput.value;
-  console.log("descriptionText", descriptionText);
   getMetadata().ml_description = descriptionText;
   getMetadata().ml_train_nbr = getMetadata().ml_train_nbr + 1;
   getMetadata().uid = auth.currentUser.uid;
@@ -61,7 +62,7 @@ function handleTrainModelButton(event) {
   getMetadata().optimizer = document.getElementById("optimizer").value;
   getMetadata().metrics = document.getElementById("metrics").value; */
   setTraining_parameters();
-  trainingOngoing();
+
 }
 
 function refreshContent() {
@@ -191,22 +192,27 @@ function trainingOngoing() {
   const metadataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
 
   onValue(metadataRef, (snapshot) => {
-    refreshContent();
+    console.log("IN TRAININGONGOING");
     const data = snapshot.val();
-    let previousValue = false;
-    const currentValue = data.ml_train_ongoing;
-    console.log("DATA", data.ml_train_ongoing);
-    console.log("getMetadata().ml_train_ongoing", getMetadata().ml_train_ongoing);
-    if (data.ml_train && !data.ml_train_ongoing) {
-      // The ml_ongoing property changed from true to false
-      console.log("training started");
-      document.getElementById("saveChanges_train").disabled = true;
-      // Perform any actions you need to do here
-    } else if (!data.ml_train_ongoing&&data.ml_train_finished) {
-      // The ml_ongoing property changed from false to true
-      console.log("ml_ongoing changed from false to true");
-      document.getElementById("saveChanges_train").disabled = false;
+    const modal = document.getElementById("myModal_train"); // Replace "modalId" with the actual ID of your modal element
+    const isVisible = modal.style.display !== "none";
+    console.log("Is modal train visible?", isVisible);
+    if (isVisible) {
+      let previousValue = false;
+      //console.log("DATA", data.ml_train_ongoing);
+      //console.log("getMetadata().ml_train_ongoing", getMetadata().ml_train_ongoing);
+      if (data.ml_train && !data.ml_train_ongoing&& !data.ml_predict) {
+        // The ml_ongoing property changed from true to false
+        console.log("training started");
+        document.getElementById("saveChanges_train").disabled = true;
+        // Perform any actions you need to do here
+      } else if (!data.ml_train_ongoing && data.ml_train_finished&& !data.ml_predict) {
+        // The ml_ongoing property changed from false to true
+        console.log("ml_ongoing changed from false to true");
+        document.getElementById("saveChanges_train").disabled = false;
+      }
+      previousValue = getMetadata().ml_train_ongoing;
+      refreshContent();
     }
-    previousValue = getMetadata().ml_train_ongoing;
   });
 }

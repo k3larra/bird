@@ -29,15 +29,7 @@ var trainingsetRef = db.ref("/"+uid+"/trainingsets");
 
 
 
-// usersRef.once("value", function(snapshot) {
-//   console.log(snapshot.val());
-//   sendJsonToFlask(snapshot.val());
-// });
 
-// metaDataRef.on("child_added", function(snapshot) {
-//   console.log("child added",snapshot.val());
-//   //get the title
-// });
 
 metaDataRef.on("child_changed", function(snapshot) {
   if (snapshot.val().ml_train) {
@@ -45,8 +37,18 @@ metaDataRef.on("child_changed", function(snapshot) {
       train(snapshot.val());
   }
   if (snapshot.val().ml_delete) {
-      console.log("ml_delete",snapshot.val().ml_delete);
-      delete_model(snapshot.val());
+    console.log("ml_delete", snapshot.val().ml_delete);
+    delete_model(snapshot.val());
+  }
+  if (snapshot.val().ml_predict) {
+    console.log("ml_predict", snapshot.val().ml_predict);
+    // test if prediction is not running
+    //if (snapshot.val().ml_predict_started_timestamp&&snapshot.val().ml_predict_finished_timestamp){
+      if (snapshot.val().ml_predict_started_timestamp < snapshot.val().ml_predict_finished_timestamp) {
+        predict(snapshot.val());
+      }else{
+        console.log("prediction already running");
+      }
   }
 });
 
@@ -78,6 +80,17 @@ function delete_model(json_file){
     console.error(error)
   })
 }
+
+function predict(json_file){
+  axios.post('http://127.0.0.1:5000/predict', json_file)
+  .then((res) => {
+    console.log(res.data.status)
+  })
+  .catch((error) => {
+    console.error(error)
+  })
+}
+
 // function train(json_file){
 //   axios.post('http://127.0.0.1:5000/json_endpoint', json_file)
 //   .then((res) => {
@@ -109,7 +122,7 @@ function delete_model(json_file){
 //   })
 // }
 
-function callTrain(id,retrain){
+/* function callTrain(id,retrain){
   http.get('http://127.0.0.1:5000/retrain?userId='+id, (resp) => {
             let data = '';
             resp.on('data', (chunk) => {
@@ -145,14 +158,17 @@ function trainOld(json_file,uid,training_set_ref,ml_epochs){
   .catch((error) => {
     console.error(error)
   })
-}
+} */
 
+// usersRef.once("value", function(snapshot) {
+//   console.log(snapshot.val());
+//   sendJsonToFlask(snapshot.val());
+// });
 
-
-
-
-
-
+// metaDataRef.on("child_added", function(snapshot) {
+//   console.log("child added",snapshot.val());
+//   //get the title
+// });
 
 /* const server = http.createServer((req, res) => {
   res.statusCode = 200;

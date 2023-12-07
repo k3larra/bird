@@ -251,7 +251,7 @@ export function read_training_data(userID, training_set_ref) {
 }
 
 export function setTraining_parameters(){
-  console.log("getMetadata()",getMetadata());
+  console.log("In SET Training getMetadata()",getMetadata());
   const db = getDatabase();
   const metadataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
   //getMetadata().ended= timestamp;

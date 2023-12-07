@@ -3,13 +3,15 @@ from flask import request
 from threading import Thread
 import json
 import os
+import random
 app = Flask(__name__)
 ##
 
 #firebase
 import firebase_admin
 from firebase_admin import credentials, db
-from ml_code import train_and_save, getResNet50_model,getEfficientNet_V2_S_model,get_existing_trained_model
+from ml_code import predict_image,train_and_save, getResNet50_model,getEfficientNet_V2_S_model,get_existing_trained_model
+import random
 
 # Initialize the Firebase Admin SDK
 cred = credentials.Certificate('../../secrets/bird-ad15f-firebase-adminsdk-hzlhg-4ccf1a7271.json')
@@ -31,8 +33,10 @@ def retrain():
 
 @app.route('/json_endpoint', methods=['POST'])
 def json_endpoint():
+    print("in json_endpoint/train")
     metaData = request.get_json()
     num_epochs = int(metaData["ml_epochs"])
+    nbr_concept = len(metaData["concept"])
     #annotation_json_file = metaData
     image_path_resized = '../../ottenbyresized'
     save_path = "../../models"
@@ -68,14 +72,14 @@ def json_endpoint():
                     os.remove(os.path.join(save_path, filename))
     if "ml_model_filename" in metaData and metaData["ml_model_filename"] and retrain:
         # Load the saved model
-        model, model_tranforms = get_existing_trained_model(save_path,metaData["ml_model_filename"])
+        model, model_tranforms = get_existing_trained_model(save_path,metaData["ml_model_filename"],nbr_concept)
         print("Loading old")
     else:
         if metaData["ml_model"] == "ResNet50":
-            model,model_tranforms = getResNet50_model()
+            model,model_tranforms = getResNet50_model(nbr_concept)
             print("Loading ResNet50")
         elif metaData["ml_model"] == "EfficientNet_V2_S":
-            model, model_tranforms = getEfficientNet_V2_S_model()
+            model, model_tranforms = getEfficientNet_V2_S_model(nbr_concept)
             print("Loading EfficientNet_V2_S")
         else:
             model = None
@@ -95,6 +99,7 @@ def json_endpoint():
 
 @app.route('/delete_model', methods=['POST'])
 def delete_model():
+    print("in delete_model")
     metaData = request.get_json()
     save_path = "../../models"
     if "ml_model_filename" in metaData and metaData["ml_model_filename"]:
@@ -102,6 +107,68 @@ def delete_model():
             if filename.startswith(metaData["ml_model_filename"]):
                 os.remove(os.path.join(save_path, filename))
     return json.dumps({"status":"deleted" })
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    print("in predict")
+    metaData = request.get_json()
+    save_path = "../../models"
+    image_path_resized = '../../ottenbyresized'
+    # check if trained model exists
+    metadataRef = db.reference('/').child(metaData["uid"]).child("metadata").child(metaData["training_set_ref"])
+    if "ml_model_filename" in metaData and metaData["ml_model_filename"]:
+        metadataRef.update({
+            'ml_predict_started_timestamp': {".sv": "timestamp"},
+        })
+        trainingDataRef = db.reference('/').child(metaData["uid"]).child("trainingsets").child(metaData["training_set_ref"])
+        # Get the training data from Firebase
+        training_data = trainingDataRef.get()
+        ml_pred_concept_key = metaData["ml_pred_concept"] + "_pred"
+        print("ml_pred_concept: "+ml_pred_concept_key)
+        ml_predict_erase = metaData["ml_predict_erase"]
+        ml_predict_nbr = metaData["ml_predict_nbr"]
+        print("ml_predict_nbr: ",ml_predict_nbr)
+        if ml_predict_erase:
+            for image in training_data["images"]:
+                if ml_pred_concept_key in image:
+                    image[ml_pred_concept_key] = "void"
+        # Load the saved model
+        model, model_transforms = get_existing_trained_model(save_path, metaData["ml_model_filename"],len(metaData["concept"]))
+        print("Loading saved model")
+        # Predict and update in real-time
+
+        # Get a random sample of ml_pred_nbr images
+        random_images = random.sample(training_data["images"], int(ml_predict_nbr))
+        random_images_length = len(random_images)
+        print("random_images_length: ",random_images_length)
+        print("Example:" + str(random_images[1]))
+
+        for random_image in random_images:
+            if ml_pred_concept_key not in random_image:
+                random_image[ml_pred_concept_key] = 'void'
+            prediction = predict_image(model, model_transforms, image_path_resized, random_image["image_location"], metaData["concept"])
+            # Update concept_predict in Firebase
+            for index, image in enumerate(training_data["images"]):
+                # Use the index here
+                
+                if image["image_location"] == random_image["image_location"]:
+                    print("Index:", index)
+                    print(image)
+                    trainingDataRef.child("images").child(str(index)).update({ml_pred_concept_key: prediction})
+                    print("image[ml_pred_concept_key]: ",image[ml_pred_concept_key])
+                    break
+            
+
+        metadataRef.update({
+            'ml_predict_finished_timestamp': {".sv": "timestamp"},
+            "ml_predict": False
+        })
+    else:
+        metadataRef.update({
+            'ml_predict_started_timestamp': {".sv": "timestamp"},
+            "ml_predict": False
+        })
+    return json.dumps({"status": "predicted"})
 
 
 
