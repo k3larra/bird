@@ -1,4 +1,4 @@
-const http = require('node:http');
+const http = require('http');
 var admin = require("firebase-admin");
 const axios = require('axios');
 const fs = require('fs');
