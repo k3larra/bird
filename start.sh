@@ -10,16 +10,6 @@ export FLASK_ENV=development
 # Start the Flask server
 flask run --debugger &
 #flask run --debugger > flask.log 2>&1 &
-# Navigate to your project directory
-cd /path/to/your/project
-# Activate the virtual environment
-source .venv/bin/activate
-# Set the FLASK_APP environment variable
-export FLASK_APP=birdnest
-# Optionally, enable debug mode
-export FLASK_ENV=development
-# Start the Flask server
-flask run --debugger
 #Start node server
 cd ~/ottenby/bird/node/
 #node nodebird.js > node.log 2>&1 &
