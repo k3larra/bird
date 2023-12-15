@@ -117,6 +117,9 @@ def predict_image(model, model_transforms, image_path_resized, image_name,idx_to
     #model = torch.load(os.path.join(save_path, annotation_json_file["ml_model_filename"]))
     print("in predict_image")
     model.eval()
+    inagePath = os.path.join(image_path_resized, image_name)
+    if platform.system() == 'Linux':
+        inagePath = inagePath.replace("\\", "/")
     image = read_image(os.path.join(image_path_resized, image_name), ImageReadMode.UNCHANGED)
     image = image.float()
     image /= 255.

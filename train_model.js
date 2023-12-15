@@ -230,7 +230,7 @@ function resetTraining(event) {
   getMetadata().ml_train = false;
   getMetadata().ml_train_status = "Reset training";
   getMetadata().ml_train_ongoing = false;
-  getMetadata().ml_train_finished = false;
+  getMetadata().ml_train_finished = true;
   setTraining_parameters();
   refreshContent();
 }
