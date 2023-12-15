@@ -4,7 +4,7 @@ const axios = require('axios');
 const fs = require('fs');
 const hostname = '127.0.0.1';
 const port = 3000;
-console.log("started");
+console.log("Node started on port 3000");
 
 let text = '{ "employees" : [' +
 '{ "firstName":"John" , "lastName":"Doe" },' +
