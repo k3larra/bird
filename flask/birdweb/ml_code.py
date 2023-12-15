@@ -63,7 +63,7 @@ class CustomImageDataset(Dataset):
 
 def getResNet50_model(num_classes):
     weights = ResNet50_Weights.DEFAULT
-    model_transforms = weights.transforms()
+    model_transforms = weights.transforms(antialias=True)
     model = resnet50(weights=weights)
     model._name="ResNet50"
     model.fc =nn.Linear(model.fc.in_features, num_classes)
@@ -72,7 +72,7 @@ def getResNet50_model(num_classes):
 
 def getEfficientNet_V2_S_model(num_classes):
     weights = EfficientNet_V2_S_Weights.DEFAULT
-    model_transforms = weights.transforms()
+    model_transforms = weights.transforms(antialias=True)
     model = efficientnet_v2_s(weights=weights)
     model._name="EfficientNet_V2_S"
     model._fc = nn.Linear(model._fc.in_features, num_classes)
