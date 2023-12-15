@@ -1,5 +1,6 @@
 import os
 import json
+import platform
 import uuid
 import numpy as np
 import torch
@@ -28,8 +29,15 @@ class CustomImageDataset(Dataset):
         #with open(json_file,encoding='utf-8') as f:
         #    data = json.load(f)
         #    self.img_labels = data['images']
-        for index in range(len(self.img_labels)):          #For windows
-           self.img_labels[index]['image_location'] = Path(self.img_labels[index]['image_location'])  # Replace backslashes with forward slashes
+        if platform.system() == 'Windows':
+            for index in range(len(self.img_labels)):
+                self.img_labels[index]['image_location'] = Path(self.img_labels[index]['image_location'])
+        elif platform.system() == 'Linux':
+            for index in range(len(self.img_labels)):
+                #self.img_labels[index]['image_location'] = self.img_labels[index]['image_location'].replace("\\", "/")
+                self.img_labels[index]['image_location'] = '"' + self.img_labels[index]['image_location'].replace("\\", "/") + '"'
+        #for index in range(len(self.img_labels)):          #For windows
+        #   self.img_labels[index]['image_location'] = Path(self.img_labels[index]['image_location'])  # Replace backslashes with forward slashes
         #for index in range(len(self.img_labels)):          #For linux
         #    self.img_labels[index]['image_location'] = self.img_labels[index]['image_location'].replace("\\", "/")  # Replace backslashes with forward slashes
         self.catagories = np.unique([item['concept'] for item in self.img_labels]).tolist()
@@ -125,6 +133,10 @@ def train_and_save(model,model_transforms,annotation_json_file, training_data, i
     print(len(dataset))
     dataset = [x for x in dataset if x['concept'] != 'void']
     print(len(dataset))
+    if platform.system() == 'Windows':
+        print("Windows")
+    if platform.system() == 'Linux':
+        print("Linux")
     #print(dataset)
     print(annotation_json_file['concept'])
     bird_dataset = CustomImageDataset(dataset, image_path_resized, transform=model_transforms, target_transform=None)

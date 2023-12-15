@@ -501,10 +501,11 @@ function findImageIndexWithConcept(search_key, concept) {
       }
     }
     if (search_key === "concept_pred") {
-      //console.log("value.concept_pred", value.concept_pred)
       if (value.concept_pred == null) continue;
       if (value.concept_pred == concept) {
         image_indexes_for_concept.push(key)
+        console.log("value.concept_pred", value.concept_pred)
+        console.log("key", key)
       }
     }
   }

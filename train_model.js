@@ -105,6 +105,13 @@ function refreshContent() {
         "<i>ml_train_ongoing:</i> " + getMetadata().ml_train_ongoing + "</br>" +
         "<i>ml_train_finished:</i> " + getMetadata().ml_train_finished + "</br>" +
         "<i>ml_retrain_existing_model:</i> " + getMetadata().ml_retrain_existing_model + "</br>";
+        const resetButton = document.createElement("button");
+        resetButton.type = "button";
+        resetButton.id = "reset_train";
+        resetButton.classList.add("btn", "btn-secondary", "btn-sm", "me-1");
+        resetButton.innerHTML = "Reset training";
+        trainContent.appendChild(resetButton);
+        document.getElementById("reset_train").addEventListener("click", resetTraining);
     }
     //Add a <hr> element to trainContent
     const hr = document.createElement("hr");
@@ -215,4 +222,15 @@ function trainingOngoing() {
       refreshContent();
     }
   });
+}
+
+function resetTraining(event) {
+  event.preventDefault();
+  console.log("IN resetTraining");
+  getMetadata().ml_train = false;
+  getMetadata().ml_train_status = "Reset training";
+  getMetadata().ml_train_ongoing = false;
+  getMetadata().ml_train_finished = false;
+  setTraining_parameters();
+  refreshContent();
 }

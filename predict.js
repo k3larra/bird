@@ -79,6 +79,22 @@ function refreshPredictContent() {
     }else{
       infoText.innerHTML += "No training has been done yet<br>"
     }
+
+    if (debug) {
+      console.log("getMetadata()", getMetadata());
+      const resetPredictButton = document.createElement("button");
+      resetPredictButton.type = "button";
+      resetPredictButton.id = "reset_predict";
+      resetPredictButton.classList.add("btn", "btn-secondary", "btn-sm", "me-1");
+      resetPredictButton.innerHTML = "Reset predict";
+      predictContent.appendChild(resetPredictButton);
+      document.getElementById("reset_predict").addEventListener("click", function () {
+        getMetadata().ml_predict = false;
+        getMetadata().ml_predict_started_timestamp = 0;
+        getMetadata().ml_predict_finished_timestamp = 1;
+        setTraining_parameters(); //should be renamed to set_parameters
+      });
+    }
     
     
     const hr = document.createElement("hr");
