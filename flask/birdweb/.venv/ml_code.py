@@ -35,7 +35,7 @@ class CustomImageDataset(Dataset):
         elif platform.system() == 'Linux':
             for index in range(len(self.img_labels)):
                 #self.img_labels[index]['image_location'] = self.img_labels[index]['image_location'].replace("\\", "/")
-                self.img_labels[index]['image_location'] = '"' + self.img_labels[index]['image_location'].replace("\\", "/") + '"'
+                self.img_labels[index]['image_location'] = self.img_labels[index]['image_location'].replace("\\", "/")
         #for index in range(len(self.img_labels)):          #For windows
         #   self.img_labels[index]['image_location'] = Path(self.img_labels[index]['image_location'])  # Replace backslashes with forward slashes
         #for index in range(len(self.img_labels)):          #For linux
