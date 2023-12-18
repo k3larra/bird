@@ -235,7 +235,7 @@ export function build_image_containers() {
   let imageContainer = createContainer("void", "Label training data using the concepts created above");
   populate_void_container(getBirds(), imageContainer)
   document.getElementById("image_data").appendChild(imageContainer);
-  createbuttons("Organise & reload", "Download")
+  createbuttons()
   add_image_container_listener("void", imageContainer)
   //Create a container for each concept 
   try {
@@ -451,7 +451,7 @@ function createRowInConceptList(newConcept) {
   li.appendChild(span);
   return li;
 }
-function createbuttons(text1, text4) {
+function createbuttons() {
   console.log("In createbuttons");
   const buttonDiv = document.createElement("div")
   buttonDiv.classList.add("container", "overflow-auto", "border", "border-2", "rounded-3", "p-1", "m-1", "bg-light", "bg-gradient", "d-flex", "justify-content-center")
@@ -460,7 +460,7 @@ function createbuttons(text1, text4) {
   let button = document.createElement("button")
   button.type = "button"
   button.classList.add("btn", "btn-secondary", "btn-sm", "me-1")
-  button.textContent = text1 //"Organise & reload"
+  button.textContent = "Reorganise" //"Organise & reload"
   buttonDiv.appendChild(button)
   button.addEventListener("click", (event) => {
     event.preventDefault();
@@ -469,7 +469,16 @@ function createbuttons(text1, text4) {
   button = document.createElement("button")
   button.type = "button"
   button.classList.add("btn", "btn-secondary", "btn-sm", "me-1")
-  button.textContent = text4 //"Download"
+  button.textContent = "Reload" //"reload"
+  buttonDiv.appendChild(button)
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    read_training_data(auth.currentUser.uid, getMetadata().training_set_ref);
+  });
+  button = document.createElement("button")
+  button.type = "button"
+  button.classList.add("btn", "btn-secondary", "btn-sm", "me-1")
+  button.textContent = "Download" //"Download"
   buttonDiv.appendChild(button)
   button.addEventListener("click", (event) => {
     event.preventDefault()
@@ -490,9 +499,7 @@ function changeConcept(index, concept) {
 }
 
 function findImageIndexWithConcept(search_key, concept) {
-  //Find all rows with concept in column 1 in birds and return them
   let image_indexes_for_concept = []
-  //console.log("getBirds().images[643]", getBirds().images[643])
   for (const [key, value] of Object.entries(getBirds().images)) {
     if (search_key === "concept") { //Yes I know....
       if (value.concept == null) continue;

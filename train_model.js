@@ -181,7 +181,7 @@ function refreshContent() {
     } else {
       descriptionInput.placeholder = "Description of this training";
     }
-    descriptionInput.maxLength = 100;
+    descriptionInput.maxLength = 1000;
     descriptionInput.rows = 5;
     descriptionInput.style.marginTop = "10px";
     descriptionInput.style.width = "100%"; // Set the width to 100%

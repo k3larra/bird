@@ -145,6 +145,7 @@ function predictionOngoing() {
         //set saveChanges_predict button to disabled 
         document.getElementById("saveChanges_predict").disabled = true;
       } else if (!getMetadata().ml_train_ongoing && !getMetadata().ml_predict){
+        //relode all containers from firebase
         document.getElementById("saveChanges_predict").disabled = false;
       }
     } 
