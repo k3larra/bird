@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from pathlib import Path
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 from torchvision.io import read_image
@@ -26,20 +27,12 @@ from firebase_admin import credentials, db
 class CustomImageDataset(Dataset):
     def __init__(self, json_file, image_path, transform=None, target_transform=None):
         self.img_labels = json_file
-        #with open(json_file,encoding='utf-8') as f:
-        #    data = json.load(f)
-        #    self.img_labels = data['images']
         if platform.system() == 'Windows':
             for index in range(len(self.img_labels)):
                 self.img_labels[index]['image_location'] = Path(self.img_labels[index]['image_location'])
         elif platform.system() == 'Linux':
             for index in range(len(self.img_labels)):
-                #self.img_labels[index]['image_location'] = self.img_labels[index]['image_location'].replace("\\", "/")
                 self.img_labels[index]['image_location'] = self.img_labels[index]['image_location'].replace("\\", "/")
-        #for index in range(len(self.img_labels)):          #For windows
-        #   self.img_labels[index]['image_location'] = Path(self.img_labels[index]['image_location'])  # Replace backslashes with forward slashes
-        #for index in range(len(self.img_labels)):          #For linux
-        #    self.img_labels[index]['image_location'] = self.img_labels[index]['image_location'].replace("\\", "/")  # Replace backslashes with forward slashes
         self.catagories = np.unique([item['concept'] for item in self.img_labels]).tolist()
         self.image_path = image_path
         self.transform = transform
@@ -82,15 +75,15 @@ def getEfficientNet_V2_S_model(num_classes):
 
 def get_existing_trained_model(save_path, ml_filename,num_classes):  
     # Loads the model at annotation_json_file["ml_model_filename"] and returns it
-    model = torch.load(os.path.join(save_path, ml_filename))
+    model = torch.load(os.path.join(save_path, ml_filename),map_location=torch.device('cpu'))
     if "ResNet50" in ml_filename:
         weights = ResNet50_Weights.DEFAULT #to get the transforms
-        model.fc =nn.Linear(model.fc.in_features, num_classes)
+        #model.fc =nn.Linear(model.fc.in_features, num_classes)
     elif "EfficientNet_V2_S" in ml_filename:
         weights = EfficientNet_V2_S_Weights.DEFAULT #to get the transforms
-        model._fc = nn.Linear(model._fc.in_features, num_classes)
+        #model._fc = nn.Linear(model._fc.in_features, num_classes)
     model_transforms = weights.transforms()
-    model.eval()
+    #model.eval()
     return model, model_transforms
 
 def train_model(model, criterion, optimizer, training_loader):
@@ -114,9 +107,8 @@ def increment_counter(transaction, ref):
     return new_value
 
 def predict_image(model, model_transforms, image_path_resized, image_name,idx_to_label):
-    #model = torch.load(os.path.join(save_path, annotation_json_file["ml_model_filename"]))
-    print("in predict_image")
     model.eval()
+    model = model.to(device)
     imagePath = os.path.join(image_path_resized, image_name)
     if platform.system() == 'Linux':
         imagePath = imagePath.replace("\\", "/")
@@ -127,9 +119,11 @@ def predict_image(model, model_transforms, image_path_resized, image_name,idx_to
     image = image.unsqueeze(0)
     image = image.to(device)
     output = model(image)
-    _, predicted = torch.max(output.data, 1)
-    print("predicted: "+str(idx_to_label[predicted]))
-    return idx_to_label[predicted]
+    output_prob = F.softmax(output, dim=1)
+    class_prob, predicted = torch.max(output_prob.data, 1)
+    class_prob = int(class_prob.item()*100)
+    #print("predicted: "+str(idx_to_label[predicted])+ " ("+str(class_prob)+"%)" )
+    return idx_to_label[predicted], class_prob
 
 def train_and_save(model,model_transforms,annotation_json_file, training_data, image_path_resized,save_path,batch_size=32,num_epochs=5):
     dataset = training_data["images"]
@@ -140,7 +134,6 @@ def train_and_save(model,model_transforms,annotation_json_file, training_data, i
         print("Windows")
     if platform.system() == 'Linux':
         print("Linux")
-    #print(dataset)
     print(annotation_json_file['concept'])
     bird_dataset = CustomImageDataset(dataset, image_path_resized, transform=model_transforms, target_transform=None)
     training_loader = DataLoader(bird_dataset, batch_size=batch_size, shuffle=True)  #32,64

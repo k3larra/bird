@@ -113,6 +113,7 @@ def predict():
         # Get the training data from Firebase
         training_data = trainingDataRef.get()
         ml_pred_concept_key = metaData["ml_pred_concept"] + "_pred"
+        ml_pred_concept_probability = metaData["ml_pred_concept"] + "_pred_probability"
         print("ml_pred_concept: "+ml_pred_concept_key)
         ml_predict_erase = metaData["ml_predict_erase"]
         print("ml_predict_erase: "+str(ml_predict_erase))
@@ -128,23 +129,28 @@ def predict():
             print("nbrVoid: ",nbrVoid)
         # Load the saved model
         model, model_transforms = get_existing_trained_model(save_path, metaData["ml_model_filename"],len(metaData["concept"]))
-        print("Loading saved model")
+        print("Loading saved model: "+ metaData["ml_model_filename"])
       
         # New Approach
         # Get ml_predict_nbr of indexes from training_data["images"] that are not classified as void (image["concept"] != "void") and image[ml_pred_concept_key] not exists or (image[ml_pred_concept_key] == "void").
         indexes = [index for index, image in enumerate(training_data["images"]) if image["concept"] == "void" and (ml_pred_concept_key not in image or image[ml_pred_concept_key] == "void")]
         random_indexes = random.sample(indexes, min(int(ml_predict_nbr), len(indexes)))
+        #random_indexes = [1335, 4221, 4260, 1729, 2693, 4230, 6047, 4289, 4694, 5142, 1061, 932]
+        #print(training_data["images"][1335])
+        #print(training_data["images"][4221])
         random_images = [training_data["images"][index] for index in random_indexes]
         random_images_length = len(random_images)
-        print("random_images_length: ",random_images_length)
-        print("random_indexes:" + str(random_indexes))
+        #print("random_images_length: ",random_images_length)
+        #print("random_indexes:" + str(random_indexes))
+        #print("random_images:" + str(random_images))
         #print("Example:" + str(random_images[1]))
         #Loop over random_indexes and predict the image and update the concept_predict in training_data["images"] with the prediction
         for index in random_indexes:
             image = training_data["images"][index]
-            prediction = predict_image(model, model_transforms, image_path_resized, image["image_location"], metaData["concept"])
+            prediction,class_prob = predict_image(model, model_transforms, image_path_resized, image["image_location"], metaData["concept"])
+            print( "index:" + str(index)+" predicted: "+prediction+ " ("+str(class_prob)+"%)" +" path:" + image["image_location"])
             training_data["images"][index][ml_pred_concept_key] = prediction
-            trainingDataRef.child("images").child(str(index)).update({ml_pred_concept_key: prediction})
+            trainingDataRef.child("images").child(str(index)).update({ml_pred_concept_key: prediction, ml_pred_concept_probability: class_prob})
         #trainingDataRef.set(training_data)
         
         #for random_image in random_images:

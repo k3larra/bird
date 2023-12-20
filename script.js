@@ -241,6 +241,7 @@ export function build_image_containers() {
   try {
     getMetadata().concept.forEach((item) => {
       imageContainer = createContainer(item, "Images labelled " + item);
+
       populate_container(findImageIndexWithConcept("concept", item), item, imageContainer, false)
       
       populate_container(findImageIndexWithConcept("concept_pred", item), item, imageContainer, true)
@@ -509,6 +510,7 @@ function findImageIndexWithConcept(search_key, concept) {
     }
     if (search_key === "concept_pred") {
       if (value.concept_pred == null) continue;
+      if (value.concept == concept) {value.concept_pred == ""; continue;}  //The image is selected for training
       if (value.concept_pred == concept) {
         image_indexes_for_concept.push(key)
         console.log("value.concept_pred", value.concept_pred)
