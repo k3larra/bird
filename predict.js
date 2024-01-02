@@ -26,7 +26,7 @@ export function predict_class() {
       //document.getElementById("refresh_predicting_modal").addEventListener("click", refreshContent);
       //document.getElementById("saveChanges_predict").removeEventListener("click", handlePredictModelButton);
       document.getElementById("saveChanges_predict").addEventListener("click", handlePredictModelButton);
-      refreshPredictContent();
+      //refreshPredictContent();
       predictionOngoing();
     });
     
@@ -130,16 +130,13 @@ function refreshPredictContent() {
 function predictionOngoing() {
   const db = getDatabase();
   const trainingDataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
-
   onValue(trainingDataRef, (snapshot) => {
-    
-    console.log("IN predictionOngoing");
-    const data = snapshot.val();
+    console.log("In predictionOngoing");
+    //const data = snapshot.val();
     // Check if the modal is visible
-    const modal = document.getElementById("myModal_predict"); // Replace "modalId" with the actual ID of your modal element
-    const isVisible = modal.style.display !== "none";
-    console.log("Is modal redict visible?", isVisible);
-    if(isVisible){
+    var myModal = new bootstrap.Modal(document.getElementById('myModal_predict'))
+    if(myModal._isShown) {
+      console.log("predict modal is visible");
       refreshPredictContent();
       if (!getMetadata().ml_train_ongoing && getMetadata().ml_predict) {
         //set saveChanges_predict button to disabled 
@@ -148,7 +145,9 @@ function predictionOngoing() {
         //relode all containers from firebase
         document.getElementById("saveChanges_predict").disabled = false;
       }
-    } 
+    } else {
+      console.log("predict modal is not visible");
+    }
     
   });
 }

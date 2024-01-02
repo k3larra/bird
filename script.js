@@ -238,12 +238,11 @@ export function build_image_containers() {
   createbuttons()
   add_image_container_listener("void", imageContainer)
   //Create a container for each concept 
+  console.log("getMetadata().concept", getMetadata().concept);
   try {
     getMetadata().concept.forEach((item) => {
       imageContainer = createContainer(item, "Images labelled " + item);
-
       populate_container(findImageIndexWithConcept("concept", item), item, imageContainer, false)
-      
       populate_container(findImageIndexWithConcept("concept_pred", item), item, imageContainer, true)
       document.getElementById("image_data").appendChild(imageContainer);
       add_image_container_listener(item, imageContainer)
@@ -393,6 +392,7 @@ function handleChildClickButton(event) {
       getMetadata().concept = []
     };
     getMetadata().concept.push(newConcept);
+    console.log("getMetadata().concept", getMetadata().concept);
     const list = document.getElementById("concept_list");
     list.appendChild(createRowInConceptList(newConcept));
     input.value = "";
@@ -681,9 +681,15 @@ function edit_concepts() {
       document.getElementById("saveChanges_concept").addEventListener("click", (event) => {
         event.preventDefault();
         console.log("In saveChanges_concept");
-        //repace all conept inon images that are not in the metadata concept list with "void"
+        console.log("getMetadata().concept", getMetadata().concept);
+        //repace all concept for images that are not in the metadata concept list with "void"
         getBirds().images.forEach((item) => {
-          if (!getMetadata().concept.includes(item.concept)) item.concept = "void";
+          if (!getMetadata().concept.includes(item.concept)) {
+            item.concept = "void";
+            if (item.concept_pred != null) {
+              item.concept_pred = "void";
+            }
+          }
         });
         //rebuild image containers
         build_image_containers();
@@ -792,8 +798,6 @@ function clear_concept(concept) {
   //remove concept from the array getMetadata().concept
   getMetadata().concept = getMetadata().concept.filter(item => item !== concept);
 }
-
-
 
 export function loggedIn(user) {
   if (user) {

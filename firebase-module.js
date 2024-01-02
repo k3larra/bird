@@ -1,11 +1,12 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-analytics.js";
-import { getDatabase, ref, set, child, push, update,onValue} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-database.js";
+import { getDatabase, ref, set, child, push, update,onValue, remove} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-database.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js"; 
 import { serverTimestamp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
 //import { getAuth, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/9.5.0/firebase-auth-compat.js"
 import {loggedIn, build_image_containers, select_training_data, getMetadata, setMetadata}   from "./script.js";
 import { getBirds, setBirds } from './script.js';
+import { approve_users } from "./resources/modal_approve_users.js";
 //import { get } from "https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -30,19 +31,133 @@ const analytics = getAnalytics(app);
 const auth = getAuth();
 
 var user = auth.currentUser;
-
+approve_users(); //Add the approve modal to the admin menu
+//moveApprovedUsers(); //Listens for changes in membershipRequests and moves approved users to users 
 document.getElementById('signIn').addEventListener('click', _login);
- await auth.onAuthStateChanged(function(user) {
-  console.log("user",user)
+document.getElementById('applyForMembership').addEventListener('click', createmembershipRequests);
+document.getElementById('moveApprovedUsers').addEventListener('click', moveApprovedUsers);
+document.getElementById('applyForMembershipbutton').addEventListener('click', createmembershipRequests);
+//document.getElementById('addrequestuser').addEventListener('click', createmembershipRequests);
+
+await auth.onAuthStateChanged(function(user) {
+  console.log("userAuthChanged",user)
   if (user) {
-    console.log("Logged in (onAuthStateChanged)",user.displayName);
-    _setLoggedInVisibility(true,user);
-    loggedIn(user);
+    _isMember(user)
+    /* if(_isMember(user)){
+      console.log("Logged in (onAuthStateChanged)",user.displayName);
+      _setLoggedInVisibility(true,user,false);
+      loggedIn(user);
+    }else{
+      console.log("Not a member yet");
+      _setLoggedInVisibility(true,user,true);
+    } */
   } else {
     console.log("Not logged in (onAuthStateChanged)");
-    _setLoggedInVisibility(false,user);
+    _setLoggedInVisibility(false,user,false);
   }
 });
+
+/* function createUsers(){ 
+  console.log("In createUsers");
+  const db = getDatabase();
+  const usersRef = ref(db, "users/");
+  const users = {
+    "user1": {
+      "role": "admin",
+      "projects": ["default"],
+      "approved": true,
+      "name": "admin",
+      "email": "l@a.se"
+    },
+    "user2": {
+      "role": "user",
+      "projects": ["default"],
+      "approved": true,
+      "name": "user",
+      "email": "l@b.se"
+    }
+  };
+  set(usersRef, users);
+}  */
+
+function createmembershipRequests(){ 
+  console.log("In createMemUsers");
+  const db = getDatabase();
+/*   const usersRef = ref(db, "membershipRequests/"+ auth.currentUser.uid);
+  var entrypoint = {
+    role: "user",
+    approved: false, //change to false if approvement is needed
+    projects: ["default"],
+    name: auth.currentUser.displayName,
+    email: auth.currentUser.email
+  }; */
+  const userDemo = "user16"
+  const usersRef = ref(db, "membershipRequests/"+ userDemo);
+  var entrypoint = {
+    role: "user",
+    approved: false, //change to false if approvement is needed
+    projects: ["default"],
+    name: userDemo,
+    email: "l@a.se"
+  };
+  set(usersRef, entrypoint);
+}
+
+function moveApprovedUsers(){
+  console.log("In moveApprovedUsers");
+  const db = getDatabase();
+  const requestsRef = ref(db, 'membershipRequests');
+  const usersRef = ref(db, 'users');
+  // Listen for changes to the membershipRequests node
+  onValue(requestsRef, (snapshot) => {
+    const requests = snapshot.val();
+    // Loop through the requests
+    for (let userId in requests) {
+      const request = requests[userId];
+      
+      // Check if the request has been approved
+      if (request.approved) {
+        // Move the user to the users node
+        const newUserRef = child(usersRef, userId);
+        set(newUserRef, request);
+        
+        // Remove the request from the membershipRequests node
+        const oldRequestRef = child(requestsRef, userId);
+        remove(oldRequestRef);
+      }
+    }
+  }, {
+    onlyOnce: true
+  }, (error) => {
+    console.log("Error in onValue:", error);
+  });
+}
+
+function _isMember(user){
+  console.log("In isMemmmmeber");
+  const db = getDatabase();
+  const usersRef = ref(db, "users/" + user.uid);
+  //const usersRef = ref(db, "users/");
+  console.log(usersRef,"usersRef")
+  onValue(usersRef, (snapshot) => {
+    // Your code logic here
+    const data = snapshot.val();
+    console.log("got data",data);
+    if (data){
+      console.log("Logged in (onAuthStateChanged)",user.displayName);
+      _setLoggedInVisibility(true,user,false);
+      loggedIn(user);
+    }else{
+      createmembershipRequests();
+      _setLoggedInVisibility(true,user,true);
+    }
+  }, {
+    onlyOnce: true
+  }, (error) => {
+    console.log("Error in onValue:", error);
+  });
+    
+}
 
 function _login(e) {
   e.preventDefault();
@@ -54,26 +169,35 @@ function _login(e) {
     signInWithPopup(auth,provider).then(function(result) {
       var user = result.user;
       console.log("userInfo",user.displayName,user.email,user.uid);
-      //_setLoggedInVisibility(true,user)
     }).catch((error)=>{
         console.log(error);
     });
   } else {
     console.log("Signing out");
     auth.signOut();
-    //_setLoggedInVisibility(false,user)
   }
 }
 
-function _setLoggedInVisibility(loggedIn,user){
+function _setLoggedInVisibility(loggedIn,user,awaitingApproval){
   console.log("_setLoggedInVisibility")
-  if (loggedIn) {
-    console.log("setting loggedin visibility" )
-    document.getElementById("signIn").innerHTML = "Sign Out: "+user.displayName;
-    document.getElementById("not_logged_in").style.visibility = "collapse";
-    document.getElementById("image_data").style.display = "block";
-    document.getElementById("logged_in").style.visibility = "visible";
-    document.getElementById("admin_menu").classList.remove("disabled")
+  if (loggedIn) { 
+    if(!awaitingApproval){
+      console.log("setting loggedin visibility" )
+      document.getElementById("signIn").innerHTML = "Sign Out: "+user.displayName;
+      document.getElementById("not_logged_in").style.visibility = "collapse";
+      document.getElementById("image_data").style.display = "block";
+      document.getElementById("logged_in").style.visibility = "visible";
+      //FIX THIS SHOULD ONLY HAPPEN IF ADMIN!!!
+      document.getElementById("admin_menu").classList.remove("disabled");
+      
+    }else{
+      console.log("setting awaiting approval" )
+      document.getElementById("signIn").innerHTML = "Awaiting approval for: "+user.displayName;
+      document.getElementById("image_data").style.display = "none";
+      document.getElementById("not_logged_in").style.visibility = "visible";
+      document.getElementById("logged_in").style.visibility = "collapse";
+      document.getElementById("admin_menu").classList.add("disabled")
+    }
   }else{
     console.log("setting loggedOUT visibility" )
     document.getElementById("signIn").innerHTML = "Sign In";
@@ -115,24 +239,28 @@ export function save_new_training_set_to_databasebase(userID, jsonfile) {
   }
 }
 
+/**
+ * Updates the training set data and metadata in the database.
+ * 
+ * @param {string} userID - The ID of the user.
+ * @param {object} meta - The metadata object.
+ * @param {object} jsonfile - The JSON file containing the training set data.
+ * @returns {void}
+ */
 export function update_training_set(userID, meta, jsonfile) {
   const db = getDatabase();
-  update(child(ref(db), userID + "/trainingsets/" + meta.training_set_ref), jsonfile).then(() => {
-    console.log('Data has been successfully updated in the database');
-    build_image_containers();
-  })
+  
+  update(child(ref(db), userID + "/trainingsets/" + meta.training_set_ref), jsonfile)
+    .then(() => {
+      console.log('Data has been successfully updated in the database');
+      return update(child(ref(db), userID + "/metadata/" + meta.training_set_ref), meta);
+    })
+    .then(() => {
+      console.log('Metadata has been successfully updated in the database');
+      get_training_sets_metadata(userID);
+    })
     .catch((error) => {
       console.error('Error updating data:', error);
-    });
-  console.log("meta", meta)
-    console.log("meta.training_set_ref", meta.training_set_ref)
-  update(child(ref(db), userID + "/metadata/" + meta.training_set_ref), meta).then(() => {
-    console.log('Metadata has been successfully updated in the database');
-    get_training_sets_metadata(userID)
-    //build_image_containers();
-  })
-    .catch((error) => {
-      console.error('Error updating Metadata:', error);
     });
 }
 
@@ -265,11 +393,12 @@ export function setTraining_parameters(){
 }
 
 export function getTraining_parameters(){
+  console.log("In getTraining_parameters");
   const db = getDatabase();
   const metadataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
   onValue(metadataRef, (snapshot) => {
     const data = snapshot.val();
-    console.log("data",data);
+    console.log("got metaddata",data);
     setMetadata(data);
     return getMetadata();
   }, {

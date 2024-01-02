@@ -24,7 +24,7 @@ export function train_model() {
       buttonDiv.appendChild(modalContainer);
       document.getElementById("refresh_training_modal").addEventListener("click", refreshContent);
       document.getElementById("saveChanges_train").addEventListener("click", handleTrainModelButton);
-      refreshContent();
+      //refreshContent();
       trainingOngoing();
     });
 
@@ -199,12 +199,11 @@ function trainingOngoing() {
   const metadataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
 
   onValue(metadataRef, (snapshot) => {
-    console.log("IN TRAININGONGOING");
+    console.log("In trainingOngoing");
     const data = snapshot.val();
-    const modal = document.getElementById("myModal_train"); // Replace "modalId" with the actual ID of your modal element
-    const isVisible = modal.style.display !== "none";
-    console.log("Is modal train visible?", isVisible);
-    if (isVisible) {
+    var myModal = new bootstrap.Modal(document.getElementById('myModal_train'))
+    if(myModal._isShown) {
+      console.log("train modal is visible");
       let previousValue = false;
       //console.log("DATA", data.ml_train_ongoing);
       //console.log("getMetadata().ml_train_ongoing", getMetadata().ml_train_ongoing);
@@ -220,6 +219,9 @@ function trainingOngoing() {
       }
       previousValue = getMetadata().ml_train_ongoing;
       refreshContent();
+    } else {
+      console.log("train modal is NOT visible");
+      // The modal is not visible
     }
   });
 }
