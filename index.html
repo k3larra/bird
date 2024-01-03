@@ -25,9 +25,7 @@
           <li class="nav-item">
             <a class="nav-link active" aria-current="page" href="#">Home</a>
           </li>
-          <li class="nav-item">
-                <a class="nav-link" href="#">Link</a>
-          </li>
+
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               Select training data
@@ -35,7 +33,12 @@
             <ul class="dropdown-menu" id="drop_training">
             </ul>
           </li>
-          
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="alt_menu">Alt</a>
+            <ul class="dropdown-menu" id="alt_selections">
+              <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#myModal_login_email">Login email/password</a></li> 
+            </ul>   
+          </li>
           <li class="nav-item dropdown">
             <a class="nav-link disabled dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-disabled="true" id="admin_menu">Admin</a>
               <ul class="dropdown-menu" id="admin_selections">

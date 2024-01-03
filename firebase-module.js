@@ -1,12 +1,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-analytics.js";
 import { getDatabase, ref, set, child, push, update,onValue, remove} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-database.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js"; 
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js"; 
 import { serverTimestamp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
 //import { getAuth, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/9.5.0/firebase-auth-compat.js"
 import {loggedIn, build_image_containers, select_training_data, getMetadata, setMetadata}   from "./script.js";
 import { getBirds, setBirds } from './script.js';
 import { approve_users } from "./resources/modal_approve_users.js";
+import { modal_login } from "./resources/modal_login_email.js";
 //import { get } from "https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -32,6 +33,7 @@ const auth = getAuth();
 
 var user = auth.currentUser;
 approve_users(); //Add the approve modal to the admin menu
+modal_login(); //Add the login modal to menu
 //moveApprovedUsers(); //Listens for changes in membershipRequests and moves approved users to users 
 document.getElementById('signIn').addEventListener('click', _login);
 document.getElementById('applyForMembership').addEventListener('click', createmembershipRequests);
@@ -159,7 +161,7 @@ function _isMember(user){
     
 }
 
-function _login(e) {
+/* function _login(e) {
   e.preventDefault();
   var authData = auth.currentUser;
   console.log(authData)
@@ -172,6 +174,40 @@ function _login(e) {
     }).catch((error)=>{
         console.log(error);
     });
+  } else {
+    console.log("Signing out");
+    auth.signOut();
+  }
+} */
+
+export function _login(e, email, password) {
+  e.preventDefault();
+  var authData = auth.currentUser;
+  console.log(authData)
+  if (!authData) { //Sign in
+    console.log("Signing in");
+    if (email && password) {
+      // Sign in with email and password
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          var user = userCredential.user;
+          console.log("userInfo", user.displayName, user.email, user.uid);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    } else {
+      // Sign in with Google
+      const provider = new GoogleAuthProvider();
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          var user = result.user;
+          console.log("userInfo", user.displayName, user.email, user.uid);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
   } else {
     console.log("Signing out");
     auth.signOut();

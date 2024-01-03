@@ -5,7 +5,6 @@ export function approve_users() {
         const myModal_approve_users = document.getElementById("nav-bar");
         const modalContainer = document.createElement('div');
         modalContainer.innerHTML = html;
-        console.log(modalContainer);
         myModal_approve_users.appendChild(modalContainer);
         //document.getElementById("refresh_predicting_modal").addEventListener("click", refreshContent);
         //document.getElementById("saveChanges_predict").removeEventListener("click", handlePredictModelButton);
