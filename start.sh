@@ -19,7 +19,8 @@ node nodebird.js &
 cd ~/ottenby/bird
 # Start the web server
 #node server.js > node_server.log 2>&1 &
-sudo node server.js &
+#sudo node server.js &
+authbind node server.js &
 # to run this file:
 #chmod +x start.sh
 #./start.sh
