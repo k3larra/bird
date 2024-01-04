@@ -1,4 +1,8 @@
 #!/bin/bash
+cd ~/ottenby/bird
+git checkout -- start.sh
+git update-index --assume-unchanged start.sh
+git pull origin main 
 cd ~/ottenby/bird/flask/birdweb/
 source .venv/bin/activate
 export FLASK_APP=birdnest
@@ -12,9 +16,9 @@ cd ~/ottenby/bird/node/
 node nodebird.js > node_firebase_flask.log 2>&1 &
 #node nodebird.js &
 ## cd
-cd ~/ottenby/
-# Start the bird server
+cd ~/ottenby/bird
+# Start the web server
 node server.js > node_server.log 2>&1 &
 # to run this file:
-chmod +x start.sh
+#chmod +x start.sh
 #./start.sh
