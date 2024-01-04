@@ -16,5 +16,5 @@ cd ~/ottenby/
 # Start the bird server
 node server.js > node_server.log 2>&1 &
 # to run this file:
-#chmod +x start.sh
+chmod +x start.sh
 #./start.sh
