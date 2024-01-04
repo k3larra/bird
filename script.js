@@ -184,7 +184,7 @@ export function select_training_data(metadata) {
       setMetadata(doc.val());
       read_training_data(auth.currentUser.uid, doc.key);
     }
-    const ul = document.querySelector('ul.dropdown-menu');
+    const ul = document.getElementById("drop_training");
     ul.appendChild(li);
     ul.appendChild(li);
   });
@@ -513,8 +513,8 @@ function findImageIndexWithConcept(search_key, concept) {
       if (value.concept == concept) {value.concept_pred == ""; continue;}  //The image is selected for training
       if (value.concept_pred == concept) {
         image_indexes_for_concept.push(key)
-        console.log("value.concept_pred", value.concept_pred)
-        console.log("key", key)
+        //console.log("value.concept_pred", value.concept_pred)
+        //console.log("key", key)
       }
     }
   }
