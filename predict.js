@@ -27,7 +27,10 @@ export function predict_class() {
       //document.getElementById("saveChanges_predict").removeEventListener("click", handlePredictModelButton);
       document.getElementById("saveChanges_predict").addEventListener("click", handlePredictModelButton);
       //refreshPredictContent();
-      predictionOngoing();
+      var myModalEl = document.getElementById('myModal_predict');
+      myModalEl.addEventListener('shown.bs.modal', function () {
+        predictionOngoing();
+      });
     });
     
   //document.getElementById("image_data").appendChild(button);
@@ -128,15 +131,13 @@ function refreshPredictContent() {
 
 // Listen for changes to the ml_ongoing property
 function predictionOngoing() {
+  console.log("In predictionOngoing1");
   const db = getDatabase();
   const trainingDataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
   onValue(trainingDataRef, (snapshot) => {
-    console.log("In predictionOngoing");
+    console.log("In predictionOngoing2");
     //const data = snapshot.val();
     // Check if the modal is visible
-    var myModal = new bootstrap.Modal(document.getElementById('myModal_predict'))
-    if(myModal._isShown) {
-      console.log("predict modal is visible");
       refreshPredictContent();
       if (!getMetadata().ml_train_ongoing && getMetadata().ml_predict) {
         //set saveChanges_predict button to disabled 
@@ -145,9 +146,5 @@ function predictionOngoing() {
         //relode all containers from firebase
         document.getElementById("saveChanges_predict").disabled = false;
       }
-    } else {
-      console.log("predict modal is not visible");
-    }
-    
   });
 }

@@ -24,8 +24,10 @@ export function train_model() {
       buttonDiv.appendChild(modalContainer);
       document.getElementById("refresh_training_modal").addEventListener("click", refreshContent);
       document.getElementById("saveChanges_train").addEventListener("click", handleTrainModelButton);
-      //refreshContent();
-      trainingOngoing();
+      var myModalEl =document.getElementById('myModal_train');
+      myModalEl.addEventListener('shown.bs.modal', function () {
+        trainingOngoing();
+      });
     });
 
   //document.getElementById("image_data").appendChild(button);
@@ -201,8 +203,8 @@ function trainingOngoing() {
   onValue(metadataRef, (snapshot) => {
     console.log("In trainingOngoing");
     const data = snapshot.val();
-    var myModal = new bootstrap.Modal(document.getElementById('myModal_train'))
-    if(myModal._isShown) {
+    /* var myModal = new bootstrap.Modal(document.getElementById('myModal_train'))
+    if(myModal._isShown) { */
       console.log("train modal is visible");
       let previousValue = false;
       //console.log("DATA", data.ml_train_ongoing);
@@ -219,10 +221,10 @@ function trainingOngoing() {
       }
       previousValue = getMetadata().ml_train_ongoing;
       refreshContent();
-    } else {
+    /* } else {
       console.log("train modal is NOT visible");
       // The modal is not visible
-    }
+    } */
   });
 }
 

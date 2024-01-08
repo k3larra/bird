@@ -25,17 +25,39 @@ const firebaseConfig = {
   databaseURL: "https://bird-ad15f-default-rtdb.europe-west1.firebasedatabase.app/"
 };
 
-export {getDatabase, ref, get, set, child, push, update,user,onValue,auth,remove};
+export {getDatabase, ref, get, set, child, push, update,onValue,auth,remove};
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-//const database = getDatabase(app);
+//const analytics = getAnalytics(app);
 const auth = getAuth();
 
-var user = auth.currentUser;
+//var user = auth.currentUser;
 approve_users(); //Add the approve modal to the admin menu
 modal_login(); //Add the login modal to menu
 document.getElementById('signIn').addEventListener('click', _login);
+document.getElementById('createEmptyProject').addEventListener('click', function(event) {
+  event.preventDefault();
+  console.log("createEmptyProject");
+  create_project(auth.currentUser.uid,IMAGEFOLDER,"jsonfile")
+});
+/* document.getElementById('removeProject').addEventListener('click', function(event) {
+  event.preventDefault();
+  console.log("removeProject");
+  removeproject(auth.currentUser.uid,"-Nn_nprGm73gDC4KsqBh")
+}); */
+
+document.getElementById('testFunction').addEventListener('click', function(event) {
+  event.preventDefault();
+  console.log("Current project is: ", getCurrentProject());
+  /* getCurrentProject().then(currentProject => {
+    console.log("Current project is: ", currentProject);
+  }).catch(error => {
+    console.error("Failed to get current project: ", error);
+  }); */
+});
+//Constants
+export const IMAGEFOLDER = 'ottenbyresized/';
+let currentproject = null;
 
 await auth.onAuthStateChanged(function(user) {
   if (user) {
@@ -100,7 +122,7 @@ function createmembershipRequests(){
   var entrypoint = {
     role: "user",
     approved: false, //change to false if approvement is needed
-    projects: ["project1"],
+    projects: [],
     name: auth.currentUser.displayName,
     email: auth.currentUser.email
   };
@@ -108,17 +130,19 @@ function createmembershipRequests(){
   set(usersRef, entrypoint);
 }
 
-function _isMember(user){
+async function _isMember(user){
   const db = getDatabase();
   const usersRef = ref(db, "users/" + user.uid);
   //const usersRef = ref(db, "users/");
   console.log(usersRef,"usersRef")
-  onValue(usersRef, (snapshot) => {
+  onValue(usersRef, async (snapshot) => {
     // Your code logic here
     const data = snapshot.val();
     console.log("got data",data);
     if (data){
       console.log("Logged in (onAuthStateChanged)",user.displayName);
+      currentproject = await getCurrentProject();
+      //currentproject = getCurrentProject();
       _setLoggedInVisibility(true,user,false);
       loggedIn(user);
     }else{
@@ -198,9 +222,11 @@ async function _setLoggedInVisibility(loggedIn,user,awaitingApproval){
 
 
 /*Misc database functions*/
+/********************Ref to project here************************** */
 export function save_new_training_set_to_databasebase(userID, jsonfile) {
   const db = getDatabase();
-  const key = push(child(ref(db), userID + "/trainingsets"), jsonfile).key;
+  //const currentproject = getCurrentProject();
+  const key = push(child(ref(db), "/projects/"+currentproject + "/trainingsets"), jsonfile).key;
   if (key) {
     //metadata
     //console.log("METADATA jsonfile", jsonfile)
@@ -212,7 +238,7 @@ export function save_new_training_set_to_databasebase(userID, jsonfile) {
       "training_set_ref": key,
       "concept": getMetadata().concept
     };
-    set(child(ref(db), userID + "/metadata/"+key), meta);
+    set(child(ref(db), "/projects/"+currentproject  + "/metadata/"+key), meta);
     console.log('Data has been successfully saved and key is: ', key);
     build_image_containers();
   } else {
@@ -233,13 +259,14 @@ export function save_new_training_set_to_databasebase(userID, jsonfile) {
  * @param {object} jsonfile - The JSON file containing the training set data.
  * @returns {void}
  */
+/********************Ref to project here************************** */
 export function update_training_set(userID, meta, jsonfile) {
   const db = getDatabase();
-  
+  //const currentproject = getCurrentProject();
   update(child(ref(db), userID + "/trainingsets/" + meta.training_set_ref), jsonfile)
     .then(() => {
       console.log('Data has been successfully updated in the database');
-      return update(child(ref(db), userID + "/metadata/" + meta.training_set_ref), meta);
+      return update(child(ref(db), "/projects/"+currentproject + "/metadata/" + meta.training_set_ref), meta);
     })
     .then(() => {
       console.log('Metadata has been successfully updated in the database');
@@ -256,9 +283,12 @@ export function update_training_set(userID, meta, jsonfile) {
  * Retrieves training sets metadata for a given user ID from Firebase Realtime Database.
  * @param {string} userID - The ID of the user whose training sets metadata is to be retrieved.
  */
+/********************Ref to project here************************** */
 export function get_training_sets_metadata(userID) {
   const db = getDatabase();
-  const trainingSetRef = ref(db, userID + "/metadata");
+  //const currentproject = getCurrentProject();
+  console.log("currentproject",currentproject);
+  const trainingSetRef = ref(db, "/projects/"+currentproject + "/metadata");
   onValue(trainingSetRef, (snapshot) => {
     select_training_data(snapshot);
   }, {
@@ -282,12 +312,14 @@ export function downloadJson(birds) {
   delete_training_set(authData.key, "-NfLoDusAbfTn8qV8mT8") */
 }
 
-
-export function setDefaultProject(key) {
+/********************Ref to project here************************** */
+/**A problem here is that if there are many persons on a project only one can be as default, could be conflicting..... */
+export function setAsDefaultTrainingSet(key) {
   console.log("set_defaultProject", key );
   const db = getDatabase();
+  //const currentproject = getCurrentProject();
   var authData = auth.currentUser;
-  const trainingSetRef = ref(db, authData.uid + "/metadata");
+  const trainingSetRef = ref(db, "/projects/"+currentproject + "/metadata/");
   onValue(trainingSetRef, (snapshot) => {
     snapshot.forEach((doc) => {
       if (doc.key == key) {
@@ -297,7 +329,7 @@ export function setDefaultProject(key) {
           "title": doc.val().title,
           "default": true
         };
-        update(child(ref(db), authData.uid + "/metadata/" + key), meta).then(() => {
+        update(child(ref(db), "/projects/"+currentproject + "/metadata/" + key), meta).then(() => {
           console.log('Metadata has been successfully updated in the database');
         })
           .catch((error) => {
@@ -310,7 +342,7 @@ export function setDefaultProject(key) {
           "title": doc.val().title,
           "default": false
         };
-        update(child(ref(db), authData.uid + "/metadata/" + doc.key), meta).then(() => {
+        update(child(ref(db), "/projects/"+currentproject + "/metadata/" + doc.key), meta).then(() => {
           console.log('Metadata has been successfully updated in the database');
         })
           .catch((error) => {
@@ -325,9 +357,12 @@ export function setDefaultProject(key) {
   });
 }
 
+/********************Ref to project here************************** */
 export function delete_training_set(userID, training_set_ref) {
   const db = getDatabase();
-  const trainingSetRef = ref(db, userID + "/trainingsets/" + training_set_ref);
+  //////////const trainingSetRef = ref(db, userID + "/trainingsets/" + training_set_ref);
+  //const currentproject = getCurrentProject();
+  const trainingSetRef = ref(db, "/projects/"+currentproject +  "/trainingsets/" + training_set_ref);
   const metadataRef = ref(db, userID + "/metadata/" + training_set_ref);
   const ml_delete = { "ml_delete": true };
   update(metadataRef,{ "ml_delete": true } ).then(() => {
@@ -350,10 +385,12 @@ export function delete_training_set(userID, training_set_ref) {
   get_training_sets_metadata(userID)
 }
 
-
+/********************Ref to project here************************** */
 export function read_training_data(userID, training_set_ref) {
   const db = getDatabase();
-  const starCountRef = ref(db, userID + "/trainingsets/" + training_set_ref);
+  //////////const starCountRef = ref(db, userID + "/trainingsets/" + training_set_ref);
+  //const currentproject = getCurrentProject();
+  const starCountRef = ref(db, "/projects/"+ currentproject + "/trainingsets/" + training_set_ref);
   onValue(starCountRef, (snapshot) => {
     const data = snapshot.val();
     setBirds(data);
@@ -364,10 +401,13 @@ export function read_training_data(userID, training_set_ref) {
 
 }
 
+/********************Ref to project here************************** */
 export function setTraining_parameters(){
   console.log("In SET Training getMetadata()",getMetadata());
   const db = getDatabase();
-  const metadataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
+  //const currentproject = getCurrentProject();
+  /////////const metadataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
+  const metadataRef = ref(db, "/projects/"+currentproject + "/metadata/" + getMetadata().training_set_ref);
   //getMetadata().ended= timestamp;
     update(metadataRef, getMetadata()).then(() => {
       console.log('Metadata has been successfully updated in the database');
@@ -378,10 +418,13 @@ export function setTraining_parameters(){
       });
 }
 
+/********************Ref to project here************************** */
 export function getTraining_parameters(){
   console.log("In getTraining_parameters");
   const db = getDatabase();
-  const metadataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
+  //const currentproject = getCurrentProject();
+  ////////////////const metadataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
+  const metadataRef = ref(db, "/projects/"+ currentproject + "/metadata/" + getMetadata().training_set_ref);
   onValue(metadataRef, (snapshot) => {
     const data = snapshot.val();
     console.log("got metaddata",data);
@@ -392,6 +435,148 @@ export function getTraining_parameters(){
   });
 } 
 
+/*Handling projects, a project is a collection of training sets
+All projects has a common json fila and shares an image repository.
+Th JSON file has all paths to images.
+projectmetadata contains paths to raw images and rezized images*/
+function create_project(userID,resizedimageFolder,jsonfile){
+  console.log("In create_project");
+  const db = getDatabase();
+  const projectRef = ref(db, userID);
+  get(projectRef).then((snapshot) => {
+    if (snapshot.exists()) {
+      const key = push(child(ref(db), "/projects/"), snapshot.val()).key;
+      if (key) {
+        //metadata
+        const users = [userID] 
+        set(child(ref(db), "/projects/"+key +"/access/"), users);
+        const projMetameta = {
+          "resizedimagefolder": resizedimageFolder,
+          "imagefolder": "voided",
+          "description": "Bird data from Ottenby bird station",
+          "training_set_ref": key
+        };
+        set(child(ref(db), "/projects/"+key +"/proj_meta_data/"), projMetameta);
+        console.log('Data has been successfully saved and key is: ', key);
+      } else {
+        console.log('Something went wrong saving the data to the database.');
+      }
+    }
+  });
+}
 
+function removeproject(projectID){
+  console.log("In removeproject");
+  const db = getDatabase();
+  const projectRef = ref(db, "/projects/" + projectID);
+  remove(projectRef)
+  .then(() => {
+    console.log('Node deleted successfully');
+  })
+  .catch((error) => {
+    console.error('Failed to delete node: ', error);
+  });
+}
 
+function findCurrentProject() {
+  console.log("In getCurrentProject");
+  const db = getDatabase();
+  const current_project_id = ref(db, "/users/" + auth.currentUser.uid + "/current_project/");
+  return new Promise((resolve, reject) => {
+    onValue(current_project_id, (snapshot) => {
+      const data = snapshot.val();
+      console.log("got data", data);
+      resolve(data);
+    }, {
+      onlyOnce: true
+    });
+  });
+}
 
+async function getCurrentProject() {
+  try {
+    const currentProject = await findCurrentProject();
+    console.log("Current project is: ", currentProject);
+    return currentProject;
+  } catch (error) {
+    console.error("Failed to get current project: ", error);
+    return null;
+
+  }
+}
+
+ /*  const projectRef = ref(db, user.uid + "/projects/");
+  const project = {
+    "project1": {
+      "imageFolder": imageFolder,
+      "projectmetadata": "projectmetadata.json",
+      "trainingsets": "trainingsets.json"
+    }
+  };
+  set(projectRef, project); 
+}*/
+
+/* function add_user(projectID,userID){
+  console.log("In add_user");
+  const db = getDatabase();
+  const projectRef = ref(db, userID + "/projects/" + projectID);
+  const project = {
+    "imageFolder": "ottenbyresized/",
+    "projectmetadata": "projectmetadata.json",
+    "trainingsets": "trainingsets.json"
+  };
+  set(projectRef, project);
+}
+
+//Set default project for user
+
+function set_image_folder_resized(projectID,userID,imageFolder){
+  console.log("In set_image_folder_resized");
+  const db = getDatabase();
+  const projectRef = ref(db, userID + "/projects/" + projectID);
+  const project = {
+    "imageFolder": imageFolder,
+    "projectmetadata": "projectmetadata.json",
+    "trainingsets": "trainingsets.json"
+  };
+  update(projectRef, project);
+}
+
+function set_image_folder_raw(projectID,userID,imageFolder){
+  console.log("In set_image_folder_raw");
+  const db = getDatabase();
+  const projectRef = ref(db, userID + "/projects/" + projectID);
+  const project = {
+    "imageFolder": imageFolder,
+    "projectmetadata": "projectmetadata.json",
+    "trainingsets": "trainingsets.json"
+  };
+  update(projectRef, project);
+} 
+
+function set_project_title(projectID,title){
+  console.log("In set_project_title");
+  const db = getDatabase();
+  const projectRef = ref(db, auth.currentUser.uid + "/projects/" + projectID);
+  const project = {
+    "title": title,
+    "imageFolder": "ottenbyresized/",
+    "projectmetadata": "projectmetadata.json",
+    "trainingsets": "trainingsets.json"
+  };
+  update(projectRef, project);
+}
+
+function set_project_description(projectID,description){
+  console.log("In set_project_description");
+  const db = getDatabase();
+  const projectRef = ref(db, auth.currentUser.uid + "/projects/" + projectID);
+  const project = {
+    "description": description,
+    "imageFolder": "ottenbyresized/",
+    "projectmetadata": "projectmetadata.json",
+    "trainingsets": "trainingsets.json"
+  };
+  update(projectRef, project);
+}
+ */
