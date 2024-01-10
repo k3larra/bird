@@ -106,7 +106,7 @@ def increment_counter(transaction, ref):
     transaction.put(ref, new_value)
     return new_value
 
-def predict_image(model, model_transforms, image_path_resized, image_name,idx_to_label):
+def predict_image(model, model_transforms, image_path_resized, image_name, idx_to_label):
     model.eval()
     model = model.to(device)
     imagePath = os.path.join(image_path_resized, image_name)

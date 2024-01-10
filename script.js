@@ -3,13 +3,14 @@ import { read_training_data } from "./firebase-module.js";
 import { save_new_training_set_to_databasebase } from "./firebase-module.js";
 import { downloadJson } from "./firebase-module.js";
 import { update_training_set } from "./firebase-module.js";
-import { getDatabase, set, user, auth } from "./firebase-module.js";
-import { setDefaultProject } from "./firebase-module.js";
+import { getDatabase, auth } from "./firebase-module.js";
+import { setAsDefaultTrainingSet } from "./firebase-module.js";
 import { delete_training_set } from "./firebase-module.js";
 import { train_model } from "./train_model.js";
 import { predict_class } from "./predict.js";
+import {IMAGEFOLDER} from "./firebase-module.js";
 export const debug = true;
-const imageFolder = 'ottenbyresized/'
+/********************Ref to image folder  here************************** */
 let unique_concepts = [] //This is central and needs some more protection....
 let deleteModal = null;
 
@@ -197,7 +198,7 @@ function dropdownListener(event) {
     const a = event.target;
     const key = a.dataset.id
     const title = a.innerHTML
-    setDefaultProject(key);
+    setAsDefaultTrainingSet(key);
   }
   if (event.target.tagName === 'BUTTON') {
     document.getElementById("delete_dataset_confirm").addEventListener("click", deleteListener);
@@ -316,7 +317,7 @@ function add_image_container_listener(id, imageContainer) {
       } else {
         tooltiptext_e.textContent = getMetadata().concept[index + 1];
       }
-      let path = clickedImage.src.split(imageFolder)[1]
+      let path = clickedImage.src.split(IMAGEFOLDER)[1]
       path = decodeURIComponent(path);
       changeConcept(clickedImage.getAttribute('data-image-index'), tooltiptext_e.textContent)
       //findImageIndexWithConcept(tooltiptext_e.textContent) or?
@@ -348,7 +349,7 @@ function createImageItem(e, path, concept, index, predicted_concept) {
   }else{
     image_e.classList.add("img-thumbnail", "p-0"); 
   }
-  image_e.src = imageFolder + path;
+  image_e.src = IMAGEFOLDER + path;
   image_e.setAttribute('data-image-index', index);
   const tooltip_e = document.createElement('span');
   tooltip_e.classList.add("_tooltiptext")
@@ -424,7 +425,7 @@ function handleChildClickButton(event) {
     const db = getDatabase();
     const key = save_new_training_set_to_databasebase(authData.uid, getBirds());
     if (key) {
-      setDefaultProject(authData.uid, key);
+      setAsDefaultTrainingSet(authData.uid, key);
     }
   }
   if (event.target.id == "discard_changes") {

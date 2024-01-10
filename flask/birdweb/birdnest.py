@@ -25,13 +25,13 @@ def hello_world():
     print("Hello World")
     return "<p>Hello, World!</p>"
 
-@app.route('/retrain', methods=['GET'])
+""" @app.route('/retrain', methods=['GET'])
 def retrain():
     userId = request.args.get('userId')
     print(userId)
-    return json.dumps({"functioning":0 })
+    return json.dumps({"functioning":0 }) """
 
-@app.route('/json_endpoint', methods=['POST'])
+@app.route('/train_model', methods=['POST'])
 def json_endpoint():
     print("in json_endpoint/train")
     metaData = request.get_json()

@@ -1,5 +1,5 @@
 import { getMetadata } from "./script.js";
-import { setTraining_parameters, getTraining_parameters } from "./firebase-module.js";
+import { setTraining_parameters, getTraining_parameters, currentproject } from "./firebase-module.js";
 import { auth, getDatabase, ref, onValue } from "./firebase-module.js";
 import { debug } from "./script.js";
 export function train_model() {
@@ -198,7 +198,9 @@ function refreshContent() {
 // Listen for changes to the ml_ongoing property
 function trainingOngoing() {
   const db = getDatabase();
-  const metadataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
+  currentproject
+  const metadataRef = ref(db, "/projects/"+ currentproject + "/metadata/" + getMetadata().training_set_ref);
+  //const metadataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
 
   onValue(metadataRef, (snapshot) => {
     console.log("In trainingOngoing");

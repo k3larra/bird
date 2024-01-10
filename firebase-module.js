@@ -57,7 +57,7 @@ document.getElementById('testFunction').addEventListener('click', function(event
 });
 //Constants
 export const IMAGEFOLDER = 'ottenbyresized/';
-let currentproject = null;
+export let currentproject = null;
 
 await auth.onAuthStateChanged(function(user) {
   if (user) {

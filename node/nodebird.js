@@ -1,5 +1,7 @@
 const http = require('http');
 var admin = require("firebase-admin");
+const functions = require('firebase-functions');
+const { myFunction } = require('./functions/index');
 const axios = require('axios');
 const fs = require('fs');
 const hostname = '127.0.0.1';
@@ -13,6 +15,7 @@ let text = '{ "employees" : [' +
 let json_stuff = JSON.parse(text);
 
 var serviceAccount = require("../secrets/bird-ad15f-firebase-adminsdk-hzlhg-4ccf1a7271.json");
+const { log } = require('console');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -21,39 +24,78 @@ admin.initializeApp({
 
 //Read from realtime database
 var db = admin.database();
-var usersRef = db.ref("/users");
+//var usersRef = db.ref("/users");
 const uid = "vKFIvuQHJbMDmdaACZZMyRJXyMs1";
-var metaDataRef = db.ref("/"+uid+"/metadata");
-var trainingsetRef = db.ref("/"+uid+"/trainingsets");
+const projectref = "-Nn_rJ9jJK0wRatJRjgM";
+const metadataref = "-Nm5imF8X6YIl1q6LIuQ"
+//var metaDataRef = db.ref("/"+uid+"/metadata");
+
+var metaDataRef = db.ref('/projects/clientrequest');
+/* ref.on('value', (snapshot) => {
+  console.log('Value:', snapshot.val());
+});
+*/
+
+metaDataRef.on('child_added', (snapshot) => {
+  console.log('Child added:', snapshot.val());
+  snapshot.ref.remove();
+}); 
+
+/* metaDataRef.on('child_changed', (snapshot) => {
+  console.log('Child changed:', snapshot.val());
+  //remove child
+   snapshot.ref.remove();  
+}); */
+
+/* ref.on('child_removed', (snapshot) => {
+  console.log('Child removed:', snapshot.val());
+});
+
+ref.on('child_moved', (snapshot) => {
+  console.log('Child moved:', snapshot.val());
+}); */
+//var metaDataRef = db.ref("/projects/"+projectref+"/metadata");
+//var metaDataRef = db.ref("/projects/"+projectref+"/metadata/");
+//var trainingsetRef = db.ref("/"+uid+"/trainingsets"); 
+
+/* exports.myFunction = functions.database.ref('/projects/{projectID}/metadata/{metadataID}/ml_train')
+    .onWrite((snapshot, context) => {
+      console.log("trigged");
+      console.log("snapshot",snapshot);
+      const userId = context.params.projectID;
+      const postId = context.params.metadataID;
+      // ...
+    });  */
 
 
 
-
-
-
-metaDataRef.on("child_changed", function(snapshot) {
+/* metaDataRef.on("child_changed", function(snapshot) {
+  console.log("child changed",snapshot.val());
   if (snapshot.val().ml_train) {
     console.log("ml_train",snapshot.val().ml_train);
-      train(snapshot.val());
+    const projectId = snapshot.key; // Get the content of the wildcard *
+    console.log("Project ID:", projectId);
+    console.log("Metadata val:", snapshot.val());
+    //train(snapshot.val());
   }
   if (snapshot.val().ml_delete) {
     console.log("ml_delete", snapshot.val().ml_delete);
-    delete_model(snapshot.val());
+    //delete_model(snapshot.val());
   }
   if (snapshot.val().ml_predict) {
     console.log("ml_predict", snapshot.val().ml_predict);
     // test if prediction is not running
     //if (snapshot.val().ml_predict_started_timestamp&&snapshot.val().ml_predict_finished_timestamp){
       if (snapshot.val().ml_predict_started_timestamp < snapshot.val().ml_predict_finished_timestamp) {
-        predict(snapshot.val());
+        //predict(snapshot.val());
       }else{
         console.log("prediction already running");
       }
   }
-});
+}); */
 
 function train(json_file){
-  axios.post('http://127.0.0.1:5000/json_endpoint', json_file)
+  axios.post('http://127.0.0.1:5000/train_model', json_file)  
   .then((res) => {
     console.log(res.data.status)
     if (res.data.status === "running") {
