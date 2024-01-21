@@ -1,4 +1,4 @@
-import { get_training_sets_metadata } from "./firebase-module.js"; predict_class
+import { get_all_data_reload_page } from "./firebase-module.js";
 import { read_training_data } from "./firebase-module.js";
 import { save_new_training_set_to_databasebase } from "./firebase-module.js";
 import { downloadJson } from "./firebase-module.js";
@@ -6,9 +6,14 @@ import { update_training_set } from "./firebase-module.js";
 import { getDatabase, auth } from "./firebase-module.js";
 import { setAsDefaultTrainingSet } from "./firebase-module.js";
 import { delete_training_set } from "./firebase-module.js";
-import { train_model } from "./train_model.js";
-import { predict_class } from "./predict.js";
-import {IMAGEFOLDER} from "./firebase-module.js";
+import { train_model } from "./resources/modal_train.js";
+import { predict_class } from "./resources/modal_predict.js";
+import { IMAGEFOLDER } from "./firebase-module.js";
+import { createAddImagesToTrainingdataButton } from "./resources/create_elements.js";
+import { createDropdownMenu } from "./resources/create_elements.js";
+import { createRowInConceptList, edit_concepts } from "./resources/modal_concept.js";
+import { firebase_save } from "./resources/modal_save.js";
+import { firebase_save_as } from "./resources/modal_save_as.js";
 export const debug = true;
 /********************Ref to image folder  here************************** */
 let unique_concepts = [] //This is central and needs some more protection....
@@ -67,13 +72,13 @@ export function getStatistics() {
   const statistics = {
     "number_of_images": Object.keys(getBirds().images).length,
     "number_of_concepts": unique_concepts.length,
-    "number_of_void_images": findImageIndexWithConcept("concept","void").length,
+    "number_of_void_images": findImageIndexWithConcept("concept", "void").length,
     //"number_of_predicted_images": findImageIndexWithPredictedConcept("concept_pred").length
   }
   //Add statistics for concepts
   //get the sum of all concepts in getBirds().images.concept
   unique_concepts.forEach((concept) => {
-    statistics[concept] = findImageIndexWithConcept("concept",concept).length
+    statistics[concept] = findImageIndexWithConcept("concept", concept).length
   });
   //Add statistics for predicted concepts
   //check so entries in getBirds().images.concept_pred is not null
@@ -81,7 +86,7 @@ export function getStatistics() {
 
   unique_concepts.forEach((concept) => {
     //console.log('findImageIndexWithConcept("concept_pred",concept)',  findImageIndexWithConcept("concept_pred",concept))
-    statistics[concept+"_pred"] = findImageIndexWithConcept("concept_pred",concept).length
+    statistics[concept + "_pred"] = findImageIndexWithConcept("concept_pred", concept).length
   });
   return statistics;
 }
@@ -100,10 +105,10 @@ function displayStatistics() {
   text += "Number of concepts: " + statistics.number_of_concepts + "<br>";
   text += "Number of unlabelled images: " + statistics.number_of_void_images + "<br>";
   for (const concept in unique_concepts) {  //Add also for unused concepts in getMetadata().concept ??
-    text += "Number of human classified images: "+unique_concepts[concept] + ": " + statistics[unique_concepts[concept]] + "<br>";
+    text += "Number of human classified images: " + unique_concepts[concept] + ": " + statistics[unique_concepts[concept]] + "<br>";
   }
   for (const concept in unique_concepts) {
-    text += "Number of machine predicted images: " + unique_concepts[concept] +": "+ statistics[unique_concepts[concept]+"_pred"] + "<br>";
+    text += "Number of machine predicted images: " + unique_concepts[concept] + ": " + statistics[unique_concepts[concept] + "_pred"] + "<br>";
   }
   document.getElementById("text_1").innerHTML = text;
 }
@@ -222,9 +227,9 @@ export function build_image_containers() {
   //Delete all children of main and their listners
   //First make sure that all listeners are removed
   //using the spread operator to convert the HTMLCollection to an array 
-  [...document.getElementsByClassName("btn-listener")].forEach((item) => {
-    item.removeEventListener("click", handleChildClickButton);
-  });
+ /*  [...document.getElementsByClassName("btn-listener")].forEach((item) => {
+    item.removeEventListener("click", handleButtonClicks);
+  }); */
   [...document.getElementsByClassName("modal")].forEach((item) => {
     item.remove;
   });
@@ -281,12 +286,26 @@ function populate_void_container(data, element) {
       lastRow = row;
     }
     column = i % 12
-    createImageItem(rowElement, data.images[item]["image_location"], data.images[item]["concept"], item, false);
+    //createImageItem(rowElement, data.images[item]["image_location"], data.images[item]["concept"], item, false);
+    createImageItem(rowElement, data.images[item], item, false, "void");
     i++;
   });
 }
 
-function populate_container(data, concept, element, predicted_concept) {
+function populate_container(data, predicted_concept_true_value, element, is_predicted_concept) {
+  const header = document.createElement("div")
+  header.classList.add("lh_small-font", "bg-light") // Added "mr-2" class for margin right
+  if (!is_predicted_concept) {
+    header.innerHTML = "Images labelled: " + predicted_concept_true_value;
+  } else {
+    header.innerHTML = "Images predicted as: " + predicted_concept_true_value;
+    header.appendChild(createDropdownMenu());
+    const mouseOverText = "Add images to training set. <br>Only images marked with the concept <b> " +
+      predicted_concept_true_value + " </b> will be added." +
+      "<br> Click on the image to change the predicted class.";
+    createAddImagesToTrainingdataButton("Add to training set", mouseOverText, header)
+  }
+  element.appendChild(header);
   let row, lastRow = -1, column, i = 0;
   let rowElement;
   data.forEach((item) => {
@@ -297,7 +316,11 @@ function populate_container(data, concept, element, predicted_concept) {
       lastRow = row;
     }
     column = i % 12
-    createImageItem(rowElement, getBirds().images[item]["image_location"], getBirds().images[item]["concept"],item, predicted_concept);
+    /* if(is_predicted_concept){
+      console.log(getBirds().images[item])
+    } */
+    //createImageItem(rowElement, getBirds().images[item]["image_location"], getBirds().images[item]["concept"],item, predicted_concept, concept );
+    createImageItem(rowElement, getBirds().images[item], item, is_predicted_concept, predicted_concept_true_value);
     i++;
   });
 
@@ -325,6 +348,12 @@ function add_image_container_listener(id, imageContainer) {
   });
 }
 
+//HM What about predicted concepts....?
+function changeConcept(index, concept) {
+  if (concept == "") concept = "void";
+  getBirds().images[index].concept = concept;
+}
+
 /*Create containers and content*/
 function createContainer(id, header) {
   const section = document.createElement("section")
@@ -340,27 +369,43 @@ function createRowInGrid(e) {
   return row_e;
 }
 
-function createImageItem(e, path, concept, index, predicted_concept) {
+function createImageItem(element, image_data, item, is_predicted_concept, predicted_concept_true_value) {
+  const path = image_data["image_location"];
+  const concept = image_data["concept"];
+  const pred_concept = image_data["concept_pred"];
+  const pred_percent = image_data["concept_pred_probability"];
   const row_e = document.createElement('div');
   row_e.classList.add("col-1", "col-pixel-width-80", "image-container", "_tooltip");
   const image_e = document.createElement('img');
-  if(predicted_concept){
-    image_e.classList.add("img-thumbnail", "p-0", "border", "border-danger"); // Add "border" and "border-danger" classes
-  }else{
-    image_e.classList.add("img-thumbnail", "p-0"); 
+  if (is_predicted_concept) {
+    image_e.classList.add("img-thumbnail", "p-0", "border", "border-1", "border-success"); // Add "border" and "border-danger" classes
+  } else {
+    image_e.classList.add("img-thumbnail", "p-0");
   }
   image_e.src = IMAGEFOLDER + path;
-  image_e.setAttribute('data-image-index', index);
+  image_e.setAttribute('data-image-index', item);
+  //show current concept as tooltip
   const tooltip_e = document.createElement('span');
   tooltip_e.classList.add("_tooltiptext")
   tooltip_e.classList.add("visible")
   if (concept != "void") tooltip_e.textContent = concept;
+  if (is_predicted_concept) {
+    tooltip_e.textContent = predicted_concept_true_value; //perhaps give other backgound colour to predicted concept
+  }
   row_e.appendChild(image_e);
   row_e.appendChild(tooltip_e);
-  e.appendChild(row_e)
+  if (is_predicted_concept) {
+    const tooltip_e2 = document.createElement('span');
+    tooltip_e2.classList.add("_lh_tooltip_predinfo")
+    tooltip_e2.classList.add("visible")
+    tooltip_e2.textContent = pred_percent + " %";
+    row_e.appendChild(tooltip_e2);
+  }
+  element.appendChild(row_e)
 }
 
-function handleModalFocus(event) {
+/*Is this needed?*/
+export function handleModalFocus(event) {
   event.preventDefault();
   if (event.target.id == "myModal_concept") {
     document.getElementById('myInput_concept').focus();
@@ -371,16 +416,16 @@ function handleModalFocus(event) {
   if (event.target.id == "myModal_saveAs") {
     document.getElementById('myInput_saveAs').focus();
   }
-  if (event.target.id == "myModal_discard_changes") {
+/*   if (event.target.id == "myModal_discard_changes") {
     document.getElementById('myInput_discard_changes').focus();
-  }
+  } */
 }
 
 
-function handleChildClickButton(event) {
+/* export function handleButtonClicks(event) {
   event.preventDefault();
-  console.log("In handleChildClick");
-  if (event.target.id == "addConcept") {
+  console.log("In handleChildClick"); */
+  /* if (event.target.id == "addConcept") {
     const input = document.getElementById("conceptInput")
     const newConcept = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
     console.log("newConcept", newConcept);
@@ -397,8 +442,8 @@ function handleChildClickButton(event) {
     const list = document.getElementById("concept_list");
     list.appendChild(createRowInConceptList(newConcept));
     input.value = "";
-  }
-  if (event.target.id == "saveChanges_save") {
+  } */
+/*   if (event.target.id == "saveChanges_save") {
     const title = document.getElementById("modalTitle_save").innerHTML;
     const description = document.getElementById("modalInput_save").innerHTML;
     getMetadata().title = title;
@@ -414,8 +459,9 @@ function handleChildClickButton(event) {
     if (authData) {
       update_training_set(authData.uid, getMetadata(), getBirds())
     }
-  }
-  if (event.target.id == "saveChanges_saveAs") {
+  } */
+
+  /* if (event.target.id == "saveChanges_saveAs") {
     const title = document.getElementById("modalTitle_saveAs").innerHTML;
     const description = document.getElementById("modalInput_saveAs").innerHTML;
     getBirds().title = title;
@@ -427,78 +473,91 @@ function handleChildClickButton(event) {
     if (key) {
       setAsDefaultTrainingSet(authData.uid, key);
     }
-  }
-  if (event.target.id == "discard_changes") {
+  } */
+ /*  if (event.target.id == "discard_changes") {
     console.log("In discard changes");
-    get_training_sets_metadata(auth.currentUser.uid);
-  }
+    get_all_data_reload_page(auth.currentUser.uid);
+  } */
 
-}
+//}
 
-function createRowInConceptList(newConcept) {
-  const li = document.createElement('li');
-  li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
-  const input2 = document.createElement('input');
-  input2.classList.add('form-control', 'me-1');
-  input2.setAttribute('type', 'text');
-  //set content in input2
-  input2.value = newConcept;
-  //set not editable
-  input2.setAttribute("readonly", true);
-  input2.setAttribute("disabled", true);
-  li.appendChild(input2);
-  const span = document.createElement('span');
-  span.classList.add('badge', 'bg-secondary', 'rounded-pill');
-  span.innerHTML = '&#8942;'; // Add kebab icon
-  li.appendChild(span);
-  return li;
-}
 function createbuttons() {
   console.log("In createbuttons");
-  const buttonDiv = document.createElement("div")
+  //check if "button_div" exists and if so remove it
+  let buttonDiv = document.getElementById("button_div");
+  if (buttonDiv != null) {
+    buttonDiv.remove();
+  }
+  buttonDiv = document.createElement("div")
   buttonDiv.classList.add("container", "overflow-auto", "border", "border-2", "rounded-3", "p-1", "m-1", "bg-light", "bg-gradient", "d-flex", "justify-content-center")
   buttonDiv.id = "button_div"
   document.getElementById("image_data").appendChild(buttonDiv);
+  //Reorganise button
   let button = document.createElement("button")
   button.type = "button"
-  button.classList.add("btn", "btn-secondary", "btn-sm", "me-1")
-  button.textContent = "Reorganise" //"Organise & reload"
+  button.classList.add("btn", "btn-outline-secondary", "btn-sm", "me-1")
+  button.textContent = "Reorganise"
   buttonDiv.appendChild(button)
   button.addEventListener("click", (event) => {
     event.preventDefault();
+    tooltip1.hide();
     build_image_containers();
   });
+  const tooltip1 = new bootstrap.Tooltip(button, {
+    customClass: '_lh_tooltip_standard',
+    html: true,
+    title: "Moves all images with a concept to the corresponding container. <br>Images without a concept are moved to the top container.",
+    placement: 'top'
+  })
+  //Reload button
   button = document.createElement("button")
   button.type = "button"
-  button.classList.add("btn", "btn-secondary", "btn-sm", "me-1")
+  button.classList.add("btn", "btn-outline-secondary", "btn-sm", "me-1")
   button.textContent = "Reload" //"reload"
   buttonDiv.appendChild(button)
   button.addEventListener("click", (event) => {
     event.preventDefault();
-    read_training_data(auth.currentUser.uid, getMetadata().training_set_ref);
+    tooltip2.hide();
+    //read_training_data(auth.currentUser.uid, getMetadata().training_set_ref);
+    get_all_data_reload_page(auth.currentUser.uid);
   });
-  button = document.createElement("button")
+  const tooltip2 = new bootstrap.Tooltip(button, {
+    customClass: '_lh_tooltip_standard',
+    html: true,
+    title: "Reverts all local changes and reloads server data",
+    placement: 'top'
+  });
+  edit_concepts();
+  predict_class();
+  train_model();
+  firebase_save();
+  firebase_save_as();
+  //download button
+/*   button = document.createElement("button")
   button.type = "button"
   button.classList.add("btn", "btn-secondary", "btn-sm", "me-1")
   button.textContent = "Download" //"Download"
   buttonDiv.appendChild(button)
   button.addEventListener("click", (event) => {
     event.preventDefault()
+    tooltip3.hide();
     downloadJson(getBirds());
   });
-  document.getElementById("image_data").appendChild(buttonDiv);
-  edit_concepts();
-  firebase_save();
-  firebase_save_as();
-  discard_changes();
-  train_model();
-  predict_class();
+  const tooltip3 = new bootstrap.Tooltip(button, {
+    customClass: '_lh_tooltip_standard',
+    html: true,
+    title: "Downloads the training data as a json file. <br>Use this if you want to save the training data locally.",
+    placement: 'top'
+  }); */
+  
+  //discard_changes();
+  
+  
+  
+  
 }
 
-function changeConcept(index, concept) {
-  if (concept == "") concept = "void";
-  getBirds().images[index].concept = concept;
-}
+
 
 function findImageIndexWithConcept(search_key, concept) {
   let image_indexes_for_concept = []
@@ -511,7 +570,7 @@ function findImageIndexWithConcept(search_key, concept) {
     }
     if (search_key === "concept_pred") {
       if (value.concept_pred == null) continue;
-      if (value.concept == concept) {value.concept_pred == ""; continue;}  //The image is selected for training
+      if (value.concept == concept) { value.concept_pred == ""; continue; }  //The image is selected for training
       if (value.concept_pred == concept) {
         image_indexes_for_concept.push(key)
         //console.log("value.concept_pred", value.concept_pred)
@@ -534,244 +593,7 @@ function collapsable() {
   });
 }
 
-function edit_concepts() {
-  var myInput = document.getElementById('myInput_concept');
-  var myModal = document.getElementById('myModal_concept');
-  if (myModal != null && myInput != null) {
-    myModal.remove();
-    myInput.remove();
-  }
-  fetch('./resources/modal_concept.html')
-    .then(response => response.text())
-    .then(html => {
-      const buttonDiv = document.getElementById("button_div");
-      const modalContainer = document.createElement('div');
-      modalContainer.innerHTML = html;
-      buttonDiv.appendChild(modalContainer);
-      var myInput = document.getElementById('myInput_concept');
-      myInput.innerHTML = "Edit concepts";
-      document.getElementById("addConcept").addEventListener("click", handleChildClickButton);
-      //clean up concept list
-      const conceptList = document.getElementById("concept_list")
-      const conceptInput = document.getElementById("conceptInput");
-      conceptInput.value = "";
-      while (conceptList.firstChild) {
-        conceptList.removeChild(conceptList.lastChild);
-      }
-      try {
-        getMetadata().concept.forEach((item) => {
-          //list.appendChild();
-          const conceptRow = createRowInConceptList(item);
-          conceptList.appendChild(conceptRow);
-        });
-        //Show a menu when clicking on the kebab icon
-        conceptList.addEventListener("click", (event) => {
-          event.preventDefault()
-          if (event.target.tagName === 'SPAN') {
-            const kebab = event.target;
-            const concept = kebab.parentElement.textContent;
-            //remove all other menus
-            const menus = document.getElementsByClassName('menu_class');
-            [...menus].forEach((item) => {
-              item.remove();
-            });
-            //show a hovering meny with edit and delete
-            const menu = document.createElement('div');
-            menu.classList.add('list-group', 'position-absolute', 'd-flex', 'flex-column', 'align-items-end', "menu_class");
-            menu.style.left = event.clientX;
-            menu.style.top = event.clientY;
-            menu.style.zIndex = 1;
-            menu.style.width = '100px';
-            menu.style.backgroundColor = 'Whitesmoke';
-            menu.style.border = '1px solid black';
-            menu.style.color = 'white';
-            menu.style.padding = '2px';
-            menu.style.borderRadius = '4px';
-            menu.classList.add('fw-normal', 'text-dark');
-            menu.style.fontFamily = 'Helvetica Neue, Arial, sans-serif';
-            const edit = document.createElement('a');
-            edit.classList.add('list-group-item', 'list-group-item-action');
-            edit.textContent = 'Edit';
-            menu.appendChild(edit);
-            const del = document.createElement('a');
-            del.classList.add('list-group-item', 'list-group-item-action');
-            del.textContent = 'Delete';
-            menu.appendChild(del);
-            //conceptList.appendChild(menu);
-            kebab.appendChild(menu);
-            //add event listener to edit
-            edit.addEventListener("click", (event) => {
-              event.preventDefault();
-              console.log("In edit");
-              const editButton = event.target;
-              const input = editButton.parentElement.parentElement.previousSibling;
-              const oldconcept = input.value;
-              input.removeAttribute("readonly");
-              input.removeAttribute("disabled");
-              input.focus();
-              input.addEventListener("blur", function () {
-                input.setAttribute("readonly", true);
-                input.setAttribute("disabled", true);
-                //const oldconcept = input.value;
-                const newConcept = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
-                if (newConcept == "") return;
-                console.log("not empty");
-                if (getMetadata().concept.includes(newConcept)) {
-                  console.log("Concept already exists");
-                  //input.value = newConcept;
-                  return;
-                }
-                console.log("Note exists in metadata");
-                //remove concept from the array getMetadata().concept
-                getMetadata().concept = getMetadata().concept.filter(item => item !== oldconcept);
-                input.value = newConcept;
-                console.log("getMetadata().concept", getMetadata().concept);
-                getMetadata().concept.push(newConcept);
-                console.log("getMetadata().concept", getMetadata().concept);
-                //change concept with old value to new value on all images
-                getBirds().images.forEach((item) => {
-                  if (item.concept == oldconcept) item.concept = newConcept;
-                });
-
-              });
-              input.addEventListener("keydown", (event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  input.setAttribute("readonly", true);
-                  input.setAttribute("disabled", true);
-                  input.blur();
-                }
-              });
-              kebab.removeChild(menu);
-            });
-            //add event listener to delete
-            del.addEventListener("click", (event) => {
-              event.preventDefault()
-              console.log("In delete");
-              const deleteButton = event.target;
-              const input = deleteButton.parentElement.parentElement.previousSibling;
-              const result = input.value;
-              console.log("result", result);
-              clear_concept(input.value)
-              console.log("getMetadata().concept", getMetadata().concept);
-              //delete row from <ul> list
-              const list = input.parentElement.parentElement;
-              console.log("list", list);
-              list.removeChild(input.parentElement);
-              kebab.removeChild(menu);
-            });
-          }
-        });
-        //add hover effect on li when hovering over
-        conceptList.addEventListener("mouseover", (event) => {
-          event.preventDefault()
-          if (event.target.tagName === 'LI') {
-            event.target.classList.add('list-group-item-secondary');
-          }
-        });
-        //remove hover effect on li when hovering over
-        conceptList.addEventListener("mouseout", (event) => {
-          event.preventDefault()
-          if (event.target.tagName === 'LI') {
-            event.target.classList.remove('list-group-item-secondary');
-          }
-        });
-      } catch (error) {
-        console.log("No concepts found in metadata")
-      }
-      document.getElementById("saveChanges_concept").addEventListener("click", (event) => {
-        event.preventDefault();
-        console.log("In saveChanges_concept");
-        console.log("getMetadata().concept", getMetadata().concept);
-        //repace all concept for images that are not in the metadata concept list with "void"
-        getBirds().images.forEach((item) => {
-          if (!getMetadata().concept.includes(item.concept)) {
-            item.concept = "void";
-            if (item.concept_pred != null) {
-              item.concept_pred = "void";
-            }
-          }
-        });
-        //rebuild image containers
-        build_image_containers();
-      });
-    });
-}
-
-function firebase_save() {
-  fetch('./resources/modal_save.html')
-    .then(response => response.text())
-    .then(html => {
-      const buttonDiv = document.getElementById("button_div");
-      const modalContainer = document.createElement('div');
-      modalContainer.innerHTML = html;
-      buttonDiv.appendChild(modalContainer);
-      var myInput = document.getElementById('myInput_save')
-      myInput.innerHTML = "Save changes to server";
-      const modalSubtitle = document.getElementById("modalSubtitle_save");
-      modalSubtitle.innerHTML = "Version: " + getMetadata().version;
-      const title = document.getElementById("modalTitle_save");
-      title.innerHTML = getMetadata().title;
-      title.setAttribute("contenteditable", true); // make h5 editable
-      title.addEventListener("click", function () {
-        title.setAttribute("contenteditable", true);
-      });
-      title.addEventListener("blur", function () {
-        title.setAttribute("contenteditable", false);
-      });
-      const description = document.getElementById("modalInput_save")
-      description.innerHTML = getMetadata().description;
-      description.setAttribute("contenteditable", true); // make h5 editable
-      description.addEventListener("click", function () {
-        description.setAttribute("contenteditable", true);
-      });
-      description.addEventListener("blur", function () {
-        description.setAttribute("contenteditable", false);
-      });
-      document.getElementById("saveChanges_save").addEventListener("click", handleChildClickButton);
-    });
-}
-
-function firebase_save_as() {
-  fetch('./resources/modal_save_as.html')
-    .then(response => response.text())
-    .then(html => {
-      const buttonDiv = document.getElementById("button_div");
-      const modalContainer = document.createElement('div');
-      modalContainer.innerHTML = html;
-      buttonDiv.appendChild(modalContainer);
-      var myInput = document.getElementById('myInput_saveAs')
-      document.getElementById('myModal_saveAs').addEventListener('shown.bs.modal', handleModalFocus);
-      myInput.innerHTML = "Save as new dataset";
-      const modalSubtitle = document.getElementById("modalSubtitle_saveAs");
-      modalSubtitle.innerHTML = "Version: " + getMetadata().version;
-      const title = document.getElementById("modalTitle_saveAs");
-      title.innerHTML = getMetadata().title;
-      title.setAttribute("contenteditable", true); // make h5 editable
-      title.classList.add('p-2');
-      title.style.border = '1px dotted black';
-      title.addEventListener("click", function () {
-        title.setAttribute("contenteditable", true);
-      });
-      title.addEventListener("blur", function () {
-        title.setAttribute("contenteditable", false);
-      });
-      const description = document.getElementById("modalInput_saveAs")
-      description.innerHTML = getMetadata().description;
-      description.setAttribute("contenteditable", true); // make h5 editable
-      description.classList.add('p-2');
-      description.style.border = '1px dotted black';
-      description.addEventListener("click", function () {
-        description.setAttribute("contenteditable", true);
-      });
-      description.addEventListener("blur", function () {
-        description.setAttribute("contenteditable", false);
-      });
-      document.getElementById("saveChanges_saveAs").addEventListener("click", handleChildClickButton);
-    });
-}
-
-function discard_changes() {
+/* function discard_changes() {
   fetch('./resources/discard_changes.html')
     .then(response => response.text())
     .then(html => {
@@ -783,16 +605,16 @@ function discard_changes() {
       var myModal = document.getElementById('myModal_discard_changes');
       document.getElementById('myModal_discard_changes').addEventListener('shown.bs.modal', handleModalFocus);
       myInput.innerHTML = "Discard changes";
-      document.getElementById("discard_changes").addEventListener("click", handleChildClickButton);
+      document.getElementById("discard_changes").addEventListener("click", handleButtonClicks);
     });
-}
+} */
 
 /**
  * Clears the concept of all images matching the given concept.
  * Removes the concept from the array of concepts in the metadata.
  * @param {string} concept - The concept to clear.
  */
-function clear_concept(concept) {
+export function clear_concept(concept) {
   getBirds().images.forEach((item) => {
     if (item.concept == concept) item.concept = "void";
   });
@@ -803,7 +625,7 @@ function clear_concept(concept) {
 export function loggedIn(user) {
   if (user) {
     console.log("Logged in (onAuthStateChanged)", user.displayName);
-    get_training_sets_metadata(user.uid);
+    get_all_data_reload_page(user.uid);
     collapsable();
   } else {
     console.log("Not logged in (onAuthStateChanged)");

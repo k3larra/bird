@@ -1,13 +1,13 @@
-import { getMetadata, getStatistics} from "./script.js";
-import { setTraining_parameters, getTraining_parameters } from "./firebase-module.js";
-import { auth ,getDatabase,ref,onValue} from "./firebase-module.js";
-import { debug } from "./script.js";
+import { getMetadata, getStatistics} from "../script.js";
+import { setTraining_parameters, getTraining_parameters } from "../firebase-module.js";
+import { auth ,getDatabase,ref,onValue} from "../firebase-module.js";
+import { debug } from "../script.js";
 
 export function predict_class() {
   const button = document.createElement("button");
   button.type = "button";
   button.id = "myInput_predict";
-  button.classList.add("btn", "btn-secondary", "btn-sm", "me-1");
+  button.classList.add("btn", "btn-light", "btn-sm", "ms-2", "me-1");
   button.setAttribute("data-bs-toggle", "modal");
   button.setAttribute("data-bs-target", "#myModal_predict");
   button.innerHTML = "Predict";

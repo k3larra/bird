@@ -1,12 +1,12 @@
-import { getMetadata } from "./script.js";
-import { setTraining_parameters, getTraining_parameters, currentproject } from "./firebase-module.js";
-import { auth, getDatabase, ref, onValue } from "./firebase-module.js";
-import { debug } from "./script.js";
+import { getMetadata } from "../script.js";
+import { setTraining_parameters, getTraining_parameters, currentproject } from "../firebase-module.js";
+import { auth, getDatabase, ref, onValue } from "../firebase-module.js";
+import { debug } from "../script.js";
 export function train_model() {
   const button = document.createElement("button");
   button.type = "button";
   button.id = "myInput_train";
-  button.classList.add("btn", "btn-secondary", "btn-sm", "me-1");
+  button.classList.add("btn", "btn-light", "btn-sm", "me-1");
   button.setAttribute("data-bs-toggle", "modal");
   button.setAttribute("data-bs-target", "#myModal_train");
   button.innerHTML = "Train model";

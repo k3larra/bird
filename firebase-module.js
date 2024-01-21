@@ -222,7 +222,6 @@ async function _setLoggedInVisibility(loggedIn,user,awaitingApproval){
 
 
 /*Misc database functions*/
-/********************Ref to project here************************** */
 export function save_new_training_set_to_databasebase(userID, jsonfile) {
   const db = getDatabase();
   //const currentproject = getCurrentProject();
@@ -259,18 +258,21 @@ export function save_new_training_set_to_databasebase(userID, jsonfile) {
  * @param {object} jsonfile - The JSON file containing the training set data.
  * @returns {void}
  */
-/********************Ref to project here************************** */
+//here the redundant ifo in jsonfile title and version is not opdated!!!
 export function update_training_set(userID, meta, jsonfile) {
   const db = getDatabase();
   //const currentproject = getCurrentProject();
-  update(child(ref(db), userID + "/trainingsets/" + meta.training_set_ref), jsonfile)
+  /* console.log("jsonfile.title", jsonfile.version, jsonfile.title, jsonfile.description); */
+  update(child(ref(db), "/projects/"+currentproject + "/trainingsets/"+meta.training_set_ref), jsonfile)
     .then(() => {
       console.log('Data has been successfully updated in the database');
+      /*console.log("Update path metadata"+"/projects/"+currentproject + "/metadata/" + meta.training_set_ref);
+      console.log("meta",meta); */
       return update(child(ref(db), "/projects/"+currentproject + "/metadata/" + meta.training_set_ref), meta);
     })
     .then(() => {
       console.log('Metadata has been successfully updated in the database');
-      get_training_sets_metadata(userID);
+      get_all_data_reload_page(userID);
     })
     .catch((error) => {
       console.error('Error updating data:', error);
@@ -284,10 +286,10 @@ export function update_training_set(userID, meta, jsonfile) {
  * @param {string} userID - The ID of the user whose training sets metadata is to be retrieved.
  */
 /********************Ref to project here************************** */
-export function get_training_sets_metadata(userID) {
+export function get_all_data_reload_page(userID) {
   const db = getDatabase();
   //const currentproject = getCurrentProject();
-  console.log("currentproject",currentproject);
+  console.log("currentprojectref","/projects/"+currentproject + "/metadata");
   const trainingSetRef = ref(db, "/projects/"+currentproject + "/metadata");
   onValue(trainingSetRef, (snapshot) => {
     select_training_data(snapshot);
@@ -351,13 +353,13 @@ export function setAsDefaultTrainingSet(key) {
       }
       
     });
-    get_training_sets_metadata(authData.uid);
+    get_all_data_reload_page(authData.uid);
   }, {
     onlyOnce: true
   });
 }
 
-/********************Ref to project here************************** */
+
 export function delete_training_set(userID, training_set_ref) {
   const db = getDatabase();
   //////////const trainingSetRef = ref(db, userID + "/trainingsets/" + training_set_ref);
@@ -382,10 +384,10 @@ export function delete_training_set(userID, training_set_ref) {
     .catch((error) => {
       console.error('Error deleting Metadata:', error);
     });
-  get_training_sets_metadata(userID)
+  get_all_data_reload_page(userID)
 }
 
-/********************Ref to project here************************** */
+
 export function read_training_data(userID, training_set_ref) {
   const db = getDatabase();
   //////////const starCountRef = ref(db, userID + "/trainingsets/" + training_set_ref);
@@ -401,7 +403,6 @@ export function read_training_data(userID, training_set_ref) {
 
 }
 
-/********************Ref to project here************************** */
 export function setTraining_parameters(){
   console.log("In SET Training getMetadata()",getMetadata());
   const db = getDatabase();
@@ -418,7 +419,6 @@ export function setTraining_parameters(){
       });
 }
 
-/********************Ref to project here************************** */
 export function getTraining_parameters(){
   console.log("In getTraining_parameters");
   const db = getDatabase();

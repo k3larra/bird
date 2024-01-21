@@ -14,7 +14,16 @@
   visibility: visible;
 } */
 
+.lh_small-font {
+  font-size: 0.75rem; 
+}
 
+.lh_btn-sm {
+  padding: .15rem .25rem;
+  font-size: .75rem;
+  line-height: 1.0;
+  border-radius: .2rem;
+}
 
 ._debug{
   color:red;
@@ -74,7 +83,7 @@
   /* Position the tooltip text - see examples below! */
   position: absolute;
   left: 14px;
-  top: 6px;
+  top: 4px;
   z-index: 1;
 }
 
@@ -90,4 +99,50 @@
 
 .menu_class{
   border:1px solid black;
+}
+
+._lh_tooltip_predinfo {
+  visibility: hidden;
+  width: 25px;
+  background-color: gray;
+  color: #fff;
+  text-align: center;
+  padding: 0px 0;
+  border-radius: 6px;
+  font-size: 8px; 
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  left: 30px;
+  top: 60px;
+  z-index: 1;
+}
+
+._lh_tooltip_standard .tooltip-inner{
+  background-color: dimgray;
+  border-color: dimgray;
+  color: #fff;
+  padding: .15rem .25rem;
+  font-size: .5rem;
+  line-height: 1.0;
+  border-radius: .2rem;
+  text-align: left;
+  /*padding: 0px 0;*/
+  border-radius: 6px;
+}
+
+._lh_tooltip_standard .arrow::before {
+ background-color: dimgray;
+  color: #fff;
+  padding: .15rem .25rem;
+  font-size: .5rem;
+  line-height: 1.0;
+  border-radius: .2rem;
+  /*text-align: center;
+  padding: 0px 0;*/
+  /* border-radius: 6px; */
+  border-color: dimgray;
+}
+
+._lh_tooltip_standard .tooltip-arrow {
+  border-color: dimgray;
 }
