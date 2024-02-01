@@ -146,3 +146,21 @@
 ._lh_tooltip_standard .tooltip-arrow {
   border-color: dimgray;
 }
+
+._lh_tooltip_delete { 
+  display:none;
+  position: absolute;
+  background-color: whitesmoke;
+  color: white;
+  text-align: center;
+  padding: 2px;
+  border: 1px solid black;
+  border-radius: 4px;
+  width: 100px;
+  left: 270px;
+  z-index: 1;
+}
+
+.on_top {
+  z-index: 4;
+}

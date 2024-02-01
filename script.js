@@ -9,7 +9,7 @@ import { delete_training_set } from "./firebase-module.js";
 import { train_model } from "./resources/modal_train.js";
 import { predict_class } from "./resources/modal_predict.js";
 import { IMAGEFOLDER } from "./firebase-module.js";
-import { createAddImagesToTrainingdataButton } from "./resources/create_elements.js";
+import { createAddImagesToTrainingdataButton, clearPredictedImages } from "./resources/create_elements.js";
 import { createDropdownMenu } from "./resources/create_elements.js";
 import { createRowInConceptList, edit_concepts } from "./resources/modal_concept.js";
 import { firebase_save } from "./resources/modal_save.js";
@@ -166,17 +166,7 @@ export function select_training_data(metadata) {
     const modal = document.getElementById('modalInput_delete_dataset');
     const tooltip = document.createElement('span');
     tooltip.textContent = 'Delete dataset: ' + doc.val().title;
-    tooltip.style.display = 'none';
-    tooltip.style.position = 'absolute';
-    tooltip.style.backgroundColor = 'Whitesmoke';
-    tooltip.style.border = '1px solid black';
-    tooltip.style.color = 'white';
-    tooltip.style.padding = '2px';
-    tooltip.style.borderRadius = '4px';
-    tooltip.classList.add('fw-normal', 'text-dark');
-    tooltip.style.width = '100px';
-    tooltip.style.left = '250px';
-    tooltip.style.fontFamily = 'Helvetica Neue, Arial, sans-serif';
+    tooltip.classList.add('fw-normal', 'text-dark','_lh_tooltip_delete');
     button.addEventListener('mouseenter', () => {
       tooltip.style.display = 'inline';
     });
@@ -199,6 +189,7 @@ export function select_training_data(metadata) {
 
 function dropdownListener(event) {
   event.preventDefault()
+  console.log("event.target.tagName", event.target.tagName);
   if (event.target.tagName === 'A') {
     const a = event.target;
     const key = a.dataset.id
@@ -206,12 +197,12 @@ function dropdownListener(event) {
     setAsDefaultTrainingSet(key);
   }
   if (event.target.tagName === 'BUTTON') {
+    console.log("Button clicked");
     document.getElementById("delete_dataset_confirm").addEventListener("click", deleteListener);
     document.getElementById("modalTitle_delete").innerHTML += event.target.dataset.lhtitle;
     document.getElementById('modalSubtitle_delete_dataset').innerHTML = event.target.dataset.lhdescription;
     document.getElementById("delete_dataset_confirm").dataset.id = event.target.id;
   }
-
 }
 
 function deleteListener(event) {
@@ -242,16 +233,16 @@ export function build_image_containers() {
   populate_void_container(getBirds(), imageContainer)
   document.getElementById("image_data").appendChild(imageContainer);
   createbuttons()
-  add_image_container_listener("void", imageContainer)
+  add_image_container_listener(imageContainer)
   //Create a container for each concept 
-  console.log("getMetadata().concept", getMetadata().concept);
+  //console.log("getMetadata().concept", getMetadata().concept);
   try {
     getMetadata().concept.forEach((item) => {
       imageContainer = createContainer(item, "Images labelled " + item);
-      populate_container(findImageIndexWithConcept("concept", item), item, imageContainer, false)
-      populate_container(findImageIndexWithConcept("concept_pred", item), item, imageContainer, true)
+      populate_container(findImageIndexWithConcept("concept", item,0), item, imageContainer, false)
+      populate_container(findImageIndexWithConcept("concept_pred", item,0), item, imageContainer, true)
       document.getElementById("image_data").appendChild(imageContainer);
-      add_image_container_listener(item, imageContainer)
+      add_image_container_listener(imageContainer)
     });
   } catch (error) {
     console.log("No concepts found in metadata")
@@ -259,7 +250,7 @@ export function build_image_containers() {
   displayStatistics();
 }
 
-function populate_void_container(data, element) {
+function populate_void_container(data, container) {
   const maxNumbrItems = 72;
   let row, lastRow = -1, column, i = 0;
   let rowElement;
@@ -281,8 +272,8 @@ function populate_void_container(data, element) {
   randomNumbers.forEach((item) => {
     row = Math.trunc((i / 12));
     if (row > lastRow) {
-      rowElement = createRowInGrid(element);
-      element.appendChild(rowElement);
+      rowElement = createRowInGrid(container);
+      container.appendChild(rowElement);
       lastRow = row;
     }
     column = i % 12
@@ -292,27 +283,32 @@ function populate_void_container(data, element) {
   });
 }
 
-function populate_container(data, predicted_concept_true_value, element, is_predicted_concept) {
+export function populate_container(data, predicted_concept_true_value, container, is_predicted_concept) {
+  //console.log("In populate_container");
+  const surrounding_div = document.createElement("div");
   const header = document.createElement("div")
   header.classList.add("lh_small-font", "bg-light") // Added "mr-2" class for margin right
   if (!is_predicted_concept) {
+    surrounding_div.id = "image_div";
     header.innerHTML = "Images labelled: " + predicted_concept_true_value;
   } else {
+    surrounding_div.id = "pred_image_div";
     header.innerHTML = "Images predicted as: " + predicted_concept_true_value;
-    header.appendChild(createDropdownMenu());
+    header.appendChild(createDropdownMenu(predicted_concept_true_value));
     const mouseOverText = "Add images to training set. <br>Only images marked with the concept <b> " +
       predicted_concept_true_value + " </b> will be added." +
       "<br> Click on the image to change the predicted class.";
-    createAddImagesToTrainingdataButton("Add to training set", mouseOverText, header)
+    createAddImagesToTrainingdataButton("Add to training set", mouseOverText, header);
+    clearPredictedImages(header)
   }
-  element.appendChild(header);
+  surrounding_div.appendChild(header);
   let row, lastRow = -1, column, i = 0;
   let rowElement;
   data.forEach((item) => {
     row = Math.trunc((i / 12));
     if (row > lastRow) {
-      rowElement = createRowInGrid(element);
-      element.appendChild(rowElement);
+      rowElement = createRowInGrid(surrounding_div);
+      surrounding_div.appendChild(rowElement);
       lastRow = row;
     }
     column = i % 12
@@ -323,35 +319,66 @@ function populate_container(data, predicted_concept_true_value, element, is_pred
     createImageItem(rowElement, getBirds().images[item], item, is_predicted_concept, predicted_concept_true_value);
     i++;
   });
-
+  container.appendChild(surrounding_div);
 }
 
-function add_image_container_listener(id, imageContainer) {
+export function clear_and_populate_pred_container(data, predicted_concept_true_value, pred_image_div) {
+  console.log("In clear_and_populate_pred_container");
+  console.log("pred_image_div", pred_image_div);
+  while (pred_image_div.firstChild) {
+    pred_image_div.removeChild(pred_image_div.firstChild);
+  }
+  populate_container(data, predicted_concept_true_value, pred_image_div, true);
+}
+
+function add_image_container_listener(imageContainer) {
   imageContainer.addEventListener('click', function (event) {
     event.preventDefault(); //Stop reloading
     if (event.target.tagName === 'IMG') {
       const clickedImage = event.target;
+      //console.log("clickedImage", clickedImage);
       const tooltiptext_e = clickedImage.nextElementSibling;
       const index = getMetadata().concept.indexOf(tooltiptext_e.textContent);
-      if (index == -1) {
-        tooltiptext_e.textContent = getMetadata().concept[0];
-      } else if (index == getMetadata().concept.length - 1) {
-        tooltiptext_e.textContent = "";
-      } else {
-        tooltiptext_e.textContent = getMetadata().concept[index + 1];
+      const pred = tooltiptext_e.nextElementSibling;
+      if(pred){
+        //console.log("predicted", tooltiptext_e.textContent);
+        //console.log("getMetadata()", getMetadata());
+        if(tooltiptext_e.textContent == ""){
+          tooltiptext_e.textContent =pred.getAttribute('data-hidden-field')
+          event.target.classList.add("border-success");
+          event.target.classList.remove("border-danger");
+        }else{
+          tooltiptext_e.textContent = "";
+          event.target.classList.remove("border-success");
+          event.target.classList.add("border-danger");
+        }
+        changePredConcept(clickedImage.getAttribute('data-image-index'), tooltiptext_e.textContent)
+      }else{
+        if (index == -1) {
+          tooltiptext_e.textContent = getMetadata().concept[0];
+        } else if (index == getMetadata().concept.length - 1) {
+          tooltiptext_e.textContent = "";
+        } else {
+          tooltiptext_e.textContent = getMetadata().concept[index + 1];
+        }
+        let path = clickedImage.src.split(IMAGEFOLDER)[1]
+        path = decodeURIComponent(path);
+        changeConcept(clickedImage.getAttribute('data-image-index'), tooltiptext_e.textContent)
       }
-      let path = clickedImage.src.split(IMAGEFOLDER)[1]
-      path = decodeURIComponent(path);
-      changeConcept(clickedImage.getAttribute('data-image-index'), tooltiptext_e.textContent)
-      //findImageIndexWithConcept(tooltiptext_e.textContent) or?
     }
   });
 }
 
-//HM What about predicted concepts....?
-function changeConcept(index, concept) {
+export function changeConcept(index, concept) {
   if (concept == "") concept = "void";
   getBirds().images[index].concept = concept;
+}
+
+export function changePredConcept(index, pred_concept) {
+  if (pred_concept == "") pred_concept = "void";
+  //console.log("Before getBirds().images[index].concept_pred", getBirds().images[index].concept_pred);
+  getBirds().images[index].concept_pred = pred_concept;
+  //console.log("getBirds().images[index].concept", getBirds().images[index]);
 }
 
 /*Create containers and content*/
@@ -396,6 +423,7 @@ function createImageItem(element, image_data, item, is_predicted_concept, predic
   row_e.appendChild(tooltip_e);
   if (is_predicted_concept) {
     const tooltip_e2 = document.createElement('span');
+    tooltip_e2.setAttribute('data-hidden-field', predicted_concept_true_value);
     tooltip_e2.classList.add("_lh_tooltip_predinfo")
     tooltip_e2.classList.add("visible")
     tooltip_e2.textContent = pred_percent + " %";
@@ -509,10 +537,13 @@ function createbuttons() {
     title: "Moves all images with a concept to the corresponding container. <br>Images without a concept are moved to the top container.",
     placement: 'top'
   })
+  edit_concepts();
+  predict_class();
+  train_model();
   //Reload button
   button = document.createElement("button")
   button.type = "button"
-  button.classList.add("btn", "btn-outline-secondary", "btn-sm", "me-1")
+  button.classList.add("btn", "btn-outline-dark", "btn-sm", "ms-2", "me-1")
   button.textContent = "Reload" //"reload"
   buttonDiv.appendChild(button)
   button.addEventListener("click", (event) => {
@@ -527,12 +558,10 @@ function createbuttons() {
     title: "Reverts all local changes and reloads server data",
     placement: 'top'
   });
-  edit_concepts();
-  predict_class();
-  train_model();
+
   firebase_save();
   firebase_save_as();
-  //download button
+  //download button Not needed?? since download JSON is more a Admin thing perhaps add for admins only
 /*   button = document.createElement("button")
   button.type = "button"
   button.classList.add("btn", "btn-secondary", "btn-sm", "me-1")
@@ -549,17 +578,14 @@ function createbuttons() {
     title: "Downloads the training data as a json file. <br>Use this if you want to save the training data locally.",
     placement: 'top'
   }); */
-  
-  //discard_changes();
+  //discard_changes(); //Not needed ?? since we have reload button
   
   
   
   
 }
 
-
-
-function findImageIndexWithConcept(search_key, concept) {
+export function findImageIndexWithConcept(search_key, concept,pred_percent) {
   let image_indexes_for_concept = []
   for (const [key, value] of Object.entries(getBirds().images)) {
     if (search_key === "concept") { //Yes I know....
@@ -570,11 +596,13 @@ function findImageIndexWithConcept(search_key, concept) {
     }
     if (search_key === "concept_pred") {
       if (value.concept_pred == null) continue;
+      if (value.concept_pred == "void") continue;
       if (value.concept == concept) { value.concept_pred == ""; continue; }  //The image is selected for training
+      if (value.concept_pred_probability <= pred_percent) continue;
       if (value.concept_pred == concept) {
         image_indexes_for_concept.push(key)
-        //console.log("value.concept_pred", value.concept_pred)
-        //console.log("key", key)
+/*         console.log("value.concept_pred", value.concept_pred)
+        console.log("key", key) */
       }
     }
   }

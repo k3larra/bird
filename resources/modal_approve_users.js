@@ -1,4 +1,4 @@
-import {getDatabase, set, get, remove, ref, isUserAdmin } from "../firebase-module.js";
+import {getDatabase, set, get, remove, ref, isUserAdmin,IMAGEFOLDER, readLocalJasonAndReturn,create_project } from "../firebase-module.js";
 export function approve_users() {
     fetch('./resources/modal_approve_users.html')
       .then(response => response.text())
@@ -8,9 +8,10 @@ export function approve_users() {
         modalContainer.innerHTML = html;
         myModal_approve_users.appendChild(modalContainer);
         var myModalEl = document.getElementById('myModal_approve_users');
-        myModalEl.addEventListener('shown.bs.modal', function () {
+        myModalEl.addEventListener('shown.bs.modal', async function () {
             console.log(' approve users is shown');
-            if (isUserAdmin()){
+            const isAdmin = await isUserAdmin();
+            if (isAdmin){
                 listUsersForApproval();
             }
         });
@@ -63,15 +64,31 @@ function approve_user(e) {
     console.log("id",id);
     var db = getDatabase();
     const membershipRef = ref(db,"membershipRequests/" + id);
-    get(membershipRef).then((snapshot) => {
+    get(membershipRef).then(async (snapshot) => {
         if (snapshot.exists()) {
-            var data = snapshot.val();
-            data.approved =true;
-            console.log("User to move",data);
+            //Also create default project here and add to the user
+            var userData = snapshot.val();
+            const jsonfile = await readLocalJasonAndReturn("birds.json");
+            const keys = create_project(id,IMAGEFOLDER,jsonfile,true);
+            console.log("keys.projectKey", keys.projectKey);
+            console.log ("keys.trainingsetKey", keys.trainingsetKey);
+            userData.current_project = keys.projectKey;
+            userData.projects = [keys.projectKey];
+            userData.approved =true;
+            console.log("User to move",userData);
             const userRef = ref(db, "users/"+ id);
-            set(userRef, data);
-            remove(membershipRef);
-            listUsersForApproval();
+            set(userRef, userData).then(() => {
+                /* const jsonfile = await readLocalJasonAndReturn("jsonfile");
+                const keys = create_project(id,IMAGEFOLDER,jsonfile);
+                console.log("keys.projectKey", keys.trainingsetKey);
+                console.log ("keys.trainingsetKey", keys.trainingsetKey); */
+                remove(membershipRef);
+                listUsersForApproval();
+            }).catch((error) => {
+                console.error('Error creating project:', error);
+            });
+            //listUsersForApproval();
+            
         } else {
             console.log("No data available");
         } 

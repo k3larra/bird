@@ -1,4 +1,4 @@
-import { handleButtonClicks, getMetadata, getBirds, clear_concept, build_image_containers } from "../script.js";
+import { getMetadata, getBirds, clear_concept, build_image_containers } from "../script.js";
 
 export function edit_concepts() {
   const buttonDiv = document.getElementById("button_div");

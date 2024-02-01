@@ -39,15 +39,18 @@ var clientRequestRef = db.ref('/projects/clientrequest');
 clientRequestRef.on('child_added', (snapshot) => {
   console.log("metadata",snapshot.val().metadata);
   console.log("projectID",snapshot.val().projectID);
-  if (snapshot.val().metadata.ml_train) {
+  let ml_train = snapshot.val()?.metadata?.ml_train;
+  if (ml_train) {
     console.log("ml_train");
     train_model(snapshot.val());
   }
-  if (snapshot.val().metadata.ml_delete) {
+  let ml_delete = snapshot.val()?.metadata?.ml_delete;
+  if (ml_delete) {
     console.log("ml_delete");
     delete_model(snapshot.val());
   }
-  if (snapshot.val().metadata.ml_predict) {
+  let ml_predict = snapshot.val()?.metadata?.ml_predict;
+  if ( ml_predict) {
     console.log("ml_predict");
     // test if prediction is not running
     //if (snapshot.val().ml_predict_started_timestamp&&snapshot.val().ml_predict_finished_timestamp){

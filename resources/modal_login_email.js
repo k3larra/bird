@@ -1,5 +1,5 @@
 import { _login } from "../firebase-module.js";
-export function modal_login() {
+export function modal_login_email() {
     fetch('./resources/modal_login_email.html')
       .then(response => response.text())
       .then(html => {

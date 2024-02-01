@@ -1,13 +1,13 @@
 import { getMetadata, getStatistics} from "../script.js";
 import { setTraining_parameters, getTraining_parameters } from "../firebase-module.js";
-import { auth ,getDatabase,ref,onValue} from "../firebase-module.js";
+import { auth ,getDatabase,ref,onValue,get_all_data_reload_page} from "../firebase-module.js";
 import { debug } from "../script.js";
 
 export function predict_class() {
   const button = document.createElement("button");
   button.type = "button";
   button.id = "myInput_predict";
-  button.classList.add("btn", "btn-light", "btn-sm", "ms-2", "me-1");
+  button.classList.add("btn", "btn-secondary", "btn-sm", "ms-2", "me-1");
   button.setAttribute("data-bs-toggle", "modal");
   button.setAttribute("data-bs-target", "#myModal_predict");
   button.innerHTML = "Predict";
@@ -145,6 +145,7 @@ function predictionOngoing() {
       } else if (!getMetadata().ml_train_ongoing && !getMetadata().ml_predict){
         //relode all containers from firebase
         document.getElementById("saveChanges_predict").disabled = false;
+        //get_all_data_reload_page(auth.currentUser.uid);
       }
   });
 }

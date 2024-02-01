@@ -1,7 +1,18 @@
 import { getMetadata, getBirds } from "../script.js";
 import { auth, getDatabase, update_training_set} from "../firebase-module.js";
 
+
+
 export function firebase_save() {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.id = 'myInput_save';
+    button.className = 'btn btn-outline-dark btn-sm me-1';
+    button.setAttribute('data-bs-toggle', 'modal');
+    button.setAttribute('data-bs-target', '#myModal_save');
+    button.innerHTML = 'Save to server';
+    const buttonDiv = document.getElementById("button_div");
+    buttonDiv.appendChild(button);
     fetch('./resources/modal_save.html')
         .then(response => response.text())
         .then(html => {

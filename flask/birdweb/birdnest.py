@@ -35,6 +35,9 @@ def retrain():
 def json_endpoint():
     print("in json_endpoint/train")
     metaData = request.get_json()
+    metaData=metaData["metadata"]
+    projID = request.get_json()
+    projID=projID["projectID"]
     num_epochs = int(metaData["ml_epochs"])
     nbr_concept = len(metaData["concept"])
     #annotation_json_file = metaData
@@ -44,7 +47,8 @@ def json_endpoint():
     print(metaData["uid"])
     print(metaData["ml_model"])
     epoch_str=str(1)+"/"+str(num_epochs)
-    metadataRef = db.reference('/').child(metaData["uid"]).child("metadata").child(metaData["training_set_ref"])
+    #metadataRef = db.reference('/').child(metaData["uid"]).child("metadata").child(metaData["training_set_ref"])
+    metadataRef = db.reference('/projects/').child(projID).child("metadata").child(metaData["training_set_ref"])
     metadataRef.update({
         'ml_epoch': epoch_str,
         'ml_train': False,
@@ -52,7 +56,7 @@ def json_endpoint():
         'ml_train_status': "running",
         'ml_training_started_timestamp': {".sv": "timestamp"}
     }) 
-    trainingDataRef = db.reference('/').child(metaData["uid"]).child("trainingsets").child(metaData["training_set_ref"])
+    trainingDataRef = db.reference('/projects/').child(projID).child("trainingsets").child(metaData["training_set_ref"])
     # Get the training data from firebase
     training_data = trainingDataRef.get()
     #dataset = [x for x in training_data["images"] if x['concept'] != 'void']
@@ -82,7 +86,7 @@ def json_endpoint():
             model = None
 
     if model:
-        thread = Thread(target=train_and_save, args=(model, model_tranforms, metaData, training_data, image_path_resized, save_path, 32, num_epochs))
+        thread = Thread(target=train_and_save, args=(model, model_tranforms, metaData, projID, training_data, image_path_resized, save_path, 32, num_epochs))
         thread.start()
     return json.dumps({"status":"running" })
 
@@ -90,6 +94,9 @@ def json_endpoint():
 def delete_model():
     print("in delete_model")
     metaData = request.get_json()
+    metaData=metaData["metadata"]
+    projID = request.get_json()
+    projID=projID["projectID"]
     save_path = "../../models"
     if "ml_model_filename" in metaData and metaData["ml_model_filename"]:
         for filename in os.listdir(save_path):
@@ -101,15 +108,18 @@ def delete_model():
 def predict():
     print("in predict")
     metaData = request.get_json()
+    metaData=metaData["metadata"]
+    projID = request.get_json()
+    projID=projID["projectID"]
     save_path = "../../models"
     image_path_resized = '../../ottenbyresized'
     # check if trained model exists
-    metadataRef = db.reference('/').child(metaData["uid"]).child("metadata").child(metaData["training_set_ref"])
+    metadataRef = db.reference('/projects/').child(projID).child("metadata").child(metaData["training_set_ref"])
     if "ml_model_filename" in metaData and metaData["ml_model_filename"]:
         metadataRef.update({
             'ml_predict_started_timestamp': {".sv": "timestamp"},
         })
-        trainingDataRef = db.reference('/').child(metaData["uid"]).child("trainingsets").child(metaData["training_set_ref"])
+        trainingDataRef = db.reference('/projects/').child(projID).child("trainingsets").child(metaData["training_set_ref"])
         # Get the training data from Firebase
         training_data = trainingDataRef.get()
         ml_pred_concept_key = metaData["ml_pred_concept"] + "_pred"

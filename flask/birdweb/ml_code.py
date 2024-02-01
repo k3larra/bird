@@ -125,7 +125,7 @@ def predict_image(model, model_transforms, image_path_resized, image_name, idx_t
     #print("predicted: "+str(idx_to_label[predicted])+ " ("+str(class_prob)+"%)" )
     return idx_to_label[predicted], class_prob
 
-def train_and_save(model,model_transforms,annotation_json_file, training_data, image_path_resized,save_path,batch_size=32,num_epochs=5):
+def train_and_save(model,model_transforms,metadata, projID, training_data, image_path_resized,save_path,batch_size=32,num_epochs=5):
     dataset = training_data["images"]
     print(len(dataset))
     dataset = [x for x in dataset if x['concept'] != 'void']
@@ -134,14 +134,14 @@ def train_and_save(model,model_transforms,annotation_json_file, training_data, i
         print("Windows")
     if platform.system() == 'Linux':
         print("Linux")
-    print(annotation_json_file['concept'])
+    print(metadata['concept'])
     bird_dataset = CustomImageDataset(dataset, image_path_resized, transform=model_transforms, target_transform=None)
     training_loader = DataLoader(bird_dataset, batch_size=batch_size, shuffle=True)  #32,64
     model = model.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer_ft = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
-    ref = db.reference('/').child(annotation_json_file["uid"]).child("metadata").child(annotation_json_file["training_set_ref"])
+    ref = db.reference('/projects').child(projID).child("metadata").child(metadata["training_set_ref"])
     for epoch in range(num_epochs):
         train_model(model, criterion, optimizer_ft,training_loader)
         scheduler.step()
@@ -152,9 +152,9 @@ def train_and_save(model,model_transforms,annotation_json_file, training_data, i
             })
     model_file_name = str(uuid.uuid4())+model._name+'.pth'
     #delete old models in the folder annotation_json_file["ml_model_filename"]
-    if "ml_model_filename" in annotation_json_file and annotation_json_file["ml_model_filename"]:
+    if "ml_model_filename" in metadata and metadata["ml_model_filename"]:
         for filename in os.listdir(save_path):
-            if filename.startswith(annotation_json_file["ml_model_filename"]):
+            if filename.startswith(metadata["ml_model_filename"]):
                 os.remove(os.path.join(save_path, filename))
     torch.save(model, os.path.join(save_path,model_file_name))
     ref.update({

@@ -3,6 +3,16 @@ import { handleModalFocus } from "../script.js";
 import { auth, getDatabase, save_new_training_set_to_databasebase, setAsDefaultTrainingSet} from "../firebase-module.js";
 
 export function firebase_save_as() {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.id = 'myInput_saveAs';
+  button.className = 'btn btn-outline-dark btn-sm me-1';
+  button.setAttribute('data-bs-toggle', 'modal');
+  button.setAttribute('data-bs-target', '#myModal_saveAs');
+  button.innerHTML = 'Save as new dataset';
+  const buttonDiv = document.getElementById("button_div");
+  buttonDiv.appendChild(button);
+  //document.getElementById('button_div').appendChild(myInput);
   fetch('./resources/modal_save_as.html')
     .then(response => response.text())
     .then(html => {
@@ -14,7 +24,7 @@ export function firebase_save_as() {
       document.getElementById('myModal_saveAs').addEventListener('shown.bs.modal', handleModalFocus);
       myInput.innerHTML = "Save as new dataset";
       const modalSubtitle = document.getElementById("modalSubtitle_saveAs");
-      modalSubtitle.innerHTML = "Version: " + getMetadata().version;
+      modalSubtitle.innerHTML = "Old version no: " + getMetadata().version;
       const title = document.getElementById("modalTitle_saveAs");
       title.innerHTML = getMetadata().title;
       title.setAttribute("contenteditable", true); // make h5 editable
