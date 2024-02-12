@@ -19,15 +19,16 @@ let json_stuff = JSON.parse(text);
 
 var serviceAccount = require("../secrets/bird-ad15f-firebase-adminsdk-hzlhg-4ccf1a7271.json");
 const { log } = require('console');
-admin.apps.forEach((app) => {
-  console.log(app.name);
-});
+
 
 //if (!admin.apps.length) {
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://bird-ad15f-default-rtdb.europe-west1.firebasedatabase.app"
-},"nameOfApp");
+});
+admin.apps.forEach((app) => {
+  console.log(app.name);
+});
 //}
 //Read from realtime database
 var db = admin.database();
