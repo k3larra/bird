@@ -1,8 +1,5 @@
 const http = require('http');
 var admin = require("firebase-admin");
-admin.apps.forEach((app) => {
-  console.log(app.name);
-});
 const functions = require('firebase-functions');
 const { myFunction } = require('./functions/index');
 const axios = require('axios');
@@ -21,11 +18,12 @@ var serviceAccount = require("../secrets/bird-ad15f-firebase-adminsdk-hzlhg-4ccf
 const { log } = require('console');
 
 
-//if (!admin.apps.length) {
+if (!admin.apps.length) {
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://bird-ad15f-default-rtdb.europe-west1.firebasedatabase.app"
 });
+}
 admin.apps.forEach((app) => {
   console.log(app.name);
 });
