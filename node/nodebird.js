@@ -20,12 +20,12 @@ admin.apps.forEach((app) => {
   console.log(app.name);
 });
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: "https://bird-ad15f-default-rtdb.europe-west1.firebasedatabase.app"
-  }, "picaPica");
-}
+//if (!admin.apps.length) {
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://bird-ad15f-default-rtdb.europe-west1.firebasedatabase.app"
+}, "picaPica");
+//}
 //Read from realtime database
 var db = admin.database();
 //var usersRef = db.ref("/users");
