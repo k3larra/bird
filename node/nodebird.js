@@ -24,7 +24,7 @@ admin.apps.forEach((app) => {
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://bird-ad15f-default-rtdb.europe-west1.firebasedatabase.app"
-}, "picaPica");
+});
 //}
 //Read from realtime database
 var db = admin.database();
