@@ -1,5 +1,8 @@
 const http = require('http');
 var admin = require("firebase-admin");
+admin.apps.forEach((app) => {
+  console.log(app.name);
+});
 const functions = require('firebase-functions');
 const { myFunction } = require('./functions/index');
 const axios = require('axios');
