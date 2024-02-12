@@ -8,7 +8,7 @@
 const {onRequest} = require("firebase-functions/v2/https");
 //const logger = require("firebase-functions/logger");
 const admin = require('firebase-admin');
-admin.initializeApp();
+//admin.initializeApp();
 const functions = require('firebase-functions');
 exports.myFunction = functions.region('europe-west1')
     .database.ref('/projects/{projectID}/metadata/{metadataID}')  
