@@ -1,4 +1,4 @@
-import {clear_and_populate_pred_container, findImageIndexWithConcept, changeConcept, changePredConcept, build_image_containers} from "../script.js";
+import {clear_and_populate_pred_container, findImageIndexWithConcept, changeConcept, changePredConcept, build_image_containers, getMetadata} from "../script.js";
 
 export function createDropdownMenu(predicted_concept_container_value) {
   const div = document.createElement("div");
@@ -14,7 +14,13 @@ export function createDropdownMenu(predicted_concept_container_value) {
   const ul = document.createElement("ul");
   ul.setAttribute('data-concept-value', predicted_concept_container_value)
   ul.classList.add("dropdown-menu", "pt-1", "pb-1","on_top");
-  const probabilities = ["0","25","50","60","70", "80", "90"];
+  const x = 100/getMetadata().concept.length; 
+  const step = (100 - x) / 10;
+  //const probabilities = Array.from({length: 10}, (_, i) => x + i * step).map(String);
+  const probabilities = Array.from({length: 10}, (_, i) => x + i * step)
+  
+  //console.log("probabilities2",probabilities)
+  //const probabilities = ["0","25","50","60","70", "80", "90"];
   probabilities.forEach((probability) => {
     const li = document.createElement("li");
     const a = document.createElement("a");

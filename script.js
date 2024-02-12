@@ -14,12 +14,15 @@ import { createDropdownMenu } from "./resources/create_elements.js";
 import { createRowInConceptList, edit_concepts } from "./resources/modal_concept.js";
 import { firebase_save } from "./resources/modal_save.js";
 import { firebase_save_as } from "./resources/modal_save_as.js";
+import {loadModalAlert, showAlert, showConfirm, showPrompt} from "./resources/modal_alert.js";
 export const debug = true;
 /********************Ref to image folder  here************************** */
 let unique_concepts = [] //This is central and needs some more protection....
 let deleteModal = null;
 
 let _metadata = null;
+
+loadModalAlert();
 export function getMetadata() {
   return _metadata;
 }
@@ -44,6 +47,30 @@ function updateUniqueConcepts() {
     if (unique_concepts.indexOf(value.concept) === -1) unique_concepts.push(value.concept);
   }
   return unique_concepts;
+}
+
+export function findImageIndexWithConcept(search_key, concept, pred_percent) {
+  let image_indexes_for_concept = []
+  for (const [key, value] of Object.entries(getBirds().images)) {
+    if (search_key === "concept") { //Yes I know....
+      if (value.concept == null) continue;
+      if (value.concept == concept) {
+        image_indexes_for_concept.push(key)
+      }
+    }
+    if (search_key === "concept_pred") {
+      if (value.concept_pred == null) continue;
+      if (value.concept_pred == "void") continue;
+      if (value.concept == concept) { value.concept_pred == ""; continue; }  //The image is selected for training
+      if (value.concept_pred_probability <= pred_percent) continue;
+      if (value.concept_pred == concept) {
+        image_indexes_for_concept.push(key)
+/*         console.log("value.concept_pred", value.concept_pred)
+        console.log("key", key) */
+      }
+    }
+  }
+  return image_indexes_for_concept
 }
 
 /* function findImageIndexWithPredictedConcept(pred_concept_name) {
@@ -73,12 +100,12 @@ export function getStatistics() {
     "number_of_images": Object.keys(getBirds().images).length,
     "number_of_concepts": unique_concepts.length,
     "number_of_void_images": findImageIndexWithConcept("concept", "void").length,
-    //"number_of_predicted_images": findImageIndexWithPredictedConcept("concept_pred").length
+    "number_of_predicted_images": 0
   }
   //Add statistics for concepts
   //get the sum of all concepts in getBirds().images.concept
   unique_concepts.forEach((concept) => {
-    statistics[concept] = findImageIndexWithConcept("concept", concept).length
+    statistics[concept] = findImageIndexWithConcept("concept", concept).length;
   });
   //Add statistics for predicted concepts
   //check so entries in getBirds().images.concept_pred is not null
@@ -86,7 +113,9 @@ export function getStatistics() {
 
   unique_concepts.forEach((concept) => {
     //console.log('findImageIndexWithConcept("concept_pred",concept)',  findImageIndexWithConcept("concept_pred",concept))
-    statistics[concept + "_pred"] = findImageIndexWithConcept("concept_pred", concept).length
+    let n = findImageIndexWithConcept("concept_pred", concept).length;
+    statistics[concept + "_pred"] = n;
+    statistics.number_of_predicted_images = statistics.number_of_predicted_images +n;
   });
   return statistics;
 }
@@ -287,7 +316,7 @@ export function populate_container(data, predicted_concept_true_value, container
   //console.log("In populate_container");
   const surrounding_div = document.createElement("div");
   const header = document.createElement("div")
-  header.classList.add("lh_small-font", "bg-light") // Added "mr-2" class for margin right
+  header.classList.add("lh_small-font", "bg-light") // Added "mr-2" for margin right
   if (!is_predicted_concept) {
     surrounding_div.id = "image_div";
     header.innerHTML = "Images labelled: " + predicted_concept_true_value;
@@ -338,33 +367,43 @@ function add_image_container_listener(imageContainer) {
       const clickedImage = event.target;
       //console.log("clickedImage", clickedImage);
       const tooltiptext_e = clickedImage.nextElementSibling;
-      const index = getMetadata().concept.indexOf(tooltiptext_e.textContent);
-      const pred = tooltiptext_e.nextElementSibling;
-      if(pred){
-        //console.log("predicted", tooltiptext_e.textContent);
-        //console.log("getMetadata()", getMetadata());
-        if(tooltiptext_e.textContent == ""){
-          tooltiptext_e.textContent =pred.getAttribute('data-hidden-field')
-          event.target.classList.add("border-success");
-          event.target.classList.remove("border-danger");
+      console.log("tooltiptext_e", tooltiptext_e.textContent);
+      if(getMetadata().concept.length>0){ 
+        console.log ("getMetadata().concept", getMetadata().concept);
+        const index = getMetadata().concept.indexOf(tooltiptext_e.textContent);
+        const pred = tooltiptext_e.nextElementSibling;
+        if(pred){
+          //console.log("predicted", tooltiptext_e.textContent);
+          //console.log("getMetadata()", getMetadata());
+          if(tooltiptext_e.textContent == ""){
+            tooltiptext_e.textContent =pred.getAttribute('data-hidden-field')
+            event.target.classList.add("border-success");
+            event.target.classList.remove("border-danger");
+          }else{
+            tooltiptext_e.textContent = "";
+            event.target.classList.remove("border-success");
+            event.target.classList.add("border-danger");
+          }
+          changePredConcept(clickedImage.getAttribute('data-image-index'), tooltiptext_e.textContent)
         }else{
-          tooltiptext_e.textContent = "";
-          event.target.classList.remove("border-success");
-          event.target.classList.add("border-danger");
+          if (index == -1) {
+            tooltiptext_e.textContent = getMetadata().concept[0];
+          } else if (index == getMetadata().concept.length - 1) {
+            tooltiptext_e.textContent = "";
+          } else {
+            tooltiptext_e.textContent = getMetadata().concept[index + 1];
+          }
+          let path = clickedImage.src.split(IMAGEFOLDER)[1]
+          path = decodeURIComponent(path);
+          changeConcept(clickedImage.getAttribute('data-image-index'), tooltiptext_e.textContent)
         }
-        changePredConcept(clickedImage.getAttribute('data-image-index'), tooltiptext_e.textContent)
       }else{
-        if (index == -1) {
-          tooltiptext_e.textContent = getMetadata().concept[0];
-        } else if (index == getMetadata().concept.length - 1) {
-          tooltiptext_e.textContent = "";
-        } else {
-          tooltiptext_e.textContent = getMetadata().concept[index + 1];
-        }
-        let path = clickedImage.src.split(IMAGEFOLDER)[1]
-        path = decodeURIComponent(path);
-        changeConcept(clickedImage.getAttribute('data-image-index'), tooltiptext_e.textContent)
-      }
+        //alert("Add some concepts in the concept list using the concept button. Then label the images by clicking on them."); 
+        const title = "No concepts found";
+        const bodytext = "Use the \"Edit concepts\" button to add some. Then label the images by clicking on them.";
+        showAlert(title,bodytext);
+      };
+      
     }
   });
 }
@@ -579,35 +618,9 @@ function createbuttons() {
     placement: 'top'
   }); */
   //discard_changes(); //Not needed ?? since we have reload button
-  
-  
-  
-  
 }
 
-export function findImageIndexWithConcept(search_key, concept,pred_percent) {
-  let image_indexes_for_concept = []
-  for (const [key, value] of Object.entries(getBirds().images)) {
-    if (search_key === "concept") { //Yes I know....
-      if (value.concept == null) continue;
-      if (value.concept == concept) {
-        image_indexes_for_concept.push(key)
-      }
-    }
-    if (search_key === "concept_pred") {
-      if (value.concept_pred == null) continue;
-      if (value.concept_pred == "void") continue;
-      if (value.concept == concept) { value.concept_pred == ""; continue; }  //The image is selected for training
-      if (value.concept_pred_probability <= pred_percent) continue;
-      if (value.concept_pred == concept) {
-        image_indexes_for_concept.push(key)
-/*         console.log("value.concept_pred", value.concept_pred)
-        console.log("key", key) */
-      }
-    }
-  }
-  return image_indexes_for_concept
-}
+
 
 function collapsable() {
   const header_1 = document.getElementById("header_1");
@@ -648,6 +661,19 @@ export function clear_concept(concept) {
   });
   //remove concept from the array getMetadata().concept
   getMetadata().concept = getMetadata().concept.filter(item => item !== concept);
+}
+
+export function clear_all_concepts_and_predictions() {
+  getMetadata().concept.forEach(() => {
+    getBirds().images.forEach((item) => {
+      if (item.hasOwnProperty('concept')) {
+        item.concept = "void";
+      }
+      if (item.hasOwnProperty('concept_pred')) {
+        item.concept_pred = "void";
+      }
+    });
+  });
 }
 
 export function loggedIn(user) {

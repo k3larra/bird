@@ -291,7 +291,7 @@ export function update_training_set(userID, meta, jsonfile) {
     })
     .then(() => {
       console.log('Metadata has been successfully updated in the database');
-      get_all_data_reload_page(userID);
+      //get_all_data_reload_page(userID);
     })
     .catch((error) => {
       console.error('Error updating data:', error);
@@ -554,12 +554,14 @@ export function deleteUserAndProjects(userID){
       const data = snapshot.val();
       console.log("deleteUserAndProjects got data", data);
       if (data.projects) {
-        const numProjects = data.projects.length; // Get the number of items in the array
+        const projects = data.projects;
+        const numProjects = Object.keys(projects).length; // Get the number of key-value pairs
         console.log("Number of projects:", numProjects);
-        data.projects.forEach(project => {
-          //Here we need to check (in the future) if many users share the project then it should not be removed...
-          console.log("removing", project)
-          deleteProject(project);
+        Object.entries(projects).forEach(([projectKeyIdkey, placeholderboolean]) => {
+          // Here you can access the key and project values
+          //the key carries the value and 
+          console.log("removing", projectKeyIdkey);
+          deleteProject(projectKeyIdkey);
         });
       }
       remove(userRef)

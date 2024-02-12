@@ -3,15 +3,20 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="modalTitle_predict">Predict classes</h5><br>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
+          <p id="modalPredict_info"></p>
           <section class="container" id="predict_section">
           </section>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" id="saveChanges_predict" class="btn btn-secondary btn-sm">Predict</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
+        <button type="button" id="saveChanges_predict" class="btn btn-secondary btn-sm">
+          <span class="spinner-border spinner-border-sm" id="predict_button_spinner" role="status" aria-hidden="true"></span>
+          Predict
+        </button>
+      </div>
     </div>
     </div>
   </div>

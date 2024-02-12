@@ -73,7 +73,11 @@ function approve_user(e) {
             console.log("keys.projectKey", keys.projectKey);
             console.log ("keys.trainingsetKey", keys.trainingsetKey);
             userData.current_project = keys.projectKey;
-            userData.projects = [keys.projectKey];
+            const keyToFirstProject = keys.projectKey;
+            userData.projects = {
+                [keyToFirstProject]: true
+            };
+            
             userData.approved =true;
             console.log("User to move",userData);
             const userRef = ref(db, "users/"+ id);

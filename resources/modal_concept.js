@@ -38,13 +38,13 @@ export function edit_concepts() {
         const newConcept = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
         console.log("newConcept", newConcept);
         if (newConcept == "") return;
+        if (getMetadata().concept == null) {
+          getMetadata().concept = []
+        };
         if (getMetadata().concept.includes(newConcept)) {
             console.log("Concept already exists");
             return;
         }
-        if (getMetadata().concept == null) {
-            getMetadata().concept = []
-        };
         getMetadata().concept.push(newConcept);
         console.log("getMetadata().concept", getMetadata().concept);
         const list = document.getElementById("concept_list");

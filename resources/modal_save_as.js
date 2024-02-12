@@ -1,5 +1,5 @@
 import { getMetadata, getBirds } from "../script.js";
-import { handleModalFocus } from "../script.js";
+import { handleModalFocus,  clear_all_concepts_and_predictions} from "../script.js";
 import { auth, getDatabase, save_new_training_set_to_databasebase, setAsDefaultTrainingSet} from "../firebase-module.js";
 
 export function firebase_save_as() {
@@ -47,6 +47,23 @@ export function firebase_save_as() {
       description.addEventListener("blur", function () {
         description.setAttribute("contenteditable", false);
       });
+
+      // Add checkbox
+      const checkboxDiv = document.createElement('div');
+      checkboxDiv.classList.add('form-check');
+      const checkboxInput = document.createElement('input');
+      checkboxInput.type = 'checkbox';
+      checkboxInput.id = 'clearDataCheckbox';
+      //checkboxInput.classList.add('form-check-input');
+      const checkboxLabel = document.createElement('label');
+      checkboxLabel.htmlFor = 'clearDataCheckbox';
+      checkboxLabel.classList.add('form-check-label');
+      checkboxLabel.innerHTML = 'Clear training data and predictions: &nbsp;';
+      checkboxDiv.appendChild(checkboxLabel);
+      checkboxDiv.appendChild(checkboxInput);
+      const modalBody = document.getElementById('modalBody_saveAs');
+      modalBody.appendChild(checkboxDiv);
+
       document.getElementById("saveChanges_saveAs").addEventListener("click", (event) => {  
         event.preventDefault();
         const title = document.getElementById("modalTitle_saveAs").innerHTML;
@@ -54,6 +71,12 @@ export function firebase_save_as() {
         getBirds().title = title;
         getBirds().description = description;
         getBirds().version = 1;
+        const clearDataCheckbox = document.getElementById('clearDataCheckbox');
+        if (clearDataCheckbox.checked) {
+          // Clear training data and predictions logic here
+          // ...
+          clear_all_concepts_and_predictions();
+        }
         var authData = auth.currentUser;
         const db = getDatabase();
         const key = save_new_training_set_to_databasebase(authData.uid, getBirds());

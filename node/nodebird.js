@@ -70,7 +70,7 @@ function train_model(json_file){
   .then((res) => {
     console.log(res.data.status)
     if (res.data.status === "running") {
-      console.log("success")
+      console.log("running")
     } else {
       console.log("fail")
       var trainingRef = db.ref("/projects/"+json_file.projectID+"/metadata/"+json_file.metadata.training_set_ref);

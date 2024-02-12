@@ -127,9 +127,9 @@ def predict_image(model, model_transforms, image_path_resized, image_name, idx_t
 
 def train_and_save(model,model_transforms,metadata, projID, training_data, image_path_resized,save_path,batch_size=32,num_epochs=5):
     dataset = training_data["images"]
-    print(len(dataset))
+    print("total number images",len(dataset))
     dataset = [x for x in dataset if x['concept'] != 'void']
-    print(len(dataset))
+    print("number images in training dataset",len(dataset))
     if platform.system() == 'Windows':
         print("Windows")
     if platform.system() == 'Linux':

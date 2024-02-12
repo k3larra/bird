@@ -1,4 +1,5 @@
 import {getDatabase, deleteUserAndProjects, get, ref, isUserAdmin} from "../firebase-module.js";
+import {showConfirm} from "./modal_alert.js";
 export function modal_delete_users() {
     fetch('./resources/modal_delete_user.html')
       .then(response => response.text())
@@ -59,12 +60,16 @@ export function modal_delete_users() {
                     button.setAttribute("id", k);
                     //button.addEventListener("click", delete_user);
                     button.addEventListener('click', function(event) {
-                        var result = confirm("Do you really want to delete this user?");
+                    /* var result = confirm("Do you really want to delete this user?");
                         if (result) {
                             // User confirmed, delete the user
                             console.log("delete user", this.id);
                             delete_user(event);
-                        }
+                        } */
+                        showConfirm('Confirm action', 'Are you sure you want to do this?', function() {
+                            console.log("delete user", this.id);
+                            delete_user(event);
+                        });
                     });
                     div.appendChild(button);
                     listdiv.appendChild(div);
