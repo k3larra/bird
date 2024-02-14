@@ -394,7 +394,7 @@ export function setAsDefaultTrainingSet(key) {
 }
 
 
-export function delete_training_set(userID, training_set_ref) {proj_meta_data
+export function delete_training_set(userID, training_set_ref) {
   const db = getDatabase();
   //////////const trainingSetRef = ref(db, userID + "/trainingsets/" + training_set_ref);
   //const currentproject = getCurrentProject();
