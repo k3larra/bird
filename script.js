@@ -219,7 +219,28 @@ export function select_training_data(metadata) {
 function dropdownListener(event) {
   event.preventDefault()
   console.log("event.target.tagName", event.target.tagName);
-  if (event.target.tagName === 'A') {
+  let targetElement = event.target;
+if (targetElement.tagName !== 'A' && targetElement.tagName !== 'BUTTON') {
+    targetElement = targetElement.closest('a, button');
+}
+
+if (targetElement) {
+  if (targetElement.tagName === 'A') {
+    console.log("A clicked");
+    const a = targetElement;
+    const key = a.dataset.id
+    const title = a.innerHTML
+    setAsDefaultTrainingSet(key);
+  }
+  if (targetElement.tagName === 'BUTTON') {
+    console.log("Button clicked");
+    document.getElementById("delete_dataset_confirm").addEventListener("click", deleteListener);
+    document.getElementById("modalTitle_delete").innerHTML += targetElement.dataset.lhtitle;
+    document.getElementById("modalSubtitle_delete_dataset").innerHTML = targetElement.dataset.lhdescription;
+    document.getElementById("delete_dataset_confirm").dataset.id = targetElement.id;
+  }
+}
+  /* if (event.target.tagName === 'A') {
     const a = event.target;
     const key = a.dataset.id
     const title = a.innerHTML
@@ -231,7 +252,8 @@ function dropdownListener(event) {
     document.getElementById("modalTitle_delete").innerHTML += event.target.dataset.lhtitle;
     document.getElementById('modalSubtitle_delete_dataset').innerHTML = event.target.dataset.lhdescription;
     document.getElementById("delete_dataset_confirm").dataset.id = event.target.id;
-  }
+  } */
+    
 }
 
 function deleteListener(event) {
@@ -239,6 +261,8 @@ function deleteListener(event) {
   event.preventDefault();
   console.log("In deleteListener");
   var uid = auth.currentUser.uid;
+  console.log("event.target.dataset.id", event.target.dataset.id);
+  console.log("uid", uid);
   delete_training_set(uid, event.target.dataset.id); //deletes a training set from the database
 }
 

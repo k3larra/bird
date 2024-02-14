@@ -1,7 +1,7 @@
 const http = require('http');
 var admin = require("firebase-admin");
 const functions = require('firebase-functions');
-const { myFunction } = require('./functions/index');
+//const { myFunction } = require('./functions/index'); //What???
 const axios = require('axios');
 const fs = require('fs');
 const hostname = '127.0.0.1';
