@@ -698,6 +698,7 @@ export function clear_all_concepts_and_predictions() {
       }
     });
   });
+  getMetadata().concept = [];
 }
 
 export function loggedIn(user) {

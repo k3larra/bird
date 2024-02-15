@@ -146,6 +146,7 @@ function refreshContent() {
       option.text = value;
       dropdown.appendChild(option);
     });
+    dropdown.value = 5;
     ephocsListItem.appendChild(dropdown);
     ephocsListItem.style.width = "100%"; // Set the width to 100%
     ephocsListItem.style.marginTop = "10px"; // Add margin top
