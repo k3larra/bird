@@ -148,9 +148,13 @@ def train_and_save(model,model_transforms,metadata, projID, training_data, image
     optimizer_ft = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
     ref = db.reference('/projects').child(projID).child("metadata").child(metadata["training_set_ref"])
+    print('before start training')
     for epoch in range(num_epochs):
+        print('epoch')
         train_model(model, criterion, optimizer_ft,training_loader)
+        print('epoch1')
         scheduler.step()
+        print('epoch_str')
         epoch_str=str(epoch+1)+"/"+str(num_epochs)
         ref.update({
             'ml_epoch': epoch_str,
