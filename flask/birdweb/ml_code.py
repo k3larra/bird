@@ -3,6 +3,7 @@ import json
 import platform
 import uuid
 import numpy as np
+import sys
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -14,11 +15,12 @@ from torchvision.io import read_image
 from torchvision.io import ImageReadMode
 from torch.optim import lr_scheduler
 from torchvision.models import efficientnet_v2_s, EfficientNet_V2_S_Weights, resnet50, ResNet50_Weights
-
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print("torch.cuda.is_available()",torch.cuda.is_available())
 import firebase_admin
 from firebase_admin import credentials, db
+print("sys.path",sys.path)
+print("torch.cuda.is_available()",torch.cuda.is_available())
+print("torch.version.cuda",torch.version.cuda())
 #annotation_json_file = './json_file.json'
 #image_path_resized = '../ottenbyresized'
 #save_path='./'
