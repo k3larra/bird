@@ -19,8 +19,12 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 import firebase_admin
 from firebase_admin import credentials, db
 print("sys.path",sys.path)
-print("torch.cuda.is_available()",torch.cuda.is_available())
-print("torch.version.cuda",torch.version.cuda)
+if torch.cuda.is_available():
+    print("torch.cuda.is_available()",torch.cuda.is_available())
+    print("torch.version.cuda",torch.version.cuda)
+else:
+    print("torch.cuda.is_available()",torch.cuda.is_available())
+    print("torch.version.cuda","None")
 print("torch.__version__",torch.__version__)
 #annotation_json_file = './json_file.json'
 #image_path_resized = '../ottenbyresized'
