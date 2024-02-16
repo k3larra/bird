@@ -139,8 +139,11 @@ def train_and_save(model,model_transforms,metadata, projID, training_data, image
         print("Linux")
     print(metadata['concept'])
     bird_dataset = CustomImageDataset(dataset, image_path_resized, transform=model_transforms, target_transform=None)
+    print('bird_dataset created')
     training_loader = DataLoader(bird_dataset, batch_size=batch_size, shuffle=True)  #32,64
+    print('training loader created')
     model = model.to(device)
+    print('device:',device)
     criterion = nn.CrossEntropyLoss()
     optimizer_ft = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
