@@ -16,6 +16,7 @@ from torch.optim import lr_scheduler
 from torchvision.models import efficientnet_v2_s, EfficientNet_V2_S_Weights, resnet50, ResNet50_Weights
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print("torch.cuda.is_available()",torch.cuda.is_available())
 import firebase_admin
 from firebase_admin import credentials, db
 #annotation_json_file = './json_file.json'

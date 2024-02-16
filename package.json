@@ -1,0 +1,26 @@
+{
+  "name": "webb",
+  "version": "1.0.0",
+  "description": "",
+  "main": "firebase-module.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/k3larra/bird.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/k3larra/bird/issues"
+  },
+  "homepage": "https://github.com/k3larra/bird#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
