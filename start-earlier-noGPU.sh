@@ -1,10 +1,9 @@
 #!/bin/bash
-cd ~/bird
+cd ~/ottenby/bird
 git checkout -- start.sh
 git update-index --assume-unchanged start.sh
 git pull origin main 
-# cd ~/ottenby/bird/flask/birdweb/
-cd ~/bird/flask/birdweb/
+cd ~/ottenby/bird/flask/birdweb/
 source .venv/bin/activate
 export FLASK_APP=birdnest
 # Optionally, enable debug mode
@@ -13,13 +12,11 @@ export FLASK_ENV=development
 #flask run --debugger &
 flask run --debugger > flask.log 2>&1 &
 #Start node server fir connecting to bird firebase and flask
-# cd ~/ottenby/bird/node/
-cd ~/bird/node
+cd ~/ottenby/bird/node/
 node nodebird.js > node_firebase_flask.log 2>&1 &
 #node nodebird.js &
 ## cd
-# cd ~/ottenby/bird
-cd ~/bird
+cd ~/ottenby/bird
 # Start the web server
 authbind node server.js > node_server.log 2>&1 &
 #authbind node server.js &
