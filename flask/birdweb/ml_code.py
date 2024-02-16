@@ -21,6 +21,7 @@ from firebase_admin import credentials, db
 print("sys.path",sys.path)
 print("torch.cuda.is_available()",torch.cuda.is_available())
 print("torch.version.cuda",torch.version.cuda)
+print("torch.__version__",torch.__version__)
 #annotation_json_file = './json_file.json'
 #image_path_resized = '../ottenbyresized'
 #save_path='./'
