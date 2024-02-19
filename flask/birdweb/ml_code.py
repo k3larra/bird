@@ -16,6 +16,7 @@ from torchvision.io import ImageReadMode
 from torch.optim import lr_scheduler
 from torchvision.models import efficientnet_v2_s, EfficientNet_V2_S_Weights, resnet50, ResNet50_Weights
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print("device",device)
 import firebase_admin
 from firebase_admin import credentials, db
 print("sys.path",sys.path)
@@ -26,6 +27,7 @@ else:
     print("torch.cuda.is_available()",torch.cuda.is_available())
     print("torch.version.cuda","None")
 print("torch.__version__",torch.__version__)
+print("python3 --version",sys.version)
 #annotation_json_file = './json_file.json'
 #image_path_resized = '../ottenbyresized'
 #save_path='./'
@@ -53,8 +55,10 @@ class CustomImageDataset(Dataset):
         img_path = os.path.join(self.image_path, self.img_labels[idx]['image_location'])
         image = read_image(img_path, ImageReadMode.UNCHANGED)
         image = image.float()
+        image = image.to(device) #is this needed ?
         image /= 255.
         label = self.img_labels[idx]['concept'] 
+        label = label.to(device) #is this needed ?
         label = torch.tensor(self.catagories.index(label))
         if self.transform:
             image = self.transform(image)
