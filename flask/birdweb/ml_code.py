@@ -14,7 +14,8 @@ from torch.utils.data import Dataset
 from torchvision.io import read_image
 from torchvision.io import ImageReadMode
 from torch.optim import lr_scheduler
-from torchvision.models import efficientnet_v2_s, EfficientNet_V2_S_Weights, resnet50, ResNet50_Weights
+#from torchvision.models import efficientnet_v2_s, EfficientNet_V2_S_Weights, resnet50, ResNet50_Weights
+from torchvision.models import resnet50, ResNet50_Weights
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("device",device)
 import firebase_admin
