@@ -55,10 +55,8 @@ class CustomImageDataset(Dataset):
         img_path = os.path.join(self.image_path, self.img_labels[idx]['image_location'])
         image = read_image(img_path, ImageReadMode.UNCHANGED)
         image = image.float()
-        image = image.to(device) #is this needed ?
         image /= 255.
         label = self.img_labels[idx]['concept'] 
-        label = label.to(device) #is this needed ?
         label = torch.tensor(self.catagories.index(label))
         if self.transform:
             image = self.transform(image)
