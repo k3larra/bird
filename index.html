@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1 shrink-to-fit=no">
@@ -11,7 +12,8 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="manifest" href="site.webmanifest">
-</head> 
+</head>
+
 <body>
   <nav class="navbar navbar-expand-lg bg-body-tertiary" id="nav-bar">
     <div class="container-fluid" style="max-width: 960px;">
@@ -25,30 +27,38 @@
             <a class="nav-link active" aria-current="page" href="#">Home</a>
           </li>
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="alt_menu">Alt</a>
+            <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+              id="alt_menu">Alt</a>
             <ul class="dropdown-menu" id="alt_selections">
-              <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#myModal_login_email">Login email/password</a></li> 
-            </ul>   
+              <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#myModal_login_email">Login
+                  email/password</a></li>
+            </ul>
           </li>
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" id="training_data_menu">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+              id="training_data_menu">
               Select training data
             </a>
             <ul class="dropdown-menu" id="drop_training">
             </ul>
           </li>
           <li class="nav-item dropdown">
-            <a class="nav-link disabled dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-disabled="true" id="admin_menu">Admin</a>
-              <ul class="dropdown-menu" id="admin_selections">
-                <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#myModal_approve_users">Approve users</a></li> 
-                <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#myModal_delete_users">Delete users</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" id="removeProject">removeProject</a></li>
-                <li><a class="dropdown-item" id="createEmptyProject">createEmptyProject</a></li> 
-                <li><a class="dropdown-item" id="deleteUser">Delete User and their projects</a></li>
-                <li><a class="dropdown-item" id="testFunction">testFunction</a></li>
-                <li><a class="dropdown-item" id="showOkModal">showOkModal</a></li>
-              </ul>
+            <a class="nav-link disabled dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-disabled="true"
+              id="admin_menu">Admin</a>
+            <ul class="dropdown-menu" id="admin_selections">
+              <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#myModal_approve_users">Approve
+                  users</a></li>
+              <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#myModal_delete_users">Delete
+                  users</a></li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item" id="removeProject">removeProject</a></li>
+              <li><a class="dropdown-item" id="createEmptyProject">createEmptyProject</a></li>
+              <li><a class="dropdown-item" id="deleteUser">Delete User and their projects</a></li>
+              <li><a class="dropdown-item" id="testFunction">testFunction</a></li>
+              <li><a class="dropdown-item" id="showOkModal">showOkModal</a></li>
+            </ul>
           </li>
         </ul>
         <form class="d-flex">
@@ -59,7 +69,7 @@
     </div>
   </nav>
   <header>
-    
+
   </header>
   <main>
     <div id="modalcontainer"></div><!--A safe for modals...:)-->
@@ -73,7 +83,7 @@
     <div id="logged_in" class="container" style="max-width: 960px;">
       <section class="container">
         <h3 id="header_1"></h3>
-        <div id="collapseText" style="display:none" >
+        <div id="collapseText" style="display:none">
           <p id="text_1"></p>
         </div>
       </section>
@@ -87,5 +97,4 @@
     crossorigin="anonymous"></script>
   <script src="script.js" type="module"></script>
 </body>
-
 </html>

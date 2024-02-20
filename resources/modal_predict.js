@@ -17,8 +17,6 @@ export function predict_class() {
   fetch('./resources/modal_predict.html')
     .then(response => response.text())
     .then(html => {
-      //getTraining_parameters();
-      //console.log("getMetadata()", getMetadata());
       const buttonDiv = document.getElementById("button_div");
       const modalContainer = document.createElement('div');
       modalContainer.innerHTML = html;
@@ -129,16 +127,12 @@ function refreshPredictContent() {
       predictContent.appendChild(erasePredictionsInput);
     }
   }
-
   waitForGetPredictParameters();
-
 }
 
 // Listen for changes to the ml_ongoing property
 function predictionOngoing() {
   console.log("In predictionOngoing1 metadata",getMetadata());
-  //refreshPredictContent();
-  
   if(getMetadata().ml_model_filename){
     const db = getDatabase();
     const trainingDataRef = ref(db, "/projects/"+ currentproject + "/metadata/" + getMetadata().training_set_ref);
@@ -158,10 +152,8 @@ function predictionOngoing() {
           deactivateSpinner();
           console.log("Prediction finsished!!!");
           refreshPredictContent();
-          //get_all_data_reload_page(auth.currentUser.uid);
-         
+          //get_all_data_reload_page(auth.currentUser.uid);         
         }
-        
     });
   }else{  
     console.log("You need to train a model first in order to make predictions.");

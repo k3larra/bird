@@ -1,5 +1,5 @@
-import { getMetadata,getStatistics } from "../script.js";
-import { setTraining_parameters, getTraining_parameters, currentproject} from "../firebase-module.js";
+import { getMetadata, getStatistics } from "../script.js";
+import { setTraining_parameters, getTraining_parameters, currentproject } from "../firebase-module.js";
 import { auth, getDatabase, ref, onValue } from "../firebase-module.js";
 import { debug } from "../script.js";
 export function train_model() {
@@ -16,21 +16,17 @@ export function train_model() {
   fetch('./resources/modal_train.html')
     .then(response => response.text())
     .then(html => {
-      //getTraining_parameters();
-      //console.log("getMetadata()", getMetadata());
       const buttonDiv = document.getElementById("button_div");
       const modalContainer = document.createElement('div');
       modalContainer.innerHTML = html;
       buttonDiv.appendChild(modalContainer);
       document.getElementById("refresh_training_modal").addEventListener("click", refreshContent);
       document.getElementById("saveChanges_train").addEventListener("click", handleTrainModelButton);
-      var myModalEl =document.getElementById('myModal_train');
+      var myModalEl = document.getElementById('myModal_train');
       myModalEl.addEventListener('shown.bs.modal', function () {
         trainingOngoing();
       });
     });
-
-  //document.getElementById("image_data").appendChild(button);
 }
 
 function handleTrainModelButton(event) {
@@ -93,8 +89,8 @@ function refreshContent() {
     console.log("getMetadata()", getMetadata());
     trainContentText.innerHTML = "<b> <i>Title:</i> " + getMetadata().title + "</b>" + "</br>"
       + "<i>Description:</i> " + getMetadata().description + "</br>"
-      if(getMetadata().ml_model_filename||getMetadata().ml_train_ongoing||getMetadata().ml_train_finished){
-        trainContentText.innerHTML+= "<i>Base model:</i> " + getMetadata().ml_base_model + "</br>"
+    if (getMetadata().ml_model_filename || getMetadata().ml_train_ongoing || getMetadata().ml_train_finished) {
+      trainContentText.innerHTML += "<i>Base model:</i> " + getMetadata().ml_base_model + "</br>"
         + "<i>Training nbr:</i> " + getMetadata().ml_train_nbr + "</br>"
         + "<i>Training started:</i> " + startedTrainingTime + "</br>"
         + "<i>Training ended:</i> " + finishedTrainingTime + "</br>"
@@ -102,9 +98,9 @@ function refreshContent() {
         + "<i>Training description:</i> " + getMetadata().ml_description + "</br>"
         + "<i>Current epoch:</i> " + getMetadata().ml_epoch + "</br>"
         + "Training over " + getMetadata().ml_epochs + " epochs and lasted for " + trainingTime + "</br>";
-      }else{
-        trainContentText.innerHTML += "No training has been done yet</br>"
-      }
+    } else {
+      trainContentText.innerHTML += "No training has been done yet</br>"
+    }
     if (debug) {
       trainContentText.innerHTML += "-----Debug info----</br><i>Training set ref:</i> " + getMetadata().training_set_ref + "</br>" +
         "<i>ML model filename:</i> " + getMetadata().ml_model_filename + "</br>" +
@@ -113,13 +109,13 @@ function refreshContent() {
         "<i>ml_train_ongoing:</i> " + getMetadata().ml_train_ongoing + "</br>" +
         "<i>ml_train_finished:</i> " + getMetadata().ml_train_finished + "</br>" +
         "<i>ml_retrain_existing_model:</i> " + getMetadata().ml_retrain_existing_model + "</br>";
-        const resetButton = document.createElement("button");
-        resetButton.type = "button";
-        resetButton.id = "reset_train";
-        resetButton.classList.add("btn", "btn-secondary", "btn-sm", "me-1");
-        resetButton.innerHTML = "Reset training";
-        trainContent.appendChild(resetButton);
-        document.getElementById("reset_train").addEventListener("click", resetTraining);
+      const resetButton = document.createElement("button");
+      resetButton.type = "button";
+      resetButton.id = "reset_train";
+      resetButton.classList.add("btn", "btn-secondary", "btn-sm", "me-1");
+      resetButton.innerHTML = "Reset training";
+      trainContent.appendChild(resetButton);
+      document.getElementById("reset_train").addEventListener("click", resetTraining);
     }
     //Add a <hr> element to trainContent
     const hr = document.createElement("hr");
@@ -204,7 +200,7 @@ function refreshContent() {
 
 // Listen for changes to the ml_ongoing property
 function trainingOngoing() {
-  console.log("Number clasified images (all,void)"+getStatistics().number_of_images+":"+getStatistics().number_of_void_images);
+  console.log("Number clasified images (all,void)" + getStatistics().number_of_images + ":" + getStatistics().number_of_void_images);
   const numberClassifiedImages = getStatistics().number_of_images - getStatistics().number_of_void_images;
   if (numberClassifiedImages < 2) {
     alert("You need to classify at least 2 images before you can start training");
@@ -212,42 +208,28 @@ function trainingOngoing() {
   }
   const db = getDatabase();
   //currentproject
-  const metadataRef = ref(db, "/projects/"+ currentproject + "/metadata/" + getMetadata().training_set_ref);
+  const metadataRef = ref(db, "/projects/" + currentproject + "/metadata/" + getMetadata().training_set_ref);
   //const metadataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
   onValue(metadataRef, (snapshot) => {
     console.log("In trainingOngoing");
     const data = snapshot.val();
-    //Check predict for visible solutions.....
-    /* var myModal = new bootstrap.Modal(document.getElementById('myModal_train'))
-    var myModal = document.getElementById('myModal_train') */
-    //var isVisible = myModal.classList.contains('show'); 
-    //console.log("isVisible", isVisible)
-    //if(myModal._isShown) { 
-    //  console.log("train modal is visible");
-      let previousValue = false;
-
-      //console.log("DATA", data.ml_train_ongoing);
-      //console.log("getMetadata().ml_train_ongoing", getMetadata().ml_train_ongoing);
-      if (typeof data.ml_train === 'undefined') {
-        document.getElementById("saveChanges_train").disabled = false;
-        deactivateSpinner();
-      }else if (data.ml_train_ongoing && !data.ml_train_finished && !data.ml_predict) {
-        // The ml_ongoing property changed from true to false
-        console.log("training started");
-        document.getElementById("saveChanges_train").disabled = true;
-        activateSpinner();
-        // Perform any actions you need to do here
-      } else if (!data.ml_train_ongoing && data.ml_train_finished && !data.ml_predict) {
-        // The ml_ongoing property changed from false to true
-        document.getElementById("saveChanges_train").disabled = false;
-        deactivateSpinner();
-      }
-      previousValue = getMetadata().ml_train_ongoing;
-      refreshContent();
-    //} else {
-      //console.log("train modal is NOT visible");
-      // The modal is not visible
-    //} 
+    let previousValue = false;
+    if (typeof data.ml_train === 'undefined') {
+      document.getElementById("saveChanges_train").disabled = false;
+      deactivateSpinner();
+    } else if (data.ml_train_ongoing && !data.ml_train_finished && !data.ml_predict) {
+      // The ml_ongoing property changed from true to false
+      console.log("training started");
+      document.getElementById("saveChanges_train").disabled = true;
+      activateSpinner();
+      // Perform any actions you need to do here
+    } else if (!data.ml_train_ongoing && data.ml_train_finished && !data.ml_predict) {
+      // The ml_ongoing property changed from false to true
+      document.getElementById("saveChanges_train").disabled = false;
+      deactivateSpinner();
+    }
+    previousValue = getMetadata().ml_train_ongoing;
+    refreshContent();
   });
 }
 

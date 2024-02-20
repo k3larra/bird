@@ -16,21 +16,21 @@ from torchvision.io import ImageReadMode
 from torch.optim import lr_scheduler
 #from torchvision.models import efficientnet_v2_s, EfficientNet_V2_S_Weights, resnet50, ResNet50_Weights
 from torchvision.models import resnet50, ResNet50_Weights
-print("torch.__version__",torch.__version__)
-print("torchvision.__version__",torchvision.__version__)
+#print("torch.__version__",torch.__version__)
+#print("torchvision.__version__",torchvision.__version__)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("device",device)
 import firebase_admin
 from firebase_admin import credentials, db
 # print("sys.path",sys.path)
-if torch.cuda.is_available():
+""" if torch.cuda.is_available():
     print("torch.cuda.is_available()",torch.cuda.is_available())
     print("torch.version.cuda",torch.version.cuda)
 else:
     print("torch.cuda.is_available()",torch.cuda.is_available())
     print("torch.version.cuda","None")
 print("torch.__version__",torch.__version__)
-print("python3 --version",sys.version)
+print("python3 --version",sys.version) """
 #annotation_json_file = './json_file.json'
 #image_path_resized = '../ottenbyresized'
 #save_path='./'
@@ -149,22 +149,15 @@ def train_and_save(model,model_transforms,metadata, projID, training_data, image
         print("Linux")
     print(metadata['concept'])
     bird_dataset = CustomImageDataset(dataset, image_path_resized, transform=model_transforms, target_transform=None)
-    print('bird_dataset created')
     training_loader = DataLoader(bird_dataset, batch_size=batch_size, shuffle=True)  #32,64
-    print('training loader created')
     model = model.to(device)
-    print('device:',device)
     criterion = nn.CrossEntropyLoss()
     optimizer_ft = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
     ref = db.reference('/projects').child(projID).child("metadata").child(metadata["training_set_ref"])
-    print('before start training')
     for epoch in range(num_epochs):
-        print('epoch')
         train_model(model, criterion, optimizer_ft,training_loader)
-        print('epoch1')
         scheduler.step()
-        print('epoch_str')
         epoch_str=str(epoch+1)+"/"+str(num_epochs)
         ref.update({
             'ml_epoch': epoch_str,

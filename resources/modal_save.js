@@ -1,8 +1,5 @@
 import { getMetadata, getBirds } from "../script.js";
-import { auth, getDatabase, update_training_set} from "../firebase-module.js";
-
-
-
+import { auth, getDatabase, update_training_set } from "../firebase-module.js";
 export function firebase_save() {
     const button = document.createElement('button');
     button.type = 'button';

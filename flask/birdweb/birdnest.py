@@ -124,11 +124,11 @@ def predict():
         training_data = trainingDataRef.get()
         ml_pred_concept_key = metaData["ml_pred_concept"] + "_pred"
         ml_pred_concept_probability = metaData["ml_pred_concept"] + "_pred_probability"
-        print("ml_pred_concept: "+ml_pred_concept_key)
+        #print("ml_pred_concept: "+ml_pred_concept_key)
         ml_predict_erase = metaData["ml_predict_erase"]
-        print("ml_predict_erase: "+str(ml_predict_erase))
+        #print("ml_predict_erase: "+str(ml_predict_erase))
         ml_predict_nbr = metaData["ml_predict_nbr"]
-        print("ml_predict_nbr: ",str(ml_predict_nbr))
+        #print("ml_predict_nbr: ",str(ml_predict_nbr))
         if ml_predict_erase:
             nbrVoid = 0
             for image in training_data["images"]:
@@ -136,7 +136,7 @@ def predict():
                     image[ml_pred_concept_key] = "void"
                     nbrVoid += 1
             trainingDataRef.set(training_data)
-            print("nbrVoid: ",nbrVoid)
+            #print("nbrVoid: ",nbrVoid)
         # Load the saved model
         model, model_transforms = get_existing_trained_model(save_path, metaData["ml_model_filename"],len(metaData["concept"]))
         print("Loading saved model: "+ metaData["ml_model_filename"])
@@ -158,7 +158,7 @@ def predict():
         for index in random_indexes:
             image = training_data["images"][index]
             prediction,class_prob = predict_image(model, model_transforms, image_path_resized, image["image_location"], metaData["concept"])
-            print( "index:" + str(index)+" predicted: "+prediction+ " ("+str(class_prob)+"%)" +" path:" + image["image_location"])
+            #print( "index:" + str(index)+" predicted: "+prediction+ " ("+str(class_prob)+"%)" +" path:" + image["image_location"])
             training_data["images"][index][ml_pred_concept_key] = prediction
             trainingDataRef.child("images").child(str(index)).update({ml_pred_concept_key: prediction, ml_pred_concept_probability: class_prob})
         #trainingDataRef.set(training_data)

@@ -8,11 +8,11 @@ const hostname = '127.0.0.1';
 const port = 3000;
 console.log("Node started on port 3000");
 
-let text = '{ "employees" : [' +
+/* let text = '{ "employees" : [' +
 '{ "firstName":"John" , "lastName":"Doe" },' +
 '{ "firstName":"Anna" , "lastName":"Smith" },' +
 '{ "firstName":"Peter" , "lastName":"Jones" } ]}';
-let json_stuff = JSON.parse(text);
+let json_stuff = JSON.parse(text); */
 
 var serviceAccount = require("../secrets/bird-ad15f-firebase-adminsdk-hzlhg-4ccf1a7271.json");
 const { log } = require('console');
@@ -24,9 +24,9 @@ admin.initializeApp({
   databaseURL: "https://bird-ad15f-default-rtdb.europe-west1.firebasedatabase.app"
 });
 }
-admin.apps.forEach((app) => {
+/* admin.apps.forEach((app) => {
   console.log(app.name);
-});
+}); */
 //}
 //Read from realtime database
 var db = admin.database();
@@ -43,8 +43,8 @@ var clientRequestRef = db.ref('/projects/clientrequest');
 */
 
 clientRequestRef.on('child_added', (snapshot) => {
-  console.log("metadata",snapshot.val().metadata);
-  console.log("projectID",snapshot.val().projectID);
+  //console.log("metadata",snapshot.val().metadata);
+  //console.log("projectID",snapshot.val().projectID);
   //let ml_train = snapshot.val()?.metadata?.ml_train;
   let ml_train = snapshot.val() && snapshot.val().metadata && snapshot.val().metadata.ml_train;
   if (ml_train) {

@@ -24,26 +24,25 @@ export function edit_concepts() {
       modalContainer.innerHTML = html;
       buttonDiv.appendChild(modalContainer);
       var mytitle = document.getElementById('modalInputTitle_concept');
-      mytitle.innerHTML =  "View, Add, edit or delete concepts";
+      mytitle.innerHTML = "View, Add, edit or delete concepts";
       var modalInputBody_concept = document.getElementById('modalInputBody_concept');
-      modalInputBody_concept.innerHTML = " Click on the kebab icon to edit or delete a concept and click on the save button to save changes."+
-      "</br> The \"Save\" button saves all changes and rebuilds the page, changes are not saved to the server."+
-      "</br> To revert the changes made locally, use the \"Reload\" button on the main page."+
-      "</br> The \"Save changes to server\" button on the main page overwrites the server version with all local changes.";
+      modalInputBody_concept.innerHTML = " Click on the kebab icon to edit or delete a concept and click on the save button to save changes." +
+        "</br> The \"Save\" button saves all changes and rebuilds the page, changes are not saved to the server." +
+        "</br> To revert the changes made locally, use the \"Reload\" button on the main page." +
+        "</br> The \"Save changes to server\" button on the main page overwrites the server version with all local changes.";
       var myInput = document.getElementById('myInput_concept');
       myInput.innerHTML = "Edit concepts";
       document.getElementById("addConcept").addEventListener("click", (event) => {
         event.preventDefault();
         const input = document.getElementById("conceptInput")
         const newConcept = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
-        console.log("newConcept", newConcept);
         if (newConcept == "") return;
         if (getMetadata().concept == null) {
           getMetadata().concept = []
         };
         if (getMetadata().concept.includes(newConcept)) {
-            console.log("Concept already exists");
-            return;
+          console.log("Concept already exists");
+          return;
         }
         getMetadata().concept.push(newConcept);
         console.log("getMetadata().concept", getMetadata().concept);
@@ -102,7 +101,6 @@ export function edit_concepts() {
             //add event listener to edit
             edit.addEventListener("click", (event) => {
               event.preventDefault();
-              console.log("In edit");
               const editButton = event.target;
               const input = editButton.parentElement.parentElement.previousSibling;
               const oldconcept = input.value;
@@ -115,19 +113,16 @@ export function edit_concepts() {
                 //const oldconcept = input.value;
                 const newConcept = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase();
                 if (newConcept == "") return;
-                console.log("not empty");
                 if (getMetadata().concept.includes(newConcept)) {
                   console.log("Concept already exists");
                   //input.value = newConcept;
                   return;
                 }
-                console.log("Note exists in metadata");
+                console.log("Not exists in metadata");
                 //remove concept from the array getMetadata().concept
                 getMetadata().concept = getMetadata().concept.filter(item => item !== oldconcept);
                 input.value = newConcept;
-                console.log("getMetadata().concept", getMetadata().concept);
                 getMetadata().concept.push(newConcept);
-                console.log("getMetadata().concept", getMetadata().concept);
                 //change concept with old value to new value on all images
                 getBirds().images.forEach((item) => {
                   if (item.concept == oldconcept) item.concept = newConcept;
@@ -147,16 +142,11 @@ export function edit_concepts() {
             //add event listener to delete
             del.addEventListener("click", (event) => {
               event.preventDefault();
-              console.log("In delete");
               const deleteButton = event.target;
               const input = deleteButton.parentElement.parentElement.previousSibling;
               const result = input.value;
-              console.log("result", result);
               clear_concept(input.value);
-              console.log("getMetadata().concept", getMetadata().concept);
-              //delete row from <ul> list
               const list = input.parentElement.parentElement;
-              console.log("list", list);
               list.removeChild(input.parentElement);
               kebab.removeChild(menu);
             });
@@ -181,8 +171,6 @@ export function edit_concepts() {
       }
       document.getElementById("saveChanges_concept").addEventListener("click", (event) => {
         event.preventDefault();
-        console.log("In saveChanges_concept");
-        console.log("getMetadata().concept", getMetadata().concept);
         //repace all concept for images that are not in the metadata concept list with "void"
         getBirds().images.forEach((item) => {
           if (!getMetadata().concept.includes(item.concept)) {
@@ -199,20 +187,20 @@ export function edit_concepts() {
 }
 
 export function createRowInConceptList(newConcept) {
-    const li = document.createElement('li');
-    li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
-    const input2 = document.createElement('input');
-    input2.classList.add('form-control', 'me-1');
-    input2.setAttribute('type', 'text');
-    //set content in input2
-    input2.value = newConcept;
-    //set not editable
-    input2.setAttribute("readonly", true);
-    input2.setAttribute("disabled", true);
-    li.appendChild(input2);
-    const span = document.createElement('span');
-    span.classList.add('badge', 'bg-secondary', 'rounded-pill');
-    span.innerHTML = '&#8942;'; // Add kebab icon
-    li.appendChild(span);
-    return li;
-  }
+  const li = document.createElement('li');
+  li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+  const input2 = document.createElement('input');
+  input2.classList.add('form-control', 'me-1');
+  input2.setAttribute('type', 'text');
+  //set content in input2
+  input2.value = newConcept;
+  //set not editable
+  input2.setAttribute("readonly", true);
+  input2.setAttribute("disabled", true);
+  li.appendChild(input2);
+  const span = document.createElement('span');
+  span.classList.add('badge', 'bg-secondary', 'rounded-pill');
+  span.innerHTML = '&#8942;'; // Add kebab icon
+  li.appendChild(span);
+  return li;
+}

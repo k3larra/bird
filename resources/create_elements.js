@@ -1,4 +1,4 @@
-import {clear_and_populate_pred_container, findImageIndexWithConcept, changeConcept, changePredConcept, build_image_containers, getMetadata} from "../script.js";
+import { clear_and_populate_pred_container, findImageIndexWithConcept, changeConcept, changePredConcept, build_image_containers, getMetadata } from "../script.js";
 
 export function createDropdownMenu(predicted_concept_container_value) {
   const div = document.createElement("div");
@@ -13,13 +13,11 @@ export function createDropdownMenu(predicted_concept_container_value) {
   div.appendChild(button);
   const ul = document.createElement("ul");
   ul.setAttribute('data-concept-value', predicted_concept_container_value)
-  ul.classList.add("dropdown-menu", "pt-1", "pb-1","on_top");
-  const x = 100/getMetadata().concept.length; 
+  ul.classList.add("dropdown-menu", "pt-1", "pb-1", "on_top");
+  const x = 100 / getMetadata().concept.length;
   const step = (100 - x) / 10;
   //const probabilities = Array.from({length: 10}, (_, i) => x + i * step).map(String);
-  const probabilities = Array.from({length: 10}, (_, i) => x + i * step)
-  
-  //console.log("probabilities2",probabilities)
+  const probabilities = Array.from({ length: 10 }, (_, i) => x + i * step)
   //const probabilities = ["0","25","50","60","70", "80", "90"];
   probabilities.forEach((probability) => {
     const li = document.createElement("li");
@@ -42,14 +40,14 @@ export function createDropdownMenu(predicted_concept_container_value) {
     ul.appendChild(li);
   });
   div.appendChild(ul);
- /*  new bootstrap.Tooltip(button, {
-    customClass: '_lh_tooltip_standard',
-    html: true,
-    title: "By selecting a class probability all images predicted with a lower probability will be hidden."
-      + "</br><b> Note: </b> Class probability is not the same as probability of correct classification." +
-      "Class probability is a probability that always adds up to one between the classes. Therefor, for two classes pure chance is 50% and with four classes pure chance is 25%.",
-    placement: 'top'
-  }); */
+  /*  new bootstrap.Tooltip(button, {
+     customClass: '_lh_tooltip_standard',
+     html: true,
+     title: "By selecting a class probability all images predicted with a lower probability will be hidden."
+       + "</br><b> Note: </b> Class probability is not the same as probability of correct classification." +
+       "Class probability is a probability that always adds up to one between the classes. Therefor, for two classes pure chance is 50% and with four classes pure chance is 25%.",
+     placement: 'top'
+   }); */
   return div;
 }
 
@@ -62,22 +60,20 @@ export function createAddImagesToTrainingdataButton(text, mouseOverText, buttonD
     event.preventDefault();
     console.log("In createAddImagesToTrainingdataButton listener");
     const predImagesDiv = event.target.parentElement.parentElement;
-    console.log("predImagesDiv", predImagesDiv);
     //find all img elements in predImagesDiv
     const selected_images = [];
     const images = predImagesDiv.querySelectorAll("img");
     images.forEach((image) => {
-        const index = image.getAttribute("data-image-index");
-        const concept = image.nextSibling.textContent;
-        //console.log("concept", concept);
-        if(concept !== ""){
-          console.log("add", index);
-          changeConcept(index, concept)
-          changePredConcept(index, "void");
-        }
+      const index = image.getAttribute("data-image-index");
+      const concept = image.nextSibling.textContent;
+      if (concept !== "") {
+        console.log("add", index);
+        changeConcept(index, concept)
+        changePredConcept(index, "void");
+      }
     });
     build_image_containers();
-    console.log("selected_images", selected_images);
+    //console.log("selected_images", selected_images);
   });
   buttonDiv.appendChild(button);
   /* new bootstrap.Tooltip(button, {
@@ -98,9 +94,9 @@ export function clearPredictedImages(buttonDiv) {
     const predImagesDiv = event.target.parentElement.parentElement;
     const images = predImagesDiv.querySelectorAll("img");
     images.forEach((image) => {
-        const index = image.getAttribute("data-image-index");
-        const concept = image.nextSibling.textContent;
-        changePredConcept(index, "void");
+      const index = image.getAttribute("data-image-index");
+      const concept = image.nextSibling.textContent;
+      changePredConcept(index, "void");
     });
     while (predImagesDiv.firstChild) {
       predImagesDiv.removeChild(predImagesDiv.firstChild);

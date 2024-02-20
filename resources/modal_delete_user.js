@@ -9,7 +9,6 @@ export function modal_delete_users() {
         modalContainer.innerHTML = html;
         navBarElement.appendChild(modalContainer);
         var myModalEl = document.getElementById('myModal_delete_users');
-        //console.log("myModalEl",myModalEl);
         myModalEl.addEventListener('shown.bs.modal', async function () {
             console.log(' delete users is shown');
             const isAdmin = await isUserAdmin();

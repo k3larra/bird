@@ -1,6 +1,6 @@
 import { getMetadata, getBirds } from "../script.js";
-import { handleModalFocus,  clear_all_concepts_and_predictions} from "../script.js";
-import { auth, getDatabase, save_new_training_set_to_databasebase, setAsDefaultTrainingSet} from "../firebase-module.js";
+import { handleModalFocus, clear_all_concepts_and_predictions } from "../script.js";
+import { auth, getDatabase, save_new_training_set_to_databasebase, setAsDefaultTrainingSet } from "../firebase-module.js";
 
 export function firebase_save_as() {
   const button = document.createElement('button');
@@ -64,7 +64,7 @@ export function firebase_save_as() {
       const modalBody = document.getElementById('modalBody_saveAs');
       modalBody.appendChild(checkboxDiv);
 
-      document.getElementById("saveChanges_saveAs").addEventListener("click", (event) => {  
+      document.getElementById("saveChanges_saveAs").addEventListener("click", (event) => {
         event.preventDefault();
         const title = document.getElementById("modalTitle_saveAs").innerHTML;
         const description = document.getElementById("modalInput_saveAs").innerHTML;
