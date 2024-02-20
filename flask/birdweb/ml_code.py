@@ -16,11 +16,13 @@ from torchvision.io import ImageReadMode
 from torch.optim import lr_scheduler
 #from torchvision.models import efficientnet_v2_s, EfficientNet_V2_S_Weights, resnet50, ResNet50_Weights
 from torchvision.models import resnet50, ResNet50_Weights
+print("torch.__version__",torch.__version__)
+print("torchvision.__version__",torchvision.__version__)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("device",device)
 import firebase_admin
 from firebase_admin import credentials, db
-print("sys.path",sys.path)
+# print("sys.path",sys.path)
 if torch.cuda.is_available():
     print("torch.cuda.is_available()",torch.cuda.is_available())
     print("torch.version.cuda",torch.version.cuda)
