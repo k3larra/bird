@@ -67,7 +67,6 @@ export function createAddImagesToTrainingdataButton(text, mouseOverText, buttonD
       const index = image.getAttribute("data-image-index");
       const concept = image.nextSibling.textContent;
       if (concept !== "") {
-        console.log("add", index);
         changeConcept(index, concept)
         changePredConcept(index, "void");
       }

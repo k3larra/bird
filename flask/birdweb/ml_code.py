@@ -102,12 +102,12 @@ def get_existing_trained_model(save_path, ml_filename,num_classes):
 def train_model(model, criterion, optimizer, training_loader):
     model.train()  
     for inputs, labels in training_loader:
-        inputs = inputs.to(device)
+        inputs = inputs.to(device) # Error here first in Thread -2
         labels = labels.to(device)
         outputs = model(inputs)
         loss = criterion(outputs, labels)
         optimizer.zero_grad()
-        loss.backward()
+        loss.backward()    # Error here thenin Thread -4
         optimizer.step()
 
 def increment_counter(transaction, ref):

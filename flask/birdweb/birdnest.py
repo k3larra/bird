@@ -4,6 +4,10 @@ from threading import Thread
 import json
 import os
 import random
+import queue
+import threading
+model_queue = queue.Queue()
+
 app = Flask(__name__)
 ##
 
@@ -86,9 +90,32 @@ def json_endpoint():
             model = None
 
     if model:
-        thread = Thread(target=train_and_save, args=(model, model_tranforms, metaData, projID, training_data, image_path_resized, save_path, 32, num_epochs))
-        thread.start()
+        ## here we need a que instead since a GPU is not Threadsafe.
+        print('Queue length before:', model_queue.qsize())
+        #db.reference('/projects/').update({'queue_length': model_queue.qsize()})
+        model_queue.put((model, model_tranforms, metaData, projID, training_data, image_path_resized, save_path, 32, num_epochs))
+
+        #thread = Thread(target=train_and_save, args=(model, model_tranforms, metaData, projID, training_data, image_path_resized, save_path, 32, num_epochs))
+        #thread.start()
     return json.dumps({"status":"running" })
+
+
+
+def train_a_model(callback):
+    while True:
+         model, model_tranforms, metaData, projID, training_data, image_path_resized, save_path, batch_size, num_epochs = model_queue.get()
+         print('Loaded new model to train')
+         train_and_save(model, model_tranforms, metaData, projID, training_data, image_path_resized, save_path, batch_size, num_epochs)
+         callback("Done")
+         model_queue.task_done()
+
+def model_trained_callback(data):
+    # This function will be called when a model has been trained
+    print('Queue length:', model_queue.qsize())
+    print('Model trained', data)
+
+t = threading.Thread(target=train_a_model, args=(model_trained_callback,))
+t.start()
 
 @app.route('/delete_model', methods=['POST'])
 def delete_model():
