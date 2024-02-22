@@ -95,7 +95,7 @@ def get_existing_trained_model(save_path, ml_filename,num_classes):
     elif "EfficientNet_V2_S" in ml_filename:
         weights = EfficientNet_V2_S_Weights.DEFAULT #to get the transforms
         #model._fc = nn.Linear(model._fc.in_features, num_classes)
-    model_transforms = weights.transforms()
+    model_transforms = weights.transforms(antialias=True)
     #model.eval()
     return model, model_transforms
 
@@ -121,7 +121,8 @@ def increment_counter(transaction, ref):
 
 def predict_image(model, model_transforms, image_path_resized, image_name, idx_to_label):
     model.eval()
-    model = model.to(device)
+    model = model.to(device) #-This could be done once
+    model = model.to('cpu')
     imagePath = os.path.join(image_path_resized, image_name)
     if platform.system() == 'Linux':
         imagePath = imagePath.replace("\\", "/")
@@ -130,13 +131,32 @@ def predict_image(model, model_transforms, image_path_resized, image_name, idx_t
     image /= 255.
     image = model_transforms(image)
     image = image.unsqueeze(0)
-    image = image.to(device)
+    # image = image.to(device) already on cpu
     output = model(image)
     output_prob = F.softmax(output, dim=1)
     class_prob, predicted = torch.max(output_prob.data, 1)
     class_prob = int(class_prob.item()*100)
     #print("predicted: "+str(idx_to_label[predicted])+ " ("+str(class_prob)+"%)" )
     return idx_to_label[predicted], class_prob
+
+def predict_images(model, model_transforms, image_path_resized, image_names, idx_to_label):
+    model.eval()
+    images = []
+    for image_name in image_names:
+        imagePath = os.path.join(image_path_resized, image_name)
+        if platform.system() == 'Linux':
+            imagePath = imagePath.replace("\\", "/")
+        image = read_image(imagePath, ImageReadMode.UNCHANGED)
+        image = image.float()
+        image /= 255.
+        image = model_transforms(image)
+        images.append(image)
+    images = torch.stack(images)  # Create a batch of images
+    output = model(images)
+    output_prob = F.softmax(output, dim=1)
+    class_probs, predictions = torch.max(output_prob.data, 1)
+    class_probs = [int(prob.item()*100) for prob in class_probs]
+    return [idx_to_label[pred] for pred in predictions], class_probs
 
 def train_and_save(model,model_transforms,metadata, projID, training_data, image_path_resized,save_path,batch_size=32,num_epochs=5):
     dataset = training_data["images"]
