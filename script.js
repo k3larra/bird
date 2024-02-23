@@ -337,6 +337,7 @@ function add_image_container_listener(imageContainer) {
     if (event.target.tagName === 'IMG') {
       const clickedImage = event.target;
       const tooltiptext_e = clickedImage.nextElementSibling;
+      console.log("getMetadata().concept", getMetadata().concept);
       if (getMetadata().concept.length > 0) {
         const index = getMetadata().concept.indexOf(tooltiptext_e.textContent);
         const pred = tooltiptext_e.nextElementSibling;

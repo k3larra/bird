@@ -37,15 +37,20 @@ export function edit_concepts() {
         const input = document.getElementById("conceptInput")
         const newConcept = input.value.charAt(0).toUpperCase() + input.value.slice(1).toLowerCase()
         if (newConcept == "") return;
-        if (getMetadata().concept == null) {
-          getMetadata().concept = []
+        let metadata = getMetadata();
+        if (metadata == null) {
+          console.log("Metadata is null");
+          return;
+        }
+        if (metadata.concept == null) {
+          metadata.concept = []
         };
-        if (getMetadata().concept.includes(newConcept)) {
+        if (metadata.concept.includes(newConcept)) {
           console.log("Concept already exists");
           return;
         }
-        getMetadata().concept.push(newConcept);
-        console.log("getMetadata().concept", getMetadata().concept);
+        metadata.concept.push(newConcept);
+        console.log("metadata.concept", metadata.concept);
         const list = document.getElementById("concept_list");
         list.appendChild(createRowInConceptList(newConcept));
         input.value = "";
