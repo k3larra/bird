@@ -139,24 +139,30 @@ def predict_image(model, model_transforms, image_path_resized, image_name, idx_t
     #print("predicted: "+str(idx_to_label[predicted])+ " ("+str(class_prob)+"%)" )
     return idx_to_label[predicted], class_prob
 
-def predict_images(model, model_transforms, image_path_resized, image_names, idx_to_label):
+def predict_images(model, model_transforms, image_path_resized, image_names, idx_to_label, batch_size=100):
     model.eval()
-    images = []
-    for image_name in image_names:
-        imagePath = os.path.join(image_path_resized, image_name)
-        if platform.system() == 'Linux':
-            imagePath = imagePath.replace("\\", "/")
-        image = read_image(imagePath, ImageReadMode.UNCHANGED)
-        image = image.float()
-        image /= 255.
-        image = model_transforms(image)
-        images.append(image)
-    images = torch.stack(images)  # Create a batch of images
-    output = model(images)
-    output_prob = F.softmax(output, dim=1)
-    class_probs, predictions = torch.max(output_prob.data, 1)
-    class_probs = [int(prob.item()*100) for prob in class_probs]
-    return [idx_to_label[pred] for pred in predictions], class_probs
+    predictions = []
+    class_probs = []
+    for i in range(0, len(image_names), batch_size):
+        batch_image_names = image_names[i:i+batch_size]
+        images = []
+        for image_name in batch_image_names:
+            imagePath = os.path.join(image_path_resized, image_name)
+            if platform.system() == 'Linux':
+                imagePath = imagePath.replace("\\", "/")
+            image = read_image(imagePath, ImageReadMode.UNCHANGED)
+            image = image.float()
+            image /= 255.
+            image = model_transforms(image)
+            images.append(image)
+        images = torch.stack(images)  # Create a batch of images
+        output = model(images)
+        output_prob = F.softmax(output, dim=1)
+        batch_class_probs, batch_predictions = torch.max(output_prob.data, 1)
+        batch_class_probs = [int(prob.item()*100) for prob in batch_class_probs]
+        predictions.extend([idx_to_label[pred] for pred in batch_predictions])
+        class_probs.extend(batch_class_probs)
+    return predictions, class_probs
 
 def train_and_save(model,model_transforms,metadata, projID, training_data, image_path_resized,save_path,batch_size=32,num_epochs=5):
     dataset = training_data["images"]
