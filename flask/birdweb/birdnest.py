@@ -7,7 +7,7 @@ import random
 import queue
 import threading
 model_queue = queue.Queue()
-
+pred_queue = queue.Queue()
 app = Flask(__name__)
 ##
 
@@ -111,7 +111,7 @@ def train_a_model(callback):
 
 def model_trained_callback(data):
     # This function will be called when a model has been trained
-    print('Queue length:', model_queue.qsize())
+    print('Queue length training:', model_queue.qsize())
     print('Model trained', data)
 
 t = threading.Thread(target=train_a_model, args=(model_trained_callback,))
@@ -131,8 +131,8 @@ def delete_model():
                 os.remove(os.path.join(save_path, filename))
     return json.dumps({"status":"deleted" })
 
-@app.route('/predict', methods=['POST'])
-def predict():
+@app.route('/predict_old', methods=['POST'])
+def predict_old():
     print("in predict")
     metaData = request.get_json()
     metaData=metaData["metadata"]
@@ -175,13 +175,6 @@ def predict():
             'ml_predict_finished_timestamp': {".sv": "timestamp"},
             "ml_predict": False
         })
-
-        """ for index in random_indexes:
-            image = training_data["images"][index]
-            prediction,class_prob = predict_image(model, model_transforms, image_path_resized, image["image_location"], metaData["concept"])
-            #print( "index:" + str(index)+" predicted: "+prediction+ " ("+str(class_prob)+"%)" +" path:" + image["image_location"])
-            training_data["images"][index][ml_pred_concept_key] = prediction
-            trainingDataRef.child("images").child(str(index)).update({ml_pred_concept_key: prediction, ml_pred_concept_probability: class_prob}) """
     else:
         metadataRef.update({
             'ml_predict_started_timestamp': {".sv": "timestamp"},
@@ -189,8 +182,76 @@ def predict():
         })
     return json.dumps({"status": "predicted"})
 
+def predictor():
+    while True:
+        task = pred_queue.get()
+        if task is None:
+            break
+        # Unpack the task
+        metaData, save_path, image_path_resized, trainingDataRef, metadataRef = task
+        metadataRef.update({
+            'ml_predict_started_timestamp': {".sv": "timestamp"},
+        })   
+        training_data = trainingDataRef.get()
+        ml_pred_concept_key = metaData["ml_pred_concept"] + "_pred"
+        ml_pred_concept_probability = metaData["ml_pred_concept"] + "_pred_probability"
+        ml_predict_erase = metaData["ml_predict_erase"]
+        ml_predict_nbr = metaData["ml_predict_nbr"]
+        if ml_predict_erase:
+            nbrVoid = 0
+            for image in training_data["images"]:
+                if ml_pred_concept_key in image:
+                    image[ml_pred_concept_key] = "void"
+                    nbrVoid += 1
+            trainingDataRef.set(training_data)
+        indexes = [index for index, image in enumerate(training_data["images"]) if image["concept"] == "void" and (ml_pred_concept_key not in image or image[ml_pred_concept_key] == "void")]
+        random_indexes = random.sample(indexes, min(int(ml_predict_nbr), len(indexes)))
+        random_images = [training_data["images"][index] for index in random_indexes]
+        # Load the model
+        model, model_transforms = get_existing_trained_model(save_path, metaData["ml_model_filename"],len(metaData["concept"]))
+        print("Loading saved model: "+ metaData["ml_model_filename"])
+        model = model.to('cpu')  # Ensure the model is on the CPU
+        # Run the prediction
+        image_names = [training_data["images"][index]["image_location"] for index in random_indexes]
+        predictions, class_probs = predict_images(model, model_transforms, image_path_resized, image_names, metaData["concept"])    
+        for i in range(len(random_images)):
+            trainingDataRef.child("images").child(str(random_indexes[i])).update({ml_pred_concept_key: predictions[i], ml_pred_concept_probability: class_probs[i]})
+        metadataRef.update({
+            'ml_predict_finished_timestamp': {".sv": "timestamp"},
+            "ml_predict": False
+        })
+        print('Queue length predict DONE:', pred_queue.qsize())
+        print('Predicted:',len(random_images))
+        pred_queue.task_done()
 
+# Start the worker threadd
+predictor_thread = Thread(target=predictor)
+predictor_thread.start()
 
+@app.route('/predict', methods=['POST'])
+def predict():
+    # ... (same as before until after the model is loaded)
+    print("in NEW predict")
+    metaData = request.get_json()
+    metaData=metaData["metadata"]
+    projID = request.get_json()
+    projID=projID["projectID"]
+    save_path = "../../models"
+    image_path_resized = '../../ottenbyresized'
+    # check if trained model exists
+    metadataRef = db.reference('/projects/').child(projID).child("metadata").child(metaData["training_set_ref"])
+    trainingDataRef = db.reference('/projects/').child(projID).child("trainingsets").child(metaData["training_set_ref"])
+    if "ml_model_filename" in metaData and metaData["ml_model_filename"]:
+        # Put the task on the queue
+        task = (metaData, save_path, image_path_resized, trainingDataRef,metadataRef)
+        pred_queue.put(task)
+        print('Queue length predict:', pred_queue.qsize())
+    else:
+        metadataRef.update({
+            'ml_predict_started_timestamp': {".sv": "timestamp"},
+            "ml_predict": False
+        })
+    return json.dumps({"status": "queued"})
 
 
 
