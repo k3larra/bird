@@ -186,6 +186,7 @@ def predictor():
     while True:
         task = pred_queue.get()
         if task is None:
+            print('Task is None')
             break
         # Unpack the task
         metaData, save_path, image_path_resized, trainingDataRef, metadataRef = task
@@ -208,6 +209,7 @@ def predictor():
         random_indexes = random.sample(indexes, min(int(ml_predict_nbr), len(indexes)))
         random_images = [training_data["images"][index] for index in random_indexes]
         # Load the model
+        print('Ready to LOAD model: '+ metaData["ml_model_filename"]+'  '+str(len(metaData["concept"]))+' concepts');
         model, model_transforms = get_existing_trained_model(save_path, metaData["ml_model_filename"],len(metaData["concept"]))
         print("Loading saved model: "+ metaData["ml_model_filename"])
         model = model.to('cpu')  # Ensure the model is on the CPU
