@@ -178,8 +178,7 @@ def train_and_save(model,model_transforms,metadata, projID, training_data, image
         print('CUDA is available.')
     else:
         print('CUDA is not available.')
-    #model = model.to(device)
-    model = model.to("cuda:0")
+    model = model.to(device)
     bird_dataset = CustomImageDataset(dataset, image_path_resized, transform=model_transforms, target_transform=None)
     training_loader = DataLoader(bird_dataset, batch_size=batch_size, shuffle=True)  #32,64
     #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
