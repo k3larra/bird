@@ -245,9 +245,10 @@ function trainingOngoing() {
     }
     refreshTrainContent();
     console.log("Training ongoing changed from " + previousValue + " to " + getMetadata().ml_train_finished);
-    if (previousValue && !getMetadata().ml_train_finished) {
+    if (!previousValue && getMetadata().ml_train_finished) {
       console.log("Training ongoing changed from " + previousValue + " to " + getMetadata().ml_train_finished);
       getMetadata().concept_array_changed = false;
+      document.getElementById("modal_train_info").innerHTML = "";
     }
     previousValue = getMetadata().ml_train_finished;
   });
