@@ -211,7 +211,7 @@ function trainingOngoing() {
   //currentproject
   const metadataRef = ref(db, "/projects/" + currentproject + "/metadata/" + getMetadata().training_set_ref);
   //const metadataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
-  let previousValue = false;
+  //let previousValue = false;
   onValue(metadataRef, (snapshot) => {
     console.log("In trainingOngoing");
     const data = snapshot.val(); 
@@ -243,13 +243,13 @@ function trainingOngoing() {
       document.getElementById("modal_train_info").innerHTML = "Prediction ongoing, training button disabled";
       activateSpinner();
     }
+    refreshTrainContent();
     console.log("Training ongoing changed from " + previousValue + " to " + getMetadata().ml_train_finished);
     if (previousValue && !getMetadata().ml_train_finished) {
       console.log("Training ongoing changed from " + previousValue + " to " + getMetadata().ml_train_finished);
       getMetadata().concept_array_changed = false;
     }
     previousValue = getMetadata().ml_train_finished;
-    refreshTrainContent();
   });
 }
 
