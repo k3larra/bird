@@ -211,7 +211,7 @@ function trainingOngoing() {
   //currentproject
   const metadataRef = ref(db, "/projects/" + currentproject + "/metadata/" + getMetadata().training_set_ref);
   //const metadataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
-  //let previousValue = false;
+  let previousValue = false;
   onValue(metadataRef, (snapshot) => {
     console.log("In trainingOngoing");
     const data = snapshot.val(); 
