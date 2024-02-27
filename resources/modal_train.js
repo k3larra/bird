@@ -20,7 +20,7 @@ export function train_model() {
       const modalContainer = document.createElement('div');
       modalContainer.innerHTML = html;
       buttonDiv.appendChild(modalContainer);
-      document.getElementById("refresh_training_modal").addEventListener("click", refreshContent);
+      document.getElementById("refresh_training_modal").addEventListener("click", refreshTrainContent);
       document.getElementById("saveChanges_train").addEventListener("click", handleTrainModelButton);
       var myModalEl = document.getElementById('myModal_train');
       myModalEl.addEventListener('shown.bs.modal', function () {
@@ -64,7 +64,7 @@ function handleTrainModelButton(event) {
 
 }
 
-function refreshContent() {
+function refreshTrainContent() {
   async function waitForGetTrainingParameters() {
     await getTraining_parameters();
     // Your code that depends on the completion of getTraining_parameters
@@ -108,7 +108,8 @@ function refreshContent() {
         "<i>ml_train_status:</i> " + getMetadata().ml_train_status + "</br>" +
         "<i>ml_train_ongoing:</i> " + getMetadata().ml_train_ongoing + "</br>" +
         "<i>ml_train_finished:</i> " + getMetadata().ml_train_finished + "</br>" +
-        "<i>ml_retrain_existing_model:</i> " + getMetadata().ml_retrain_existing_model + "</br>";
+        "<i>ml_retrain_existing_model:</i> " + getMetadata().ml_retrain_existing_model + "</br>"+
+        "<i>ml_predict_ongoing:</i> " + getMetadata().ml_predict + "</br>";
       const resetButton = document.createElement("button");
       resetButton.type = "button";
       resetButton.id = "reset_train";
@@ -154,7 +155,7 @@ function refreshContent() {
     modelListItem.appendChild(modelLabel);
     const modelDropdown = document.createElement("select");
     modelDropdown.id = "model";
-    const modelValues = ["ResNet50", "EfficientNet_V2_S", "Continue training"];
+    let modelValues = ["ResNet50", "EfficientNet_V2_S", "Continue training"];
 
     modelValues.forEach(value => {
       const option = document.createElement("option");
@@ -163,12 +164,12 @@ function refreshContent() {
       modelDropdown.appendChild(option);
     });
 
-    if (getMetadata().ml_train_nbr > 0 && getMetadata().ml_model_filename) {
+    if (getMetadata().ml_train_nbr > 0 && getMetadata().ml_model_filename && !getMetadata().concept_array_changed) {
       modelDropdown.value = "Continue training";
     } else {
       modelDropdown.value = "ResNet50";
       modelDropdown.removeChild(modelDropdown.lastChild);
-    }
+    } 
 
     modelListItem.appendChild(modelDropdown);
     modelListItem.style.width = "100%"; // Set the width to 100%
@@ -213,23 +214,37 @@ function trainingOngoing() {
   onValue(metadataRef, (snapshot) => {
     console.log("In trainingOngoing");
     const data = snapshot.val();
-    let previousValue = false;
+    //let previousValue = false;
     if (typeof data.ml_train === 'undefined') {
       document.getElementById("saveChanges_train").disabled = false;
+      document.getElementById("modal_train_info").innerHTML = "";
       deactivateSpinner();
-    } else if (data.ml_train_ongoing && !data.ml_train_finished && !data.ml_predict) {
+    } else if (data.ml_train_ongoing && !data.ml_train_finished ) {
       // The ml_ongoing property changed from true to false
       console.log("training started");
+      document.getElementById("modal_train_info").innerHTML = "Training already ongoing, training button disabled";
       document.getElementById("saveChanges_train").disabled = true;
       activateSpinner();
       // Perform any actions you need to do here
-    } else if (!data.ml_train_ongoing && data.ml_train_finished && !data.ml_predict) {
-      // The ml_ongoing property changed from false to true
+    } else if (!data.ml_train_ongoing && data.ml_train_finished) {
+      // Done training
+      document.getElementById("modal_train_info").innerHTML = "";
       document.getElementById("saveChanges_train").disabled = false;
       deactivateSpinner();
+      getMetadata().concept_array_changed = false;
     }
-    previousValue = getMetadata().ml_train_ongoing;
-    refreshContent();
+    if (typeof data.concept_array_changed !== 'undefined' && data.concept_array_changed) {
+      console.log("concept changed, disable training button");
+      document.getElementById("modal_train_info").innerHTML = "You need to retrain with a new base model since you changed the concept array</br> Save changes on the main screen before you retrain";
+    }
+    if (typeof data.ml_predict === 'undefined'|| data.ml_predict) {
+      console.log("prediction ongoing, disable training button");
+      document.getElementById("saveChanges_train").disabled = true;
+      document.getElementById("modal_train_info").innerHTML = "Prediction ongoing, training button disabled";
+      activateSpinner();
+    }
+    //previousValue = getMetadata().ml_train_ongoing;
+    refreshTrainContent();
   });
 }
 
@@ -241,7 +256,7 @@ function resetTraining(event) {
   getMetadata().ml_train_ongoing = false;
   getMetadata().ml_train_finished = true;
   setTraining_parameters();
-  refreshContent();
+  refreshTrainContent();
 }
 
 function activateSpinner() {

@@ -1,4 +1,4 @@
-import { get_all_data_reload_page } from "./firebase-module.js";
+import { get_all_data_reload_page, readLocalJasonAndReturn } from "./firebase-module.js";
 import { read_training_data } from "./firebase-module.js";
 //import { save_new_training_set_to_databasebase } from "./firebase-module.js";
 //import { downloadJson } from "./firebase-module.js";
@@ -489,12 +489,16 @@ function createbuttons() {
   button = document.createElement("button")
   button.type = "button"
   button.classList.add("btn", "btn-outline-dark", "btn-sm", "ms-2", "me-1")
+  button.id = "reload_button"
   button.textContent = "Reload" //"reload"
   buttonDiv.appendChild(button)
   button.addEventListener("click", (event) => {
     event.preventDefault();
     tooltip2.hide();
-    //read_training_data(auth.currentUser.uid, getMetadata().training_set_ref);
+    //change text on button to reloaed
+    button.textContent = "Reload"
+    button.classList.add("btn-outline-dark");
+    button.classList.remove("btn-success");
     get_all_data_reload_page(auth.currentUser.uid);
   });
   const tooltip2 = new bootstrap.Tooltip(button, {

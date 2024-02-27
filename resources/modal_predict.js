@@ -1,6 +1,6 @@
 import { getMetadata, getStatistics} from "../script.js";
-import { setTraining_parameters, getTraining_parameters, currentproject, get_all_data_reload_page} from "../firebase-module.js";
-import { auth ,getDatabase,ref,onValue} from "../firebase-module.js";
+import { setTraining_parameters, getTraining_parameters, currentproject} from "../firebase-module.js";
+import { getDatabase,ref,onValue} from "../firebase-module.js";
 import { debug } from "../script.js";
 
 export function predict_class() {
@@ -59,7 +59,7 @@ function refreshPredictContent() {
     while (predictContent.firstChild) {
       predictContent.removeChild(predictContent.firstChild);
     }
-    console.log("refreshPredictContent getStatistics()", getStatistics());
+    //console.log("refreshPredictContent getStatistics()", getStatistics());
     const infoText = document.createElement("p");
     predictContent.appendChild(infoText);
     infoText.innerHTML = "<b> <i>Title:</i> " + getMetadata().title + "</b><br>";
@@ -87,7 +87,7 @@ function refreshPredictContent() {
 
     if (debug) {
       infoText.innerHTML += "----debug info----<br>"
-      console.log("getMetadata()", getMetadata());
+      //console.log("getMetadata()", getMetadata());
       const resetPredictButton = document.createElement("button");
       resetPredictButton.type = "button";
       resetPredictButton.id = "reset_predict";
@@ -136,28 +136,56 @@ function predictionOngoing() {
   if(getMetadata().ml_model_filename){
     const db = getDatabase();
     const trainingDataRef = ref(db, "/projects/"+ currentproject + "/metadata/" + getMetadata().training_set_ref);
+    var predictionWasOngoing = false;
     onValue(trainingDataRef, (snapshot) => {
       console.log("In predictionOngoing2");
-      // Check if the modal is visible, If we are here it should be visible... since myModalEl.addEventListener('shown.bs.modal', function () {
-        refreshPredictContent();
-        console.log("getMetadata()", getMetadata());
-        if (getMetadata().ml_train_ongoing || getMetadata().ml_predict|| getMetadata().ml_model_filename.length < 1 ) {
+      const data = snapshot.val();
+      if (!document.getElementById("saveChanges_predict")) {
+        return;
+      }
+        if (data.ml_train_ongoing || data.ml_predict) {
           //set saveChanges_predict button to disabled 
           document.getElementById("saveChanges_predict").disabled = true;
           activateSpinner();
-          refreshPredictContent();
-        } else if (!getMetadata().ml_train_ongoing && !getMetadata().ml_predict){
-          //relode all containers from firebase
+          if(data.ml_predict){
+            //console.log("Prediction ongoing!!!");
+            document.getElementById("modal_pred_info").innerHTML = "Prediction ongoing, prediction button disabled";
+          }
+          if(data.ml_train_ongoing){
+            //console.log("Training ongoing!!!");
+            document.getElementById("modal_pred_info").innerHTML = "Training ongoing, prediction button disabled";
+          }
+        } else if (!data.ml_train_ongoing && !data.ml_predict){
+          //console.log("Prediction or training ongoing");
           document.getElementById("saveChanges_predict").disabled = false;
           deactivateSpinner();
-          console.log("Prediction finsished!!!");
-          refreshPredictContent();
+          document.getElementById("modal_pred_info").innerHTML = "";
           //get_all_data_reload_page(auth.currentUser.uid);         
         }
+        if (typeof data.concept_array_changed !== 'undefined' && data.concept_array_changed) {
+          console.log("concept changed, disable training button");
+          document.getElementById("modal_pred_info").innerHTML = "Concept array changed retraining needed";
+          document.getElementById("saveChanges_predict").disabled = true;
+          //activateSpinner();
+        }
+        //Check if the change in data was from ongoing prediction to not ongoing prediction
+        if(predictionWasOngoing && !data.ml_predict){
+          console.log("Prediction finished");
+          //get_all_data_reload_page(auth.currentUser.uid);
+          const button = document.getElementById("reload_button")
+          if (button) {
+            button.textContent = "Reload page to see predictions";
+            button.classList.remove("btn-outline-dark");
+            button.classList.add("btn-success");
+          }
+        }
+        predictionWasOngoing= data.ml_predict;
+        refreshPredictContent();
     });
   }else{  
     console.log("You need to train a model first in order to make predictions.");
     document.getElementById("modalPredict_info").innerHTML = "You need to train a model first in order to make predictions.";
+    document.getElementById("modal_pred_info").innerHTML = "No trained model exists, prediction button disabled";
     document.getElementById("saveChanges_predict").disabled = true;
   }
 }

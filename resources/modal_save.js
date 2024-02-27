@@ -8,6 +8,11 @@ export function firebase_save() {
     button.setAttribute('data-bs-toggle', 'modal');
     button.setAttribute('data-bs-target', '#myModal_save');
     button.innerHTML = 'Save to server';
+    button.addEventListener('click', function () {
+        button.classList.add('btn-outline-dark');
+        button.classList.remove('btn-success');
+        button.textContent = "Save to server";
+    });
     const buttonDiv = document.getElementById("button_div");
     buttonDiv.appendChild(button);
     fetch('./resources/modal_save.html')
@@ -17,8 +22,8 @@ export function firebase_save() {
             const modalContainer = document.createElement('div');
             modalContainer.innerHTML = html;
             buttonDiv.appendChild(modalContainer);
-            var myInput = document.getElementById('myInput_save');
-            myInput.innerHTML = "Save changes to server";
+            //var myInput = document.getElementById('myInput_save');
+            //myInput.innerHTML = "Save changes to server";
             const modalSubtitle = document.getElementById("modalSubtitle_save");
             modalSubtitle.innerHTML = "Version: " + getMetadata().version;
             const title = document.getElementById("modalTitle_save");

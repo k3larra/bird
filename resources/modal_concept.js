@@ -1,5 +1,5 @@
 import { getMetadata, getBirds, clear_concept, build_image_containers } from "../script.js";
-
+import { setTraining_parameters} from "../firebase-module.js";
 export function edit_concepts() {
   const buttonDiv = document.getElementById("button_div");
   const button = document.createElement("button");
@@ -176,7 +176,7 @@ export function edit_concepts() {
       }
       document.getElementById("saveChanges_concept").addEventListener("click", (event) => {
         event.preventDefault();
-        //repace all concept for images that are not in the metadata concept list with "void"
+        //replace all concept for images that are not in the metadata concept list with "void"
         getBirds().images.forEach((item) => {
           if (!getMetadata().concept.includes(item.concept)) {
             item.concept = "void";
@@ -187,6 +187,13 @@ export function edit_concepts() {
         });
         //rebuild image containers
         build_image_containers();
+        //Change text on save changes to server button
+        const button = document.getElementById("myInput_save");
+        button.classList.remove('btn-outline-dark');
+        button.classList.add('btn-success');
+        button.textContent = "Save pending changes to server";
+        getMetadata().concept_array_changed = true;
+        setTraining_parameters();
       });
     });
 }
