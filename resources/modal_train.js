@@ -214,7 +214,7 @@ function trainingOngoing() {
   onValue(metadataRef, (snapshot) => {
     console.log("In trainingOngoing");
     const data = snapshot.val();
-    //let previousValue = false;
+    let previousValue = false;
     if (typeof data.ml_train === 'undefined') {
       document.getElementById("saveChanges_train").disabled = false;
       document.getElementById("modal_train_info").innerHTML = "";
@@ -243,7 +243,11 @@ function trainingOngoing() {
       document.getElementById("modal_train_info").innerHTML = "Prediction ongoing, training button disabled";
       activateSpinner();
     }
-    //previousValue = getMetadata().ml_train_ongoing;
+    if (previousValue && !getMetadata().ml_train_ongoing) {
+      console.log("Training ongoing changed from " + previousValue + " to " + getMetadata().ml_train_ongoing);
+      getMetadata().concept_array_changed = false;
+    }
+    previousValue = getMetadata().ml_train_ongoing;
     refreshTrainContent();
   });
 }
