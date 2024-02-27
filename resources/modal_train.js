@@ -211,10 +211,10 @@ function trainingOngoing() {
   //currentproject
   const metadataRef = ref(db, "/projects/" + currentproject + "/metadata/" + getMetadata().training_set_ref);
   //const metadataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
+  let previousValue = false;
   onValue(metadataRef, (snapshot) => {
     console.log("In trainingOngoing");
-    const data = snapshot.val();
-    let previousValue = false;
+    const data = snapshot.val(); 
     if (typeof data.ml_train === 'undefined') {
       document.getElementById("saveChanges_train").disabled = false;
       document.getElementById("modal_train_info").innerHTML = "";
