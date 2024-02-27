@@ -243,6 +243,7 @@ function trainingOngoing() {
       document.getElementById("modal_train_info").innerHTML = "Prediction ongoing, training button disabled";
       activateSpinner();
     }
+    console.log("Training ongoing changed from " + previousValue + " to " + getMetadata().ml_train_ongoing);
     if (previousValue && !getMetadata().ml_train_ongoing) {
       console.log("Training ongoing changed from " + previousValue + " to " + getMetadata().ml_train_ongoing);
       getMetadata().concept_array_changed = false;
