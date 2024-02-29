@@ -169,6 +169,21 @@ def train_and_save(model,model_transforms,metadata, projID, training_data, image
     print("total number images",len(dataset))
     dataset = [x for x in dataset if x['concept'] != 'void']
     print("number images in training dataset",len(dataset))
+    #Here check that there are images for all concepts in metadata['concept']
+    ref = db.reference('/projects').child(projID).child("metadata").child(metadata["training_set_ref"])
+    concepts = metadata['concept']
+    for concept in concepts:
+        if not any(d['concept'] == concept for d in dataset):
+            print("No images for concept",concept)
+            ref.update({
+                'ml_model_filename': "",
+                'ml_train_status': 'There are no images for concept '+concept,
+                'ml_train_ongoing': False,
+                'ml_training_finished_timestamp': {".sv": "timestamp"},
+                "ml_train":False,
+                "ml_train_finished":True
+            }) 
+            return
     if platform.system() == 'Windows':
         print("Windows")
     if platform.system() == 'Linux':

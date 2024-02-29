@@ -1,6 +1,6 @@
 import { getMetadata, getBirds } from "../script.js";
 import { handleModalFocus, clear_all_concepts_and_predictions } from "../script.js";
-import { auth, getDatabase, save_new_training_set_to_databasebase, setAsDefaultTrainingSet } from "../firebase-module.js";
+import { auth, getDatabase, save_new_training_set_to_databasebase, setAsDefaultTrainingSet, get_all_data_reload_page } from "../firebase-module.js";
 
 export function firebase_save_as() {
   const button = document.createElement('button');
@@ -24,6 +24,7 @@ export function firebase_save_as() {
       document.getElementById('myModal_saveAs').addEventListener('shown.bs.modal', handleModalFocus);
       myInput.innerHTML = "Save as new dataset";
       const modalSubtitle = document.getElementById("modalSubtitle_saveAs");
+      console.log('getMetadata()', getMetadata());
       modalSubtitle.innerHTML = "Old version no: " + getMetadata().version;
       const title = document.getElementById("modalTitle_saveAs");
       title.innerHTML = getMetadata().title;
@@ -79,10 +80,12 @@ export function firebase_save_as() {
         }
         var authData = auth.currentUser;
         const db = getDatabase();
+        console.log('BEFORE!!! getMetadata()', getMetadata());
         const key = save_new_training_set_to_databasebase(authData.uid, getBirds());
         if (key) {
           setAsDefaultTrainingSet(authData.uid, key);
         }
+        get_all_data_reload_page(authData.uid); //This happens in setAsDef above....
       });
     });
 }

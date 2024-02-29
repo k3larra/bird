@@ -2,6 +2,7 @@ import { getMetadata, getStatistics } from "../script.js";
 import { setTraining_parameters, getTraining_parameters, currentproject } from "../firebase-module.js";
 import { auth, getDatabase, ref, onValue } from "../firebase-module.js";
 import { debug } from "../script.js";
+let previousValue = true;
 export function train_model() {
   const button = document.createElement("button");
   button.type = "button";
@@ -211,46 +212,51 @@ function trainingOngoing() {
   //currentproject
   const metadataRef = ref(db, "/projects/" + currentproject + "/metadata/" + getMetadata().training_set_ref);
   //const metadataRef = ref(db, auth.currentUser.uid + "/metadata/" + getMetadata().training_set_ref);
-  let previousValue = false;
   onValue(metadataRef, (snapshot) => {
     console.log("In trainingOngoing");
     const data = snapshot.val(); 
-    if (typeof data.ml_train === 'undefined') {
+    /* if (typeof data.ml_train === 'undefined') {
       document.getElementById("saveChanges_train").disabled = false;
       document.getElementById("modal_train_info").innerHTML = "";
       deactivateSpinner();
-    } else if (data.ml_train_ongoing && !data.ml_train_finished ) {
+    }  */
+
+    refreshTrainContent();
+    if (!data.ml_train_ongoing && data.ml_train_finished) { //No ongoing training 
+      document.getElementById("saveChanges_train").disabled = false;
+      document.getElementById("modal_train_info").innerHTML = "";
+      deactivateSpinner();
+    } else if (data.ml_train_ongoing && !data.ml_train_finished ) { //Training started and not finished
       // The ml_ongoing property changed from true to false
       console.log("training started");
-      document.getElementById("modal_train_info").innerHTML = "Training already ongoing, training button disabled";
+      document.getElementById("modal_train_info").innerHTML = "Training ongoing, training button disabled";
       document.getElementById("saveChanges_train").disabled = true;
       activateSpinner();
-      // Perform any actions you need to do here
-    } else if (!data.ml_train_ongoing && data.ml_train_finished) {
-      // Done training
-      document.getElementById("modal_train_info").innerHTML = "";
-      document.getElementById("saveChanges_train").disabled = false;
-      deactivateSpinner();
-      getMetadata().concept_array_changed = false;
-    }
-    if (typeof data.concept_array_changed !== 'undefined' && data.concept_array_changed) {
+    } 
+    
+    if (typeof data.concept_array_changed !== 'undefined' && data.concept_array_changed && !data.ml_train_ongoing) {
       console.log("concept changed, disable training button");
       document.getElementById("modal_train_info").innerHTML = "You need to retrain with a new base model since you changed the concept array</br> Save changes on the main screen before you retrain";
+      document.getElementById("saveChanges_train").disabled = false;
+      deactivateSpinner();
     }
+
+    //Predictions
     if (typeof data.ml_predict === 'undefined'|| data.ml_predict) {
       console.log("prediction ongoing, disable training button");
       document.getElementById("saveChanges_train").disabled = true;
       document.getElementById("modal_train_info").innerHTML = "Prediction ongoing, training button disabled";
-      activateSpinner();
     }
-    refreshTrainContent();
-    console.log("Training ongoing changed from " + previousValue + " to " + getMetadata().ml_train_finished);
+    
+    //Indicate training finished after concept changes.
     if (!previousValue && getMetadata().ml_train_finished) {
       console.log("Training ongoing changed from " + previousValue + " to " + getMetadata().ml_train_finished);
       getMetadata().concept_array_changed = false;
       document.getElementById("modal_train_info").innerHTML = "";
+      setTraining_parameters();
     }
     previousValue = getMetadata().ml_train_finished;
+    
   });
 }
 

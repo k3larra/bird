@@ -217,7 +217,7 @@ function dropdownListener(event) {
     }
     if (targetElement.tagName === 'BUTTON') {
       document.getElementById("delete_dataset_confirm").addEventListener("click", deleteListener);
-      document.getElementById("modalTitle_delete").innerHTML += targetElement.dataset.lhtitle;
+      document.getElementById("modalTitle_delete").innerHTML = targetElement.dataset.lhtitle;
       document.getElementById("modalSubtitle_delete_dataset").innerHTML = targetElement.dataset.lhdescription;
       document.getElementById("delete_dataset_confirm").dataset.id = targetElement.id;
     }
@@ -246,7 +246,8 @@ export function build_image_containers() {
   populate_void_container(getBirds(), imageContainer)
   document.getElementById("image_data").appendChild(imageContainer);
   createbuttons()
-  add_image_container_listener(imageContainer)
+  add_image_container_listener(imageContainer);
+  console.log("getMetadata()", getMetadata());
   try {
     getMetadata().concept.forEach((item) => {
       imageContainer = createContainer(item, "Images labelled " + item);
@@ -337,7 +338,7 @@ function add_image_container_listener(imageContainer) {
     if (event.target.tagName === 'IMG') {
       const clickedImage = event.target;
       const tooltiptext_e = clickedImage.nextElementSibling;
-      console.log("getMetadata().concept", getMetadata().concept);
+      //console.log("getMetadata().concept", getMetadata().concept);
       if (getMetadata().concept.length > 0) {
         const index = getMetadata().concept.indexOf(tooltiptext_e.textContent);
         const pred = tooltiptext_e.nextElementSibling;
@@ -483,8 +484,8 @@ function createbuttons() {
     placement: 'top'
   })
   edit_concepts();
-  predict_class();
   train_model();
+  predict_class();
   //Reload button
   button = document.createElement("button")
   button.type = "button"

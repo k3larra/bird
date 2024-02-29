@@ -27,6 +27,7 @@ export function firebase_save() {
             const modalSubtitle = document.getElementById("modalSubtitle_save");
             modalSubtitle.innerHTML = "Version: " + getMetadata().version;
             const title = document.getElementById("modalTitle_save");
+            console.log('getMetadata()', getMetadata());
             title.innerHTML = getMetadata().title;
             title.setAttribute("contenteditable", true); // make h5 editable
             title.addEventListener("click", function () {

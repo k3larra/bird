@@ -1,6 +1,6 @@
-import { getMetadata, getStatistics} from "../script.js";
-import { setTraining_parameters, getTraining_parameters, currentproject} from "../firebase-module.js";
-import { getDatabase,ref,onValue} from "../firebase-module.js";
+import { getMetadata, getStatistics } from "../script.js";
+import { setTraining_parameters, getTraining_parameters, currentproject } from "../firebase-module.js";
+import { getDatabase, ref, onValue } from "../firebase-module.js";
 import { debug } from "../script.js";
 
 export function predict_class() {
@@ -28,9 +28,9 @@ export function predict_class() {
       var myModalEl = document.getElementById('myModal_predict');
       myModalEl.addEventListener('shown.bs.modal', function () {
         predictionOngoing();
-      }); 
+      });
     });
-    
+
   //document.getElementById("image_data").appendChild(button);
 }
 
@@ -41,15 +41,15 @@ function handlePredictModelButton(event) {
     getMetadata().ml_predict = true;
     getMetadata().ml_predict_started_timestamp = 0;
     getMetadata().ml_predict_finished_timestamp = 1;
-    getMetadata().ml_pred_concept ="concept"
+    getMetadata().ml_pred_concept = "concept"
     getMetadata().ml_predict_nbr = document.getElementById("images_nbr").value;
-    if(document.getElementById("erase_predictions")!==null){
+    if (document.getElementById("erase_predictions") !== null) {
       getMetadata().ml_predict_erase = document.getElementById("erase_predictions").checked;
-    }else{getMetadata().ml_predict_erase=false}
+    } else { getMetadata().ml_predict_erase = false }
     setTraining_parameters(); //should be renamed to set_parameters
   } else {
     console.log("Wait for training or ongoing prediction to finish before starting a new prediction session");
-  } 
+  }
 }
 
 function refreshPredictContent() {
@@ -63,25 +63,25 @@ function refreshPredictContent() {
     const infoText = document.createElement("p");
     predictContent.appendChild(infoText);
     infoText.innerHTML = "<b> <i>Title:</i> " + getMetadata().title + "</b><br>";
-    infoText.innerHTML += "<i>Description:</i> " + getMetadata().description+"<br>";
-    infoText.innerHTML += "<i>Number of images in dataset:</i> " + getStatistics().number_of_images+ "<br>";
-    infoText.innerHTML += "<i>Number of user classified images:</i> " + (getStatistics().number_of_images- getStatistics().number_of_void_images)+ "<br>";
+    infoText.innerHTML += "<i>Description:</i> " + getMetadata().description + "<br>";
+    infoText.innerHTML += "<i>Number of images in dataset:</i> " + getStatistics().number_of_images + "<br>";
+    infoText.innerHTML += "<i>Number of user classified images:</i> " + (getStatistics().number_of_images - getStatistics().number_of_void_images) + "<br>";
     for (const conceptNbr in getMetadata().concept) {  //Add also for unused concepts in getMetadata().concept ??
       let conceptName = getMetadata().concept[conceptNbr];
-      infoText.innerHTML += conceptName+": "+getStatistics()[conceptName]+"<br>";
+      infoText.innerHTML += conceptName + ": " + getStatistics()[conceptName] + "<br>";
     }
-    infoText.innerHTML += "<i>Number of non classified images:</i> " + (getStatistics().number_of_void_images)+ "<br>";
+    infoText.innerHTML += "<i>Number of non classified images:</i> " + (getStatistics().number_of_void_images) + "<br>";
     if (getMetadata().ml_train_nbr > 0 && getMetadata().ml_model_filename) {
-      infoText.innerHTML += "<i>Training description:</i> " + getMetadata().ml_description+"<br>";
+      infoText.innerHTML += "<i>Training description:</i> " + getMetadata().ml_description + "<br>";
       infoText.innerHTML += "<i>Base model:</i> " + getMetadata().ml_base_model + "<br>";
       infoText.innerHTML += "<i>Training nbr:</i> " + getMetadata().ml_train_nbr + "<br>";
       infoText.innerHTML += "<i>Number of predicted images:</i> " + getStatistics().number_of_predicted_images + "<br>";
-      for (const conceptNbr in getMetadata().concept) {  
+      for (const conceptNbr in getMetadata().concept) {
         let conceptName = getMetadata().concept[conceptNbr];
-        infoText.innerHTML += conceptName+": "+getStatistics()[conceptName+"_pred"]+"<br>";
+        infoText.innerHTML += conceptName + ": " + getStatistics()[conceptName + "_pred"] + "<br>";
       }
-      
-    }else{
+
+    } else {
       infoText.innerHTML += "No training has been done yet<br>"
     }
 
@@ -115,7 +115,7 @@ function refreshPredictContent() {
     predictContent.appendChild(imagesNbrInput);
     predictContent.appendChild(document.createElement("br"));
     //ad a radiobutton so the user can chose to erase previous predictions or not
-    if(getStatistics().number_of_predicted_images >0){
+    if (getStatistics().number_of_predicted_images > 0) {
       const erasePredictionsLabel = document.createElement("label");
       erasePredictionsLabel.innerHTML = "Erase previous predictions: &nbsp;";
       const erasePredictionsInput = document.createElement("input");
@@ -132,44 +132,46 @@ function refreshPredictContent() {
 
 // Listen for changes to the ml_ongoing property
 function predictionOngoing() {
-  console.log("In predictionOngoing1 metadata",getMetadata());
-  if(getMetadata().ml_model_filename){
+  console.log("In predictionOngoing1 metadata", getMetadata());
+  if (getMetadata().ml_model_filename) {
     const db = getDatabase();
-    const trainingDataRef = ref(db, "/projects/"+ currentproject + "/metadata/" + getMetadata().training_set_ref);
+    const trainingDataRef = ref(db, "/projects/" + currentproject + "/metadata/" + getMetadata().training_set_ref);
     var predictionWasOngoing = false;
     onValue(trainingDataRef, (snapshot) => {
-      console.log("In predictionOngoing2");
+      console.log("In predictionOngoing");
       const data = snapshot.val();
-      if (!document.getElementById("saveChanges_predict")) {
-        return;
-      }
-        if (data.ml_train_ongoing || data.ml_predict) {
-          //set saveChanges_predict button to disabled 
-          document.getElementById("saveChanges_predict").disabled = true;
-          activateSpinner();
-          if(data.ml_predict){
-            //console.log("Prediction ongoing!!!");
-            document.getElementById("modal_pred_info").innerHTML = "Prediction ongoing, prediction button disabled";
-          }
-          if(data.ml_train_ongoing){
-            //console.log("Training ongoing!!!");
-            document.getElementById("modal_pred_info").innerHTML = "Training ongoing, prediction button disabled";
-          }
-        } else if (!data.ml_train_ongoing && !data.ml_predict){
+      refreshPredictContent();
+      if (typeof data.concept_array_changed !== 'undefined' && data.concept_array_changed) {
+        console.log("concept changed, disable training button");
+        document.getElementById("modal_pred_info").innerHTML = "Concept array changed retraining needed";
+        document.getElementById("saveChanges_predict").disabled = true;
+        deactivateSpinner();
+      } else {
+        if (!document.getElementById("saveChanges_predict")) {
+          return;
+        }
+        if (!data.ml_train_ongoing && !data.ml_predict) { //God to go
           //console.log("Prediction or training ongoing");
           document.getElementById("saveChanges_predict").disabled = false;
           deactivateSpinner();
           document.getElementById("modal_pred_info").innerHTML = "";
           //get_all_data_reload_page(auth.currentUser.uid);         
-        }
-        if (typeof data.concept_array_changed !== 'undefined' && data.concept_array_changed) {
-          console.log("concept changed, disable training button");
-          document.getElementById("modal_pred_info").innerHTML = "Concept array changed retraining needed";
+        } else if (data.ml_train_ongoing || data.ml_predict) {
+          //set saveChanges_predict button to disabled 
           document.getElementById("saveChanges_predict").disabled = true;
-          //activateSpinner();
+          if (data.ml_predict) {
+            console.log("Prediction ongoing!!!");
+            document.getElementById("modal_pred_info").innerHTML = "Prediction ongoing, prediction button disabled";
+            activateSpinner();
+          }
+          if (data.ml_train_ongoing) {
+            console.log("Training ongoing!!!");
+            document.getElementById("modal_pred_info").innerHTML = "Training ongoing, prediction button disabled";
+            deactivateSpinner();
+          }
         }
         //Check if the change in data was from ongoing prediction to not ongoing prediction
-        if(predictionWasOngoing && !data.ml_predict){
+        if (predictionWasOngoing && !data.ml_predict) {
           console.log("Prediction finished");
           //get_all_data_reload_page(auth.currentUser.uid);
           const button = document.getElementById("reload_button")
@@ -179,10 +181,10 @@ function predictionOngoing() {
             button.classList.add("btn-success");
           }
         }
-        predictionWasOngoing= data.ml_predict;
-        refreshPredictContent();
+        predictionWasOngoing = data.ml_predict;
+      }
     });
-  }else{  
+  } else {
     console.log("You need to train a model first in order to make predictions.");
     document.getElementById("modalPredict_info").innerHTML = "You need to train a model first in order to make predictions.";
     document.getElementById("modal_pred_info").innerHTML = "No trained model exists, prediction button disabled";

@@ -1,5 +1,6 @@
 {
-    "description": "Training data for the Crafoord Crafoord AI project",
+    "title": "Birds",
+    "description": "Training data",
     "version": "1.0",
     "images": {
         "0": {
@@ -3092,7 +3093,7 @@
         },
         "772": {
             "image_location": "ASOTU\\HÖST\\10\\8096046 ASOTU 10 2016-10-03\\8096046 ASOTU 10 2016-10-03 (12).JPG",
-            "concept": "Wing"
+            "concept": "void"
         },
         "773": {
             "image_location": "ASOTU\\HÖST\\10\\8096046 ASOTU 10 2016-10-03\\8096046 ASOTU 10 2016-10-03 (13).JPG",
@@ -4356,7 +4357,7 @@
         },
         "1088": {
             "image_location": "ASOTU\\HÖST\\10\\8097094 ASOTU N10 2021-11-02\\8097094 ASOTU N10 2021-11-02 (60).JPG",
-            "concept": "Wing"
+            "concept": "void"
         },
         "1089": {
             "image_location": "ASOTU\\HÖST\\10\\8097094 ASOTU N10 2021-11-02\\8097094 ASOTU N10 2021-11-02 (61).JPG",
@@ -4400,7 +4401,7 @@
         },
         "1099": {
             "image_location": "ASOTU\\HÖST\\10\\8097094 ASOTU N10 2021-11-02\\8097094 ASOTU N10 2021-11-02 (70).JPG",
-            "concept": "Wing"
+            "concept": "void"
         },
         "1100": {
             "image_location": "ASOTU\\HÖST\\10\\8097094 ASOTU N10 2021-11-02\\8097094 ASOTU N10 2021-11-02 (71).JPG",
@@ -5796,7 +5797,7 @@
         },
         "1448": {
             "image_location": "ASOTU\\HÖST\\2+\\8095983 ASOTU 2+ 2013-11-09\\DSC_6046.JPG",
-            "concept": "Head"
+            "concept": "void"
         },
         "1449": {
             "image_location": "ASOTU\\HÖST\\2+\\8095983 ASOTU 2+ 2013-11-09\\DSC_6047.JPG",
@@ -6600,7 +6601,7 @@
         },
         "1649": {
             "image_location": "ASOTU\\HÖST\\F10\\8058907 ASOTU F10 2019-10-21\\8058907 ASOTU F10 2019-10-21 (14).JPG",
-            "concept": "Wing"
+            "concept": "void"
         },
         "1650": {
             "image_location": "ASOTU\\HÖST\\F10\\8058907 ASOTU F10 2019-10-21\\8058907 ASOTU F10 2019-10-21 (15).JPG",
@@ -6640,7 +6641,7 @@
         },
         "1659": {
             "image_location": "ASOTU\\HÖST\\F10\\8058907 ASOTU F10 2019-10-21\\8058907 ASOTU F10 2019-10-21 (4).JPG",
-            "concept": "Wing"
+            "concept": "void"
         },
         "1660": {
             "image_location": "ASOTU\\HÖST\\F10\\8058907 ASOTU F10 2019-10-21\\8058907 ASOTU F10 2019-10-21 (5).JPG",
@@ -7756,7 +7757,7 @@
         },
         "1938": {
             "image_location": "ASOTU\\HÖST\\F10\\8096014 ASOTU F10 2014-11-07\\_DSC3806.JPG",
-            "concept": "Wing"
+            "concept": "void"
         },
         "1939": {
             "image_location": "ASOTU\\HÖST\\F10\\8096014 ASOTU F10 2014-11-07\\_DSC3807.JPG",
@@ -7816,7 +7817,7 @@
         },
         "1953": {
             "image_location": "ASOTU\\HÖST\\F10\\8096014 ASOTU F10 2014-11-07\\_DSC3821.JPG",
-            "concept": "Wing"
+            "concept": "void"
         },
         "1954": {
             "image_location": "ASOTU\\HÖST\\F10\\8096014 ASOTU F10 2014-11-07\\_DSC3822.JPG",
@@ -8296,7 +8297,7 @@
         },
         "2073": {
             "image_location": "ASOTU\\HÖST\\F10\\8096031 ASOTU F10 2015-10-30\\IMG_2738.JPG",
-            "concept": "Wing"
+            "concept": "void"
         },
         "2074": {
             "image_location": "ASOTU\\HÖST\\F10\\8096031 ASOTU F10 2015-10-30\\IMG_2739.JPG",
@@ -8812,7 +8813,7 @@
         },
         "2202": {
             "image_location": "ASOTU\\HÖST\\F10\\8096047 ASOTU F10 2016-10-06\\8096047 ASOTU F10 2016-10-06 (16).JPG",
-            "concept": "Wing"
+            "concept": "void"
         },
         "2203": {
             "image_location": "ASOTU\\HÖST\\F10\\8096047 ASOTU F10 2016-10-06\\8096047 ASOTU F10 2016-10-06 (17).JPG",
@@ -9512,7 +9513,7 @@
         },
         "2377": {
             "image_location": "ASOTU\\HÖST\\F10\\8096090 ASOTU F 10 2017-10-06\\8096090 ASOTU F 10 2017-10-06 (6).JPG",
-            "concept": "Head"
+            "concept": "void"
         },
         "2378": {
             "image_location": "ASOTU\\HÖST\\F10\\8096090 ASOTU F 10 2017-10-06\\8096090 ASOTU F 10 2017-10-06 (7).JPG",
@@ -12992,7 +12993,7 @@
         },
         "3247": {
             "image_location": "ASOTU\\HÖST\\F10\\8097100 ASOTU F10 2021-11-03\\8097100 ASOTU F10 2021-11-03 (46).JPG",
-            "concept": "Tail"
+            "concept": "void"
         },
         "3248": {
             "image_location": "ASOTU\\HÖST\\F10\\8097100 ASOTU F10 2021-11-03\\8097100 ASOTU F10 2021-11-03 (47).JPG",
@@ -13080,7 +13081,7 @@
         },
         "3269": {
             "image_location": "ASOTU\\HÖST\\F10\\8097101 ASOTU F10 2021-11-03\\8097101 ASOTU F10 2021-11-03 (21).JPG",
-            "concept": "Wing"
+            "concept": "void"
         },
         "3270": {
             "image_location": "ASOTU\\HÖST\\F10\\8097101 ASOTU F10 2021-11-03\\8097101 ASOTU F10 2021-11-03 (22).JPG",
@@ -13192,7 +13193,7 @@
         },
         "3297": {
             "image_location": "ASOTU\\HÖST\\F10\\8097101 ASOTU F10 2021-11-03\\8097101 ASOTU F10 2021-11-03 (9).JPG",
-            "concept": "Head"
+            "concept": "void"
         },
         "3298": {
             "image_location": "ASOTU\\HÖST\\F10\\8097105 ASOTU F10 2021-11-05\\8097105 ASOTU F10 2021-11-05 (1).JPG",
@@ -13920,7 +13921,7 @@
         },
         "3479": {
             "image_location": "ASOTU\\HÖST\\F2+\\8096029 ASOTU F2+ 2015-10-26\\IMG_2594.JPG",
-            "concept": "Head"
+            "concept": "void"
         },
         "3480": {
             "image_location": "ASOTU\\HÖST\\F2+\\8096029 ASOTU F2+ 2015-10-26\\IMG_2595.JPG",
@@ -15152,7 +15153,7 @@
         },
         "3787": {
             "image_location": "ASOTU\\HÖST\\F20\\8097062 ASOTU F20 2020-11-23\\8097062 ASOTU F20 2020-11-23 (1).JPG",
-            "concept": "Head"
+            "concept": "void"
         },
         "3788": {
             "image_location": "ASOTU\\HÖST\\F20\\8097062 ASOTU F20 2020-11-23\\8097062 ASOTU F20 2020-11-23 (10).JPG",
@@ -15196,7 +15197,7 @@
         },
         "3798": {
             "image_location": "ASOTU\\HÖST\\F20\\8097062 ASOTU F20 2020-11-23\\8097062 ASOTU F20 2020-11-23 (2).JPG",
-            "concept": "Head"
+            "concept": "void"
         },
         "3799": {
             "image_location": "ASOTU\\HÖST\\F20\\8097062 ASOTU F20 2020-11-23\\8097062 ASOTU F20 2020-11-23 (20).JPG",
@@ -18176,7 +18177,7 @@
         },
         "4543": {
             "image_location": "ASOTU\\HÖST\\M10\\8096034 ASOTU M10 2015-10-30\\IMG_2849.JPG",
-            "concept": "Wing"
+            "concept": "void"
         },
         "4544": {
             "image_location": "ASOTU\\HÖST\\M10\\8096034 ASOTU M10 2015-10-30\\IMG_2850.JPG",
@@ -18392,7 +18393,7 @@
         },
         "4597": {
             "image_location": "ASOTU\\HÖST\\M10\\8096080 ASOTU M10 2016-10-30\\8096080 ASOTU M10 2016-10-30 (14).JPG",
-            "concept": "Wing"
+            "concept": "void"
         },
         "4598": {
             "image_location": "ASOTU\\HÖST\\M10\\8096080 ASOTU M10 2016-10-30\\8096080 ASOTU M10 2016-10-30 (15).JPG",
@@ -19428,7 +19429,7 @@
         },
         "4856": {
             "image_location": "ASOTU\\HÖST\\M10\\8097032 ASOTU M10 2018-10-08\\8097032 ASOTU M10 2018-10-08 (49).JPG",
-            "concept": "Wing"
+            "concept": "void"
         },
         "4857": {
             "image_location": "ASOTU\\HÖST\\M10\\8097032 ASOTU M10 2018-10-08\\8097032 ASOTU M10 2018-10-08 (5).JPG",
@@ -24528,7 +24529,7 @@
         },
         "6131": {
             "image_location": "ASOTU\\VÅR\\F3+\\EA163986 ASOTU F3+ 2016-04-23 VOGELWARTE HIDDENSEE GERMANIA\\EA163986 ASOTU F3+ 2016-04-23 VOGELWARTE HIDDENSEE GERMANIA (18).JPG",
-            "concept": "Wing"
+            "concept": "void"
         },
         "6132": {
             "image_location": "ASOTU\\VÅR\\F3+\\EA163986 ASOTU F3+ 2016-04-23 VOGELWARTE HIDDENSEE GERMANIA\\EA163986 ASOTU F3+ 2016-04-23 VOGELWARTE HIDDENSEE GERMANIA (19).JPG",
@@ -25364,7 +25365,7 @@
         },
         "6340": {
             "image_location": "ASOTU\\VÅR\\M3+\\8095939 ASOTU M 3+ 2012-04-04\\DSC_4791.JPG",
-            "concept": "Wing"
+            "concept": "void"
         },
         "6341": {
             "image_location": "ASOTU\\VÅR\\M3+\\8095939 ASOTU M 3+ 2012-04-04\\DSC_4792.JPG",
@@ -25448,7 +25449,7 @@
         },
         "6361": {
             "image_location": "ASOTU\\VÅR\\M30\\8095960 ASOTU M30 2013-04-13\\8095960 ASOTU M30 2013-04-13 (12).JPG",
-            "concept": "Wing"
+            "concept": "void"
         },
         "6362": {
             "image_location": "ASOTU\\VÅR\\M30\\8095960 ASOTU M30 2013-04-13\\8095960 ASOTU M30 2013-04-13 (13).JPG",
