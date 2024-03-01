@@ -229,7 +229,7 @@ function trainingOngoing() {
     } else if (data.ml_train_ongoing && !data.ml_train_finished ) { //Training started and not finished
       // The ml_ongoing property changed from true to false
       console.log("training started");
-      document.getElementById("modal_train_info").innerHTML = "Training ongoing, training button disabled";
+      document.getElementById("modal_train_info").innerHTML = "Training ongoing";
       document.getElementById("saveChanges_train").disabled = true;
       activateSpinner();
     } 
@@ -245,7 +245,7 @@ function trainingOngoing() {
     if (typeof data.ml_predict === 'undefined'|| data.ml_predict) {
       console.log("prediction ongoing, disable training button");
       document.getElementById("saveChanges_train").disabled = true;
-      document.getElementById("modal_train_info").innerHTML = "Prediction ongoing, training button disabled";
+      document.getElementById("modal_train_info").innerHTML = "Prediction ongoing, no training is possible at the same time.";
     }
     
     //Indicate training finished after concept changes.

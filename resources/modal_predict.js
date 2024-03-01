@@ -2,9 +2,9 @@ import { getMetadata, getStatistics } from "../script.js";
 import { setTraining_parameters, getTraining_parameters, currentproject } from "../firebase-module.js";
 import { getDatabase, ref, onValue } from "../firebase-module.js";
 import { debug } from "../script.js";
+const maxNumberImages = 200;
 
 export function predict_class() {
-  const maxNumberImages = 200;
   const button = document.createElement("button");
   button.type = "button";
   button.id = "myInput_predict";
@@ -165,12 +165,12 @@ function predictionOngoing() {
           document.getElementById("saveChanges_predict").disabled = true;
           if (data.ml_predict) {
             console.log("Prediction ongoing!!!");
-            document.getElementById("modal_pred_info").innerHTML = "Prediction ongoing, prediction button disabled";
+            document.getElementById("modal_pred_info").innerHTML = "Prediction ongoing";
             activateSpinner();
           }
           if (data.ml_train_ongoing) {
             console.log("Training ongoing!!!");
-            document.getElementById("modal_pred_info").innerHTML = "Training ongoing, prediction button disabled";
+            document.getElementById("modal_pred_info").innerHTML = "Training ongoing, no prediction possible at the moment.";
             deactivateSpinner();
           }
         }
