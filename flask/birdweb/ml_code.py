@@ -1,4 +1,5 @@
 import os
+import gc
 import json
 import platform
 import uuid
@@ -109,6 +110,10 @@ def train_model(model, criterion, optimizer, training_loader):
         optimizer.zero_grad()
         loss.backward()    # Error here thenin Thread -4
         optimizer.step()
+        # Delete tensors
+        del inputs, labels, outputs, loss
+        # Run the garbage collector
+        gc.collect()
 
 def increment_counter(transaction, ref):
     current_value = transaction.get(ref)
@@ -162,6 +167,8 @@ def predict_images(model, model_transforms, image_path_resized, image_names, idx
         batch_class_probs = [int(prob.item()*100) for prob in batch_class_probs]
         predictions.extend([idx_to_label[pred] for pred in batch_predictions])
         class_probs.extend(batch_class_probs)
+        del images, output
+        gc.collect()
     return predictions, class_probs
 
 def train_and_save(model,model_transforms,metadata, projID, training_data, image_path_resized,save_path,batch_size=32,num_epochs=5):
@@ -202,7 +209,9 @@ def train_and_save(model,model_transforms,metadata, projID, training_data, image
     scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
     ref = db.reference('/projects').child(projID).child("metadata").child(metadata["training_set_ref"])
     for epoch in range(num_epochs):
-        train_model(model, criterion, optimizer_ft,training_loader)
+        loss=train_model(model, criterion, optimizer_ft,training_loader)
+        del loss  # Delete the loss tensor
+        gc.collect()  # Run the garbage collector
         scheduler.step()
         epoch_str=str(epoch+1)+"/"+str(num_epochs)
         ref.update({

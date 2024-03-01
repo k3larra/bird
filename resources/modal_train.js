@@ -114,7 +114,7 @@ function refreshTrainContent() {
       const resetButton = document.createElement("button");
       resetButton.type = "button";
       resetButton.id = "reset_train";
-      resetButton.classList.add("btn", "btn-secondary", "btn-sm", "me-1");
+      resetButton.classList.add("btn", "btn-warning", "btn-sm", "me-1");
       resetButton.innerHTML = "Reset training";
       trainContent.appendChild(resetButton);
       document.getElementById("reset_train").addEventListener("click", resetTraining);

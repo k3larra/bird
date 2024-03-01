@@ -4,6 +4,7 @@ import { getDatabase, ref, onValue } from "../firebase-module.js";
 import { debug } from "../script.js";
 
 export function predict_class() {
+  const maxNumberImages = 200;
   const button = document.createElement("button");
   button.type = "button";
   button.id = "myInput_predict";
@@ -42,6 +43,9 @@ function handlePredictModelButton(event) {
     getMetadata().ml_predict_started_timestamp = 0;
     getMetadata().ml_predict_finished_timestamp = 1;
     getMetadata().ml_pred_concept = "concept"
+    if (document.getElementById("images_nbr").value > maxNumberImages) {
+      document.getElementById("images_nbr").value = maxNumberImages;
+    }
     getMetadata().ml_predict_nbr = document.getElementById("images_nbr").value;
     if (document.getElementById("erase_predictions") !== null) {
       getMetadata().ml_predict_erase = document.getElementById("erase_predictions").checked;
@@ -91,7 +95,7 @@ function refreshPredictContent() {
       const resetPredictButton = document.createElement("button");
       resetPredictButton.type = "button";
       resetPredictButton.id = "reset_predict";
-      resetPredictButton.classList.add("btn", "btn-secondary", "btn-sm", "me-1");
+      resetPredictButton.classList.add("btn", "btn-warning", "btn-sm", "me-1");
       resetPredictButton.innerHTML = "Reset predict";
       predictContent.appendChild(resetPredictButton);
       document.getElementById("reset_predict").addEventListener("click", function () {
@@ -105,7 +109,7 @@ function refreshPredictContent() {
     predictContent.appendChild(hr);
     // Add input field for "images nbr"
     const imagesNbrLabel = document.createElement("label");
-    imagesNbrLabel.innerHTML = "Number of images to predict classes for: ";
+    imagesNbrLabel.innerHTML = "Number of images to predict classes for (max 200 at this phase): ";
     const imagesNbrInput = document.createElement("input");
     imagesNbrInput.type = "number";
     imagesNbrInput.id = "images_nbr";
