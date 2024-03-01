@@ -82,9 +82,9 @@ export function firebase_save_as() {
         const db = getDatabase();
         console.log('BEFORE!!! getMetadata()', getMetadata());
         const key = save_new_training_set_to_databasebase(authData.uid, getBirds());
-        if (key) {
+       /*  if (key) {
           setAsDefaultTrainingSet(authData.uid, key);
-        }
+        }*/
         get_all_data_reload_page(authData.uid); //This happens in setAsDef above....
       });
     });

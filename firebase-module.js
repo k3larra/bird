@@ -260,7 +260,7 @@ export function save_new_training_set_to_databasebase(userID, jsonfile) {
 
     const meta = {
       "concept": getMetadata().concept,
-      "default": true,
+      "default": false,
       "description": "Separating bird species images",
       "ml_base_model": "ResNet50",
       "ml_description": jsonfile.description,
