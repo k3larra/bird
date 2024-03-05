@@ -219,6 +219,7 @@ async function _setLoggedInVisibility(loggedIn, user, awaitingApproval) {
       document.getElementById("not_logged_in").classList.add("collapse"); //hide the public div
       document.getElementById("logged_in").classList.remove("collapse");
       document.getElementById("training_data_menu").classList.remove("collapse");
+      document.getElementById("alt_menu").classList.remove("collapse");
       const isAdmin = await isUserAdmin();
       if (isAdmin) {
         console.log("adding loggedin visibility admin")
@@ -235,6 +236,7 @@ async function _setLoggedInVisibility(loggedIn, user, awaitingApproval) {
     document.getElementById("logged_in").classList.add("collapse");
     document.getElementById("training_data_menu").classList.add("collapse")
     document.getElementById("admin_menu").classList.add("collapse")
+    document.getElementById("alt_menu").classList.add("collapse");
   }
 }
 

@@ -15,13 +15,14 @@ import { edit_concepts } from "./resources/modal_concept.js";
 import { firebase_save } from "./resources/modal_save.js";
 import { firebase_save_as } from "./resources/modal_save_as.js";
 import { loadModalAlert, showAlert, showConfirm, showPrompt } from "./resources/modal_alert.js";
+import {modal_do_survey} from "./resources/modal_do_survey.js";
 export const debug = true;
 /********************Ref to image folder  here************************** */
 let unique_concepts = [] //This is central and needs some more protection....
 //let deleteModal = null;
 
 let _metadata = null;
-
+modal_do_survey();
 loadModalAlert();
 export function getMetadata() {
   return _metadata;
