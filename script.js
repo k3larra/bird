@@ -93,7 +93,7 @@ export function getStatistics() {
   }
   //Add statistics for concepts
   //get the sum of all concepts in getBirds().images.concept
-  console.log("getMetadata().concept", getMetadata().concept);
+  //console.log("getMetadata().concept", getMetadata().concept);
   //unique_concepts.forEach((concept) => {
   getMetadata().concept.forEach((concept) => {
     statistics[concept] = findImageIndexWithConcept("concept", concept).length;

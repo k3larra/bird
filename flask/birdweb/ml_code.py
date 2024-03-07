@@ -214,6 +214,7 @@ def predict_images(model, model_transforms, image_path_resized, image_names, lab
 def train_and_save(model,model_transforms,metadata, projID, training_data, image_path_resized,save_path,batch_size=32,num_epochs=5):
     dataset = training_data["images"]
     concepts = metadata['concept']
+    ref = db.reference('/projects').child(projID).child("metadata").child(metadata["training_set_ref"])
     for concept in concepts:
         if not any(d['concept'] == concept for d in dataset):
             print("No images for concept",concept)
@@ -239,7 +240,6 @@ def train_and_save(model,model_transforms,metadata, projID, training_data, image
     #for i in range(105):
     #    print(dataset[i])
     #Here check that there are images for all concepts in metadata['concept']
-    ref = db.reference('/projects').child(projID).child("metadata").child(metadata["training_set_ref"])
     if platform.system() == 'Windows':
         print("Windows")
     if platform.system() == 'Linux':
