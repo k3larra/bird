@@ -84,14 +84,6 @@ function refreshPredictContent() {
         let conceptName = getMetadata().concept[conceptNbr];
         infoText.innerHTML += conceptName + ": " + getStatistics()[conceptName + "_pred"] + "<br>";
       }
-
-    } else {
-      infoText.innerHTML += "No training has been done yet<br>"
-    }
-
-    if (debug) {
-      infoText.innerHTML += "----debug info----<br>"
-      //console.log("getMetadata()", getMetadata());
       const resetPredictButton = document.createElement("button");
       resetPredictButton.type = "button";
       resetPredictButton.id = "reset_predict";
@@ -104,6 +96,14 @@ function refreshPredictContent() {
         getMetadata().ml_predict_finished_timestamp = 1;
         setTraining_parameters(); //should be renamed to set_parameters
       });
+    } else {
+      infoText.innerHTML += "No training has been done yet<br>"
+    }
+
+    if (debug) {
+      infoText.innerHTML += "----debug info----<br>"
+      //console.log("getMetadata()", getMetadata());
+
     }
     const hr = document.createElement("hr");
     predictContent.appendChild(hr);

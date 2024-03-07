@@ -16,7 +16,10 @@ from torchvision.io import read_image
 from torchvision.io import ImageReadMode
 from torch.optim import lr_scheduler
 #from torchvision.models import efficientnet_v2_s, EfficientNet_V2_S_Weights, resnet50, ResNet50_Weights
+from torchvision.models import efficientnet_v2_s, EfficientNet_V2_S_Weights
+from torchvision.models import inception_v3, Inception_V3_Weights
 from torchvision.models import resnet50, ResNet50_Weights
+from torchvision.models import resnet18, ResNet18_Weights
 #print("torch.__version__",torch.__version__)
 #print("torchvision.__version__",torchvision.__version__)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -67,6 +70,15 @@ class CustomImageDataset(Dataset):
         if self.target_transform:
             label = self.target_transform(label)
         return image, label
+    
+def getResNet18_model(num_classes):
+    weights = ResNet18_Weights.DEFAULT
+    model_transforms = weights.transforms(antialias=True)
+    model = resnet18(weights=weights)
+    model._name="ResNet18"
+    model.fc =nn.Linear(model.fc.in_features, num_classes)
+    model.eval()
+    return model, model_transforms
 
 def getResNet50_model(num_classes):
     weights = ResNet50_Weights.DEFAULT
@@ -83,6 +95,17 @@ def getEfficientNet_V2_S_model(num_classes):
     model = efficientnet_v2_s(weights=weights)
     model._name="EfficientNet_V2_S"
     model._fc = nn.Linear(model._fc.in_features, num_classes)
+    #model.classifier = nn.Linear(model.classifier.in_features, num_classes)
+    model.eval()
+    return model, model_transforms
+
+def getInception_V3_model(num_classes):
+    weights = Inception_V3_Weights.DEFAULT
+    model_transforms = weights.transforms(antialias=True)
+    model = inception_v3(weights=weights)
+    model._name="Inception_V3"
+    model._fc = nn.Linear(model.fc.in_features, num_classes)
+    #model.classifier = nn.Linear(model.classifier.in_features, num_classes)
     model.eval()
     return model, model_transforms
 
@@ -95,6 +118,12 @@ def get_existing_trained_model(save_path, ml_filename,num_classes):
         #model.fc =nn.Linear(model.fc.in_features, num_classes)
     elif "EfficientNet_V2_S" in ml_filename:
         weights = EfficientNet_V2_S_Weights.DEFAULT #to get the transforms
+        #model._fc = nn.Linear(model._fc.in_features, num_classes)
+    elif "ResNet18" in ml_filename:
+        weights = ResNet18_Weights.DEFAULT #to get the transforms
+        #model._fc = nn.Linear(model._fc.in_features, num_classes)
+    elif "Inception_V3" in ml_filename:
+        weights = Inception_V3_Weights.DEFAULT #to get the transforms
         #model._fc = nn.Linear(model._fc.in_features, num_classes)
     model_transforms = weights.transforms(antialias=True)
     #model.eval()
@@ -124,8 +153,13 @@ def increment_counter(transaction, ref):
     transaction.put(ref, new_value)
     return new_value
 
-def predict_image(model, model_transforms, image_path_resized, image_name, idx_to_label):
+def predict_image(model, model_transforms, image_path_resized, image_name, labels):
     model.eval()
+    #print(labels) 
+    #labels = labels[-1:] + labels[:-1] last to first
+    #THis is the ugliest hack ever, I do not know why the predictions comes out one step wrong so index 0 is really the last label and the first is the second.
+    ##labels = labels[1:] + labels[:1] #first to last 
+    #print(labels)
     model = model.to(device) #-This could be done once
     model = model.to('cpu')
     imagePath = os.path.join(image_path_resized, image_name)
@@ -141,13 +175,19 @@ def predict_image(model, model_transforms, image_path_resized, image_name, idx_t
     output_prob = F.softmax(output, dim=1)
     class_prob, predicted = torch.max(output_prob.data, 1)
     class_prob = int(class_prob.item()*100)
-    #print("predicted: "+str(idx_to_label[predicted])+ " ("+str(class_prob)+"%)" )
-    return idx_to_label[predicted], class_prob
+    print("labels",labels)
+    print("predictedRaw: "+str(predicted.item())+ " ("+str(class_prob)+"%)" )
+    print("predicted: "+str(labels[predicted.item()])+ " ("+str(class_prob)+"%)" )
+    #labels = labels[-1:] + labels[:-1]
+    #print("predictedAfter: "+str(labels[predicted.item()])+ " ("+str(class_prob)+"%)" )
+    return labels[predicted.item()], class_prob
 
-def predict_images(model, model_transforms, image_path_resized, image_names, idx_to_label, batch_size=100):
+def predict_images(model, model_transforms, image_path_resized, image_names, labels, batch_size=100):
     model.eval()
     predictions = []
     class_probs = []
+     #THis is the ugliest hack ever, I do not know why the predictions comes out one step wrong so index 0 is really the last label and the first is the second.
+    #labels = labels[1:] + labels[:1] #first to last 
     for i in range(0, len(image_names), batch_size):
         batch_image_names = image_names[i:i+batch_size]
         images = []
@@ -165,7 +205,7 @@ def predict_images(model, model_transforms, image_path_resized, image_names, idx
         output_prob = F.softmax(output, dim=1)
         batch_class_probs, batch_predictions = torch.max(output_prob.data, 1)
         batch_class_probs = [int(prob.item()*100) for prob in batch_class_probs]
-        predictions.extend([idx_to_label[pred] for pred in batch_predictions])
+        predictions.extend([labels[pred] for pred in batch_predictions])
         class_probs.extend(batch_class_probs)
         del images, output
         gc.collect()
@@ -173,11 +213,6 @@ def predict_images(model, model_transforms, image_path_resized, image_names, idx
 
 def train_and_save(model,model_transforms,metadata, projID, training_data, image_path_resized,save_path,batch_size=32,num_epochs=5):
     dataset = training_data["images"]
-    print("total number images",len(dataset))
-    dataset = [x for x in dataset if x['concept'] != 'void']
-    print("number images in training dataset",len(dataset))
-    #Here check that there are images for all concepts in metadata['concept']
-    ref = db.reference('/projects').child(projID).child("metadata").child(metadata["training_set_ref"])
     concepts = metadata['concept']
     for concept in concepts:
         if not any(d['concept'] == concept for d in dataset):
@@ -191,17 +226,38 @@ def train_and_save(model,model_transforms,metadata, projID, training_data, image
                 "ml_train_finished":True
             }) 
             return
+    print("total number images",len(dataset))
+    dataset = [x for x in dataset if x['concept'] != 'void']
+    print(concepts)
+    # Create a dictionary that maps concept names to indices
+    concept_to_index = {name: index for index, name in enumerate(concepts)}
+    # Replace the concept names in the dataset with their corresponding indices
+    for item in dataset:
+        if item['concept'] in concept_to_index:
+            item['concept'] = concept_to_index[item['concept']]
+    print("number images in training dataset",len(dataset))
+    #for i in range(105):
+    #    print(dataset[i])
+    #Here check that there are images for all concepts in metadata['concept']
+    ref = db.reference('/projects').child(projID).child("metadata").child(metadata["training_set_ref"])
     if platform.system() == 'Windows':
         print("Windows")
     if platform.system() == 'Linux':
         print("Linux")
-    print(metadata['concept'])
+ 
     if torch.cuda.is_available():
         print('CUDA is available.')
     else:
         print('CUDA is not available.')
     model = model.to(device)
     bird_dataset = CustomImageDataset(dataset, image_path_resized, transform=model_transforms, target_transform=None)
+    print(f"Total samples in the dataset: {len(bird_dataset)}")
+    # Print the first few samples in the dataset
+    """ for i in range(min(20, len(bird_dataset))):
+        sample, label = bird_dataset[i]
+        print(f"Sample #{i}:")
+        print(f"Label: {label}") """
+        #print(f"Sample data: {sample}")
     training_loader = DataLoader(bird_dataset, batch_size=batch_size, shuffle=True)  #32,64
     #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     criterion = nn.CrossEntropyLoss()

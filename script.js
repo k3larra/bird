@@ -10,15 +10,15 @@ import { train_model } from "./resources/modal_train.js";
 import { predict_class } from "./resources/modal_predict.js";
 import { IMAGEFOLDER } from "./firebase-module.js";
 import { createAddImagesToTrainingdataButton, clearPredictedImages } from "./resources/create_elements.js";
-import { createDropdownMenu } from "./resources/create_elements.js";
+import { createDropdownMenu, createDropdownMenuSelectingProbBelow } from "./resources/create_elements.js";
 import { edit_concepts } from "./resources/modal_concept.js";
 import { firebase_save } from "./resources/modal_save.js";
 import { firebase_save_as } from "./resources/modal_save_as.js";
 import { loadModalAlert, showAlert, showConfirm, showPrompt } from "./resources/modal_alert.js";
 import {modal_do_survey} from "./resources/modal_do_survey.js";
-export const debug = true;
+export const debug = false;
 /********************Ref to image folder  here************************** */
-let unique_concepts = [] //This is central and needs some more protection....
+//let unique_concepts = [] //This is central and needs some more protection....
 //let deleteModal = null;
 
 let _metadata = null;
@@ -28,7 +28,6 @@ export function getMetadata() {
   return _metadata;
 }
 export function setMetadata(value) {
-  // Add any additional logic or validation here
   _metadata = value;
 }
 
@@ -37,20 +36,19 @@ export function getBirds() {
   return _birds;
 }
 export function setBirds(value) {
-  // Add any additional logic or validation here
   _birds = value;
 }
 
-function updateUniqueConcepts() {
+/* function updateUniqueConcepts() {  //this becomes random and depends on the order of the images in the json file
   unique_concepts = [];
   for (const [key, value] of Object.entries(getBirds().images)) {
     if (value.concept == "void") continue;
     if (unique_concepts.indexOf(value.concept) === -1) unique_concepts.push(value.concept);
   }
   return unique_concepts;
-}
+} */
 
-export function findImageIndexWithConcept(search_key, concept, pred_percent) {
+export function findImageIndexWithConcept(search_key, concept, pred_percent, above_percent = true) {
   let image_indexes_for_concept = []
   for (const [key, value] of Object.entries(getBirds().images)) {
     if (search_key === "concept") { //Yes I know....
@@ -63,7 +61,11 @@ export function findImageIndexWithConcept(search_key, concept, pred_percent) {
       if (value.concept_pred == null) continue;
       if (value.concept_pred == "void") continue;
       if (value.concept == concept) { value.concept_pred == ""; continue; }  //The image is selected for training
-      if (value.concept_pred_probability <= pred_percent) continue;
+      if(above_percent){
+        if (value.concept_pred_probability <= pred_percent) continue;
+      }else{
+        if (value.concept_pred_probability >= pred_percent) continue;
+       } 
       if (value.concept_pred == concept) {
         image_indexes_for_concept.push(key)
       }
@@ -81,22 +83,25 @@ export function findImageIndexWithConcept(search_key, concept, pred_percent) {
  * - [concept]: The number of images that have the specified concept associated with them. This property is repeated for each unique concept.
  */
 export function getStatistics() {
-  let a = updateUniqueConcepts();
+  //updateUniqueConcepts();
   const statistics = {
     "number_of_images": Object.keys(getBirds().images).length,
-    "number_of_concepts": unique_concepts.length,
+    //"number_of_concepts": unique_concepts.length,
+    "number_of_concepts": getMetadata().concept.length,
     "number_of_void_images": findImageIndexWithConcept("concept", "void").length,
     "number_of_predicted_images": 0
   }
   //Add statistics for concepts
   //get the sum of all concepts in getBirds().images.concept
-  unique_concepts.forEach((concept) => {
+  console.log("getMetadata().concept", getMetadata().concept);
+  //unique_concepts.forEach((concept) => {
+  getMetadata().concept.forEach((concept) => {
     statistics[concept] = findImageIndexWithConcept("concept", concept).length;
   });
   //Add statistics for predicted concepts
   //check so entries in getBirds().images.concept_pred is not null
   //const unique_concepts = [...new Set(getBirds().images.map(item => item.concept_pred))];
-  unique_concepts.forEach((concept) => {
+  getMetadata().concept.forEach((concept) => { //changed from unique here
     //console.log('findImageIndexWithConcept("concept_pred",concept)',  findImageIndexWithConcept("concept_pred",concept))
     let n = findImageIndexWithConcept("concept_pred", concept).length;
     statistics[concept + "_pred"] = n;
@@ -118,11 +123,11 @@ function displayStatistics() {
   text += "Number of images: " + statistics.number_of_images + "<br>";
   text += "Number of concepts: " + statistics.number_of_concepts + "<br>";
   text += "Number of unlabelled images: " + statistics.number_of_void_images + "<br>";
-  for (const concept in unique_concepts) {  //Add also for unused concepts in getMetadata().concept ??
-    text += "Number of human classified images: " + unique_concepts[concept] + ": " + statistics[unique_concepts[concept]] + "<br>";
+  for (const aconcept in getMetadata().concept) {  //Add also for unused concepts in getMetadata().concept ??
+    text += "Number of human classified images: " + getMetadata().concept[aconcept] + ": " + statistics[getMetadata().concept[aconcept]] + "<br>";
   }
-  for (const concept in unique_concepts) {
-    text += "Number of machine predicted images: " + unique_concepts[concept] + ": " + statistics[unique_concepts[concept] + "_pred"] + "<br>";
+  for (const aconcept in getMetadata().concept) {
+    text += "Number of machine predicted images: " + getMetadata().concept[aconcept] + ": " + statistics[getMetadata().concept[aconcept] + "_pred"] + "<br>";
   }
   document.getElementById("text_1").innerHTML = text;
 }
@@ -302,6 +307,7 @@ export function populate_container(data, predicted_concept_true_value, container
     surrounding_div.id = "pred_image_div";
     header.innerHTML = "Images predicted as: " + predicted_concept_true_value;
     header.appendChild(createDropdownMenu(predicted_concept_true_value));
+    header.appendChild(createDropdownMenuSelectingProbBelow(predicted_concept_true_value));
     const mouseOverText = "Add images to training set. <br>Only images marked with the concept <b> " +
       predicted_concept_true_value + " </b> will be added." +
       "<br> Click on the image to change the predicted class.";
@@ -407,6 +413,7 @@ function createImageItem(element, image_data, item, is_predicted_concept, predic
   const concept = image_data["concept"];
   const pred_concept = image_data["concept_pred"];
   const pred_percent = image_data["concept_pred_probability"];
+  //console.log("Image_data", image_data);
   const row_e = document.createElement('div');
   row_e.classList.add("col-1", "col-pixel-width-80", "image-container", "_tooltip");
   const image_e = document.createElement('img');
@@ -477,6 +484,10 @@ function createbuttons() {
     event.preventDefault();
     tooltip1.hide();
     build_image_containers();
+    const button = document.getElementById("myInput_save");
+    button.classList.remove('btn-outline-dark');
+    button.classList.add('btn-success');
+    button.textContent = "Save updated dataset to server";
   });
   const tooltip1 = new bootstrap.Tooltip(button, {
     customClass: '_lh_tooltip_standard',

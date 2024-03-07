@@ -97,8 +97,15 @@ function refreshTrainContent() {
         + "<i>Training ended:</i> " + finishedTrainingTime + "</br>"
         + "<i>Training status:</i> " + getMetadata().ml_train_status + "</br>"
         + "<i>Training description:</i> " + getMetadata().ml_description + "</br>"
-        + "<i>Current epoch:</i> " + getMetadata().ml_epoch + "</br>"
+        + "<i>Current epoch:</i> <b>" + getMetadata().ml_epoch + "</b></br>"
         + "Training over " + getMetadata().ml_epochs + " epochs and lasted for " + trainingTime + "</br>";
+        const resetButton = document.createElement("button");
+        resetButton.type = "button";
+        resetButton.id = "reset_train";
+        resetButton.classList.add("btn", "btn-warning", "btn-sm", "me-1");
+        resetButton.innerHTML = "Reset training";
+        trainContent.appendChild(resetButton);
+        document.getElementById("reset_train").addEventListener("click", resetTraining);
     } else {
       trainContentText.innerHTML += "No training has been done yet</br>"
     }
@@ -111,13 +118,6 @@ function refreshTrainContent() {
         "<i>ml_train_finished:</i> " + getMetadata().ml_train_finished + "</br>" +
         "<i>ml_retrain_existing_model:</i> " + getMetadata().ml_retrain_existing_model + "</br>"+
         "<i>ml_predict_ongoing:</i> " + getMetadata().ml_predict + "</br>";
-      const resetButton = document.createElement("button");
-      resetButton.type = "button";
-      resetButton.id = "reset_train";
-      resetButton.classList.add("btn", "btn-warning", "btn-sm", "me-1");
-      resetButton.innerHTML = "Reset training";
-      trainContent.appendChild(resetButton);
-      document.getElementById("reset_train").addEventListener("click", resetTraining);
     }
     //Add a <hr> element to trainContent
     const hr = document.createElement("hr");
@@ -156,7 +156,9 @@ function refreshTrainContent() {
     modelListItem.appendChild(modelLabel);
     const modelDropdown = document.createElement("select");
     modelDropdown.id = "model";
-    let modelValues = ["ResNet50", "EfficientNet_V2_S", "Continue training"];
+    //let modelValues = ["ResNet18","ResNet50", "EfficientNet_V2_S", "Continue training"];
+    //let modelValues = ["ResNet18","ResNet50", "Inception_V3", "Continue training"];
+    let modelValues = ["ResNet18","ResNet50", "Continue training"];
 
     modelValues.forEach(value => {
       const option = document.createElement("option");
@@ -205,7 +207,7 @@ function trainingOngoing() {
   console.log("Number clasified images (all,void)" + getStatistics().number_of_images + ":" + getStatistics().number_of_void_images);
   const numberClassifiedImages = getStatistics().number_of_images - getStatistics().number_of_void_images;
   if (numberClassifiedImages < 2) {
-    alert("You need to classify at least 2 images before you can start training");
+    alert("You need to classify at least 2 images of each class before you can start training a model.");
     return;
   }
   const db = getDatabase();

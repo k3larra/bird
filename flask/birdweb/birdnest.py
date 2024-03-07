@@ -14,7 +14,7 @@ app = Flask(__name__)
 #firebase
 import firebase_admin
 from firebase_admin import credentials, db
-from ml_code import predict_image,predict_images,train_and_save, getResNet50_model,getEfficientNet_V2_S_model,get_existing_trained_model
+from ml_code import predict_image,predict_images,train_and_save, getInception_V3_model, getResNet18_model, getResNet50_model,getEfficientNet_V2_S_model,get_existing_trained_model
 import random
 
 # Initialize the Firebase Admin SDK
@@ -83,11 +83,18 @@ def json_endpoint():
         if metaData["ml_model"] == "ResNet50":
             model,model_tranforms = getResNet50_model(nbr_concept)
             print("Loading ResNet50")
+        elif metaData["ml_model"] == "ResNet18":
+            model,model_tranforms = getResNet18_model(nbr_concept)
+            print("Loading ResNet18")
         elif metaData["ml_model"] == "EfficientNet_V2_S":
             model, model_tranforms = getEfficientNet_V2_S_model(nbr_concept)
             print("Loading EfficientNet_V2_S")
+        elif metaData["ml_model"] == "Inception_V3":
+            model, model_tranforms = getInception_V3_model(nbr_concept)
+            print("Loading Inception_V3")
         else:
             model = None
+            print("No model loaded")
 
     if model:
         ## here we need a que instead since a GPU is not Threadsafe.
@@ -131,7 +138,7 @@ def delete_model():
                 os.remove(os.path.join(save_path, filename))
     return json.dumps({"status":"deleted" })
 
-@app.route('/predict_old', methods=['POST'])
+""" @app.route('/predict_old', methods=['POST'])
 def predict_old():
     print("in predict")
     metaData = request.get_json()
@@ -180,7 +187,7 @@ def predict_old():
             'ml_predict_started_timestamp': {".sv": "timestamp"},
             "ml_predict": False
         })
-    return json.dumps({"status": "predicted"})
+    return json.dumps({"status": "predicted"}) """
 
 def predictor():
     while True:
@@ -209,13 +216,15 @@ def predictor():
         random_indexes = random.sample(indexes, min(int(ml_predict_nbr), len(indexes)))
         random_images = [training_data["images"][index] for index in random_indexes]
         # Load the model
-        print('Ready to LOAD model: '+ metaData["ml_model_filename"]+'  '+str(len(metaData["concept"]))+' concepts');
+        print('Ready to LOAD model: '+ metaData["ml_model_filename"]+'  '+str(len(metaData["concept"]))+' concepts ');
+        print(metaData["concept"])
         model, model_transforms = get_existing_trained_model(save_path, metaData["ml_model_filename"],len(metaData["concept"]))
-        print("Loading saved model: "+ metaData["ml_model_filename"])
+        # print("Loading saved model: "+ metaData["ml_model_filename"])
         model = model.to('cpu')  # Ensure the model is on the CPU
         # Run the prediction
         image_names = [training_data["images"][index]["image_location"] for index in random_indexes]
-        predictions, class_probs = predict_images(model, model_transforms, image_path_resized, image_names, metaData["concept"])    
+        predictions, class_probs = predict_images(model, model_transforms, image_path_resized, image_names, metaData["concept"])
+        print('predictions:',predictions,'class_probs:',class_probs)    
         for i in range(len(random_images)):
             trainingDataRef.child("images").child(str(random_indexes[i])).update({ml_pred_concept_key: predictions[i], ml_pred_concept_probability: class_probs[i]})
         metadataRef.update({
@@ -245,7 +254,7 @@ def predict():
     trainingDataRef = db.reference('/projects/').child(projID).child("trainingsets").child(metaData["training_set_ref"])
     if "ml_model_filename" in metaData and metaData["ml_model_filename"]:
         # Put the task on the queue
-        task = (metaData, save_path, image_path_resized, trainingDataRef,metadataRef)
+        task = (metaData, save_path, image_path_resized, trainingDataRef, metadataRef)
         pred_queue.put(task)
         print('Queue length predict:', pred_queue.qsize())
     else:
@@ -255,7 +264,89 @@ def predict():
         })
     return json.dumps({"status": "queued"})
 
-
-
-
-#app.run()
+#This is to try and test if this predict more correct or if I am mad.
+@app.route('/predictXXX', methods=['POST'])
+def predictXXX():
+    print("in predict")
+    metaData = request.get_json()
+    metaData=metaData["metadata"]
+    projID = request.get_json()
+    projID=projID["projectID"]
+    save_path = "../../models"
+    image_path_resized = '../../ottenbyresized'
+    # check if trained model exists
+    metadataRef = db.reference('/projects/').child(projID).child("metadata").child(metaData["training_set_ref"])
+    if "ml_model_filename" in metaData and metaData["ml_model_filename"]:
+        metadataRef.update({
+            'ml_predict_started_timestamp': {".sv": "timestamp"},
+        })
+        trainingDataRef = db.reference('/projects/').child(projID).child("trainingsets").child(metaData["training_set_ref"])
+        # Get the training data from Firebase
+        training_data = trainingDataRef.get()
+        ml_pred_concept_key = metaData["ml_pred_concept"] + "_pred"
+        ml_pred_concept_probability = metaData["ml_pred_concept"] + "_pred_probability"
+        #print("ml_pred_concept: "+ml_pred_concept_key)
+        ml_predict_erase = metaData["ml_predict_erase"]
+        #print("ml_predict_erase: "+str(ml_predict_erase))
+        ml_predict_nbr = metaData["ml_predict_nbr"]
+        #print("ml_predict_nbr: ",str(ml_predict_nbr))
+        if ml_predict_erase:
+            nbrVoid = 0
+            for image in training_data["images"]:
+                if ml_pred_concept_key in image:
+                    image[ml_pred_concept_key] = "void"
+                    nbrVoid += 1
+            trainingDataRef.set(training_data)
+            #print("nbrVoid: ",nbrVoid)
+        # Load the saved model
+        model, model_transforms = get_existing_trained_model(save_path, metaData["ml_model_filename"],len(metaData["concept"]))
+        print("Loading saved model: "+ metaData["ml_model_filename"])
+      
+        # New Approach
+        # Get ml_predict_nbr of indexes from training_data["images"] that are not classified as void (image["concept"] != "void") and image[ml_pred_concept_key] not exists or (image[ml_pred_concept_key] == "void").
+        indexes = [index for index, image in enumerate(training_data["images"]) if image["concept"] == "void" and (ml_pred_concept_key not in image or image[ml_pred_concept_key] == "void")]
+        random_indexes = random.sample(indexes, min(int(ml_predict_nbr), len(indexes)))
+        #random_indexes = [1335, 4221, 4260, 1729, 2693, 4230, 6047, 4289, 4694, 5142, 1061, 932]
+        #print(training_data["images"][1335])
+        #print(training_data["images"][4221])
+        random_images = [training_data["images"][index] for index in random_indexes]
+        random_images_length = len(random_images)
+        #print("random_images_length: ",random_images_length)
+        #print("random_indexes:" + str(random_indexes))
+        #print("random_images:" + str(random_images))
+        #print("Example:" + str(random_images[1]))
+        #Loop over random_indexes and predict the image and update the concept_predict in training_data["images"] with the prediction
+        for index in random_indexes:
+            image = training_data["images"][index]
+            print(metaData["concept"])
+            prediction,class_prob = predict_image(model, model_transforms, image_path_resized, image["image_location"], metaData["concept"])
+            #print( "index:" + str(index)+" predicted: "+prediction+ " ("+str(class_prob)+"%)" +" path:" + image["image_location"])
+            training_data["images"][index][ml_pred_concept_key] = prediction
+            trainingDataRef.child("images").child(str(index)).update({ml_pred_concept_key: prediction, ml_pred_concept_probability: class_prob})
+        #trainingDataRef.set(training_data)
+        
+        #for random_image in random_images:
+        #    if ml_pred_concept_key not in random_image:
+        #        random_image[ml_pred_concept_key] = 'void'
+        #    prediction = predict_image(model, model_transforms, image_path_resized, random_image["image_location"], metaData["concept"])
+        #    # Update concept_predict in Firebase
+        #    for index, image in enumerate(training_data["images"]):
+                # Use the index here
+                
+        #        if image["image_location"] == random_image["image_location"]:
+        #            print("Index:", index)
+        #            print(image)
+        #            trainingDataRef.child("images").child(str(index)).update({ml_pred_concept_key: prediction})
+        #            print("image[ml_pred_concept_key]: ",image[ml_pred_concept_key])
+        #            break
+            
+        metadataRef.update({
+            'ml_predict_finished_timestamp': {".sv": "timestamp"},
+            "ml_predict": False
+        })
+    else:
+        metadataRef.update({
+            'ml_predict_started_timestamp': {".sv": "timestamp"},
+            "ml_predict": False
+        })
+    return json.dumps({"status": "predicted"})
