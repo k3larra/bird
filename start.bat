@@ -9,7 +9,7 @@ REM Activate the virtual environment
 REM Set the FLASK_APP environment variable
 set FLASK_APP=birdnest
 
-REM Optionally, enable debug mode
+REM Optionally, enable debug mxode
 REM set FLASK_ENV=development
 
 REM Start the Flask server

@@ -25,7 +25,7 @@ from torchvision.models import resnet18, ResNet18_Weights
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("device",device)
 import firebase_admin
-from firebase_admin import credentials, db
+from firebase_admin import db
 # print("sys.path",sys.path)
 """ if torch.cuda.is_available():
     print("torch.cuda.is_available()",torch.cuda.is_available())
@@ -228,6 +228,7 @@ def train_and_save(model,model_transforms,metadata, projID, training_data, image
             }) 
             return
     print("total number images",len(dataset))
+    #app.logger.info("total number images")
     dataset = [x for x in dataset if x['concept'] != 'void']
     print(concepts)
     # Create a dictionary that maps concept names to indices

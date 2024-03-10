@@ -6,38 +6,32 @@ import os
 import random
 import queue
 import threading
-model_queue = queue.Queue()
-pred_queue = queue.Queue()
-app = Flask(__name__)
-##
-
-#firebase
+import logging
 import firebase_admin
 from firebase_admin import credentials, db
 from ml_code import predict_image,predict_images,train_and_save, getInception_V3_model, getResNet18_model, getResNet50_model,getEfficientNet_V2_S_model,get_existing_trained_model
 import random
 
+app = Flask(__name__)
+#if not app.debug:
+app.logger.setLevel(logging.INFO)
+file_handler = logging.FileHandler('flask.log')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+app.logger.addHandler(file_handler)
+app.logger.info("_____________birdnest started New session____________________")
+model_queue = queue.Queue()
+pred_queue = queue.Queue()
 # Initialize the Firebase Admin SDK
 cred = credentials.Certificate('../../secrets/bird-ad15f-firebase-adminsdk-hzlhg-4ccf1a7271.json')
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://bird-ad15f-default-rtdb.europe-west1.firebasedatabase.app'
 })
 
-
-@app.route("/")
-def hello_world():
-    print("Hello World")
-    return "<p>Hello, World!</p>"
-
-""" @app.route('/retrain', methods=['GET'])
-def retrain():
-    userId = request.args.get('userId')
-    print(userId)
-    return json.dumps({"functioning":0 }) """
-
 @app.route('/train_model', methods=['POST'])
 def json_endpoint():
-    print("in json_endpoint/train")
+    app.logger.info("in json_endpoint/train")
+    #print("in json_endpoint/train")
     metaData = request.get_json()
     metaData=metaData["metadata"]
     projID = request.get_json()
@@ -47,9 +41,12 @@ def json_endpoint():
     #annotation_json_file = metaData
     image_path_resized = '../../ottenbyresized'
     save_path = "../../models"
-    print(metaData["training_set_ref"])
-    print(metaData["uid"])
-    print(metaData["ml_model"])
+    #print(metaData["training_set_ref"])
+    app.logger.info(metaData["training_set_ref"])
+    #print(metaData["uid"])
+    app.logger.info(metaData["uid"])
+    #print(metaData["ml_model"])
+    app.logger.info(metaData["ml_model"])
     epoch_str=str(1)+"/"+str(num_epochs)
     #metadataRef = db.reference('/').child(metaData["uid"]).child("metadata").child(metaData["training_set_ref"])
     metadataRef = db.reference('/projects/').child(projID).child("metadata").child(metaData["training_set_ref"])
@@ -78,27 +75,30 @@ def json_endpoint():
     if "ml_model_filename" in metaData and metaData["ml_model_filename"] and retrain:
         # Load the saved model
         model, model_tranforms = get_existing_trained_model(save_path,metaData["ml_model_filename"],nbr_concept)
-        print("Loading old")
+        app.logger.info("Loading old")
     else:
         if metaData["ml_model"] == "ResNet50":
             model,model_tranforms = getResNet50_model(nbr_concept)
-            print("Loading ResNet50")
+            #print("Loading ResNet50")
+            app.logger.info("Loading ResNet50L")
         elif metaData["ml_model"] == "ResNet18":
             model,model_tranforms = getResNet18_model(nbr_concept)
-            print("Loading ResNet18")
+            #print("Loading ResNet18")
+            app.logger.info("Loading ResNet18L")
         elif metaData["ml_model"] == "EfficientNet_V2_S":
             model, model_tranforms = getEfficientNet_V2_S_model(nbr_concept)
-            print("Loading EfficientNet_V2_S")
+            app.logger.info("Loading EfficientNet_V2_S")
         elif metaData["ml_model"] == "Inception_V3":
             model, model_tranforms = getInception_V3_model(nbr_concept)
-            print("Loading Inception_V3")
+            app.logger.info("Loading Inception_V3")
         else:
             model = None
-            print("No model loaded")
+            app.logger.info("No model loaded")
 
     if model:
         ## here we need a que instead since a GPU is not Threadsafe.
-        print('Queue length before:', model_queue.qsize())
+        #I cannot log like this in logger!!!
+        #app.logger.info('Queue length before:', model_queue.qsize())
         #db.reference('/projects/').update({'queue_length': model_queue.qsize()})
         model_queue.put((model, model_tranforms, metaData, projID, training_data, image_path_resized, save_path, 32, num_epochs))
 

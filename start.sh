@@ -11,7 +11,7 @@ export FLASK_APP=birdnest
 export FLASK_ENV=development
 # Start the Flask server
 #flask run --debugger &
-flask run --debugger > flask.log 2>&1 &
+flask run > flask.log 2>&1 &
 #Start node server fir connecting to bird firebase and flask
 # cd ~/ottenby/bird/node/
 cd ~/bird/node
