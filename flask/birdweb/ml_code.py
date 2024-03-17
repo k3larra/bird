@@ -91,7 +91,8 @@ def getResNet50_model(num_classes):
 
 def getEfficientNet_V2_S_model(num_classes):
     weights = EfficientNet_V2_S_Weights.DEFAULT
-    model_transforms = weights.transforms(antialias=True)
+    #model_transforms = weights.transforms(antialias=True) ??
+    model_transforms = weights.transforms()
     model = efficientnet_v2_s(weights=weights)
     model._name="EfficientNet_V2_S"
     model._fc = nn.Linear(model._fc.in_features, num_classes)
