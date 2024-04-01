@@ -1,6 +1,6 @@
 #!/bin/bash
 # Kill the Flask server
-pkill -f "flask run --debugger"
+pkill -f "flask run"
 
 # Kill the Node.js processes
 pkill -f "node nodebird.js"
