@@ -20,7 +20,7 @@ file_handler = logging.FileHandler('flask.log')
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 file_handler.setFormatter(formatter)
 app.logger.addHandler(file_handler)
-app.logger.info("_____________birdnest started New session____________________")
+app.logger.info("_____________birdnest started New session_______ddd_____________")
 model_queue = queue.Queue()
 pred_queue = queue.Queue()
 # Initialize the Firebase Admin SDK
@@ -40,7 +40,8 @@ def json_endpoint():
     num_epochs = int(metaData["ml_epochs"])
     nbr_concept = len(metaData["concept"])
     #annotation_json_file = metaData
-    image_path_resized = '../../ottenbyresized'
+    #image_path_resized = '../../ottenbyresized'
+    image_path_resized = '../../images/ottenby/training'
     save_path = "../../models"
     #print(metaData["training_set_ref"])
     app.logger.info(metaData["training_set_ref"])
