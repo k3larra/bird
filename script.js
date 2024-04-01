@@ -14,7 +14,7 @@ import { createDropdownMenu, createDropdownMenuSelectingProbBelow } from "./reso
 import { edit_concepts } from "./resources/modal_concept.js";
 import { firebase_save } from "./resources/modal_save.js";
 import { firebase_save_as } from "./resources/modal_save_as.js";
-import { loadModalAlert, showAlert, showConfirm, showPrompt } from "./resources/modal_alert.js";
+import { loadModalAlert, showAlert, showImage, showConfirm, showPrompt } from "./resources/modal_alert.js";
 import {modal_do_survey} from "./resources/modal_do_survey.js";
 export const debug = false;
 /********************Ref to image folder  here************************** */
@@ -163,6 +163,9 @@ export function select_training_data(metadata) {
       const headerElement = document.getElementsByTagName("header")[0];
       headerElement.appendChild(modalContainer);
     });
+  console.log("LHmetadata", metadata);
+  const metadataLength = metadata.size;
+  console.log("Metadata length:", metadataLength);
   metadata.forEach((doc) => {
     const li = document.createElement('li');
     const a = document.createElement('a');
@@ -172,28 +175,30 @@ export function select_training_data(metadata) {
     a.textContent = doc.val().title;
     li.appendChild(a);
     li.style.display = "flex";
-    const button = document.createElement('button');
-    button.setAttribute('type', 'button');
-    button.id = doc.key;
-    button.classList.add('btn', 'btn-outline-danger', 'btn-sm');
-    button.setAttribute('data-bs-toggle', 'modal');
-    button.setAttribute('data-bs-target', '#myModal_delete_dataset');
-    button.setAttribute('data-lhtitle', doc.val().title);
-    button.setAttribute('data-lhdescription', doc.val().description);
-    button.innerHTML = '<small>X</small>';
-    button.style.display = 'inline-flex';
-    const modal = document.getElementById('modalInput_delete_dataset');
-    const tooltip = document.createElement('span');
-    tooltip.textContent = 'Delete dataset: ' + doc.val().title;
-    tooltip.classList.add('fw-normal', 'text-dark', '_lh_tooltip_delete');
-    button.addEventListener('mouseenter', () => {
-      tooltip.style.display = 'inline';
-    });
-    button.addEventListener('mouseleave', () => {
-      tooltip.style.display = 'none';
-    });
-    button.appendChild(tooltip);
-    li.appendChild(button);
+    if (metadataLength > 1) { //If there is only one dataset, it cannot be deleted
+      const button = document.createElement('button');
+      button.setAttribute('type', 'button');
+      button.id = doc.key;
+      button.classList.add('btn', 'btn-outline-danger', 'btn-sm');
+      button.setAttribute('data-bs-toggle', 'modal');
+      button.setAttribute('data-bs-target', '#myModal_delete_dataset');
+      button.setAttribute('data-lhtitle', doc.val().title);
+      button.setAttribute('data-lhdescription', doc.val().description);
+      button.innerHTML = '<small>X</small>';
+      button.style.display = 'inline-flex';
+      const modal = document.getElementById('modalInput_delete_dataset');
+      const tooltip = document.createElement('span');
+      tooltip.textContent = 'Delete dataset: ' + doc.val().title;
+      tooltip.classList.add('fw-normal', 'text-dark', '_lh_tooltip_delete');
+      button.addEventListener('mouseenter', () => {
+        tooltip.style.display = 'inline';
+      });
+      button.addEventListener('mouseleave', () => {
+        tooltip.style.display = 'none';
+      });
+      button.appendChild(tooltip);
+      li.appendChild(button);
+    }
     if (doc.val().default) {
       li.style.backgroundColor = "Whitesmoke";
       setMetadata(doc.val());
@@ -342,14 +347,18 @@ export function clear_and_populate_pred_container(data, predicted_concept_true_v
 function add_image_container_listener(imageContainer) {
   imageContainer.addEventListener('click', function (event) {
     event.preventDefault(); //Stop reloading
+    console.log(event.target.tagName)
     if (event.target.tagName === 'IMG') {
+      //console.log("IN IMG");
       const clickedImage = event.target;
       const tooltiptext_e = clickedImage.nextElementSibling;
       //console.log("getMetadata().concept", getMetadata().concept);
       if (getMetadata().concept.length > 0) {
         const index = getMetadata().concept.indexOf(tooltiptext_e.textContent);
         const pred = tooltiptext_e.nextElementSibling;
-        if (pred) {
+        const elementType = pred.tagName;
+        //console.log("pred", pred.tagName);
+        if (elementType === "SPAN") {
           if (tooltiptext_e.textContent == "") {
             tooltiptext_e.textContent = pred.getAttribute('data-hidden-field')
             event.target.classList.add("border-success");
@@ -360,7 +369,7 @@ function add_image_container_listener(imageContainer) {
             event.target.classList.add("border-danger");
           }
           changePredConcept(clickedImage.getAttribute('data-image-index'), tooltiptext_e.textContent)
-        } else {
+        } else if (elementType === "BUTTON") {
           if (index == -1) {
             tooltiptext_e.textContent = getMetadata().concept[0];
           } else if (index == getMetadata().concept.length - 1) {
@@ -371,6 +380,8 @@ function add_image_container_listener(imageContainer) {
           let path = clickedImage.src.split(IMAGEFOLDER)[1]
           path = decodeURIComponent(path);
           changeConcept(clickedImage.getAttribute('data-image-index'), tooltiptext_e.textContent)
+        }else{
+          console.log("No pred or button"); 
         }
       } else {
         //alert("Add some concepts in the concept list using the concept button. Then label the images by clicking on them."); 
@@ -379,6 +390,9 @@ function add_image_container_listener(imageContainer) {
         showAlert(title, bodytext);
       };
 
+    }else if(event.target.tagName==="I"){  //Then the modeal will be opened since the magnifying glass was clicked with button.setAttribute("data-bs-target", "#imageModal");
+      //console.log("IN I");
+      showImage(event.target);
     }
   });
 }
@@ -442,6 +456,23 @@ function createImageItem(element, image_data, item, is_predicted_concept, predic
     tooltip_e2.textContent = pred_percent + " %";
     row_e.appendChild(tooltip_e2);
   }
+  //add magnifying glass and modal
+  row_e.classList.add("thumbnail");
+  const button = document.createElement("button");
+  button.type = "button";
+  button.classList.add("btn", "btn-opacity", "custom-btn-size", "position-absolute", "bottom-0", "start-0");
+  button.setAttribute("data-bs-toggle", "modal");
+  button.setAttribute("data-bs-target", "#imageModal");
+  const i = document.createElement("i");
+  i.classList.add("bi", "bi-search");
+  i.style.fontSize = "0.5rem";
+  /*
+  button.addEventListener("click", function () {
+    showImage("TREO");
+  });*/
+  button.appendChild(i); 
+  row_e.appendChild(button);
+  //row_e.appendChild(i);
   element.appendChild(row_e)
 }
 

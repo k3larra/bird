@@ -164,3 +164,20 @@
 .on_top {
   z-index: 4;
 }
+
+.btn-opacity {
+  background: rgba(255, 255, 255, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.custom-btn-size {
+  width: 15px;  /* Change this to your desired width */
+  height: 15px; /* Change this to your desired height */
+  padding-left:0.25rem;
+  padding-right: 0.25rem;
+  /*padding-top: 0px;
+  padding-bottom: 0px;*/
+
+}

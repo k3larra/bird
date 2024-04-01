@@ -158,7 +158,7 @@ function refreshTrainContent() {
     modelDropdown.id = "model";
     //let modelValues = ["ResNet18","ResNet50", "EfficientNet_V2_S", "Continue training"];
     //let modelValues = ["ResNet18","ResNet50", "Inception_V3", "Continue training"];
-    let modelValues = ["ResNet18","ResNet50", "Continue training"];
+    let modelValues = ["ResNet18","ResNet50", "ResNet152", "EfficientNet_V2_S", "Inception_V3","ConvNeXt_Tiny","Continue training"];
 
     modelValues.forEach(value => {
       const option = document.createElement("option");

@@ -1,4 +1,4 @@
-import { getDatabase, set, get, remove, ref, isUserAdmin, IMAGEFOLDER, readLocalJasonAndReturn, create_project } from "../firebase-module.js";
+import { getDatabase, set, get, remove, ref, isUserAdmin, IMAGEFOLDER, readLocalJasonAndReturn, create_project, PROJECTJSON, ANNOTATIONSFOLDER} from "../firebase-module.js";
 export function approve_users() {
     fetch('./resources/modal_approve_users.html')
         .then(response => response.text())
@@ -66,9 +66,10 @@ function approve_user(e) {
     const membershipRef = ref(db, "membershipRequests/" + id);
     get(membershipRef).then(async (snapshot) => {
         if (snapshot.exists()) {
-            //Also create default project here and add to the user
+            //Also create default project here and add to the usercc
             var userData = snapshot.val();
-            const jsonfile = await readLocalJasonAndReturn("birds.json");
+            console.log(ANNOTATIONSFOLDER+PROJECTJSON)
+            const jsonfile = await readLocalJasonAndReturn(PROJECTJSON); 
             const keys = create_project(id, IMAGEFOLDER, jsonfile, true);
             console.log("keys.projectKey", keys.projectKey);
             console.log("keys.trainingsetKey", keys.trainingsetKey);

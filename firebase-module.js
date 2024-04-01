@@ -1,8 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-analytics.js";
+//import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-analytics.js";
 import { getDatabase, ref, set, get, child, push, update, onValue, remove } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-database.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-auth.js";
-import { serverTimestamp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
+//import { serverTimestamp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
 //import { getAuth, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/9.5.0/firebase-auth-compat.js"
 import { loggedIn, build_image_containers, select_training_data, getMetadata, setMetadata } from "./script.js";
 import { getBirds, setBirds } from './script.js';
@@ -31,6 +31,13 @@ export { getDatabase, ref, get, set, child, push, update, onValue, auth, remove 
 const app = initializeApp(firebaseConfig);
 //const analytics = getAnalytics(app);
 const auth = getAuth();
+//Constants
+//export const IMAGEFOLDER = 'ottenbyresized/';
+export const PROJECTJSON = 'birds.json';
+export const IMAGEFOLDER = 'images/ottenby/thumbnail/';
+export const TRAININGFOLDER = 'images/ottenby/training/';
+export const ANNOTATIONSFOLDER = 'images/ottenby/annotations/';
+export let currentproject = null;
 
 //var user = auth.currentUser;
 approve_users(); //Add the approve modal to the admin menu
@@ -41,7 +48,7 @@ document.getElementById('signIn').addEventListener('click', _login);
 document.getElementById('createEmptyProject').addEventListener('click', async function (event) {
   event.preventDefault();
   console.log("createEmptyProject");
-  const json = await readLocalJasonAndReturn("birds.json");
+  const json = await readLocalJasonAndReturn(PROJECTJSON);
   console.log("json", json.version);
   const projkey = create_project("kalleAnc", IMAGEFOLDER, json, true)
   console.log("projkey", projkey);
@@ -64,9 +71,7 @@ document.getElementById('testFunction').addEventListener('click', function (even
   console.log("Current project is: ", getCurrentProject());
 });
 
-//Constants
-export const IMAGEFOLDER = 'ottenbyresized/';
-export let currentproject = null;
+
 
 await auth.onAuthStateChanged(function (user) {
   if (user) {
@@ -646,7 +651,7 @@ async function getCurrentProject() {
 
 export async function readLocalJasonAndReturn(filename) {
   try {
-    const response = await fetch('ottenbyresized/' + filename);
+    const response = await fetch(ANNOTATIONSFOLDER + filename);
     if (!response.ok) {
       throw new Error("HTTP error " + response.status);
     }

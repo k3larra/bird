@@ -64,6 +64,19 @@ export function showPrompt(title, message, onConfirm) {
 
   var myModal = new bootstrap.Modal(document.getElementById('promptModal'), {});
   myModal.show();
-
 }
 
+export function showImage(image) {
+  let imagePath = image.parentElement.parentElement.firstChild.src;
+  imagePath = imagePath.replace("thumbnail", "training");
+  console.log(imagePath);
+  var modalElement = document.getElementById('imageModal');
+  modalElement.classList.remove('fade');
+  document.getElementById('modalImage').src = imagePath;
+  //var myModal = new bootstrap.Modal(modalElement, {});
+/*   myModalElement.addEventListener('shown.bs.modal', function () {
+    var modalBackdrop = document.querySelector('.modal-backdrop');
+    modalBackdrop.style.opacity = '0.1'; // Set the opacity to your desired level
+  }); */
+  //myModal.show();
+}

@@ -20,6 +20,8 @@ from torchvision.models import efficientnet_v2_s, EfficientNet_V2_S_Weights
 from torchvision.models import inception_v3, Inception_V3_Weights
 from torchvision.models import resnet50, ResNet50_Weights
 from torchvision.models import resnet18, ResNet18_Weights
+from torchvision.models import resnet152, ResNet152_Weights
+from torchvision.models import convnext_tiny,ConvNeXt_Tiny_Weights
 #print("torch.__version__",torch.__version__)
 #print("torchvision.__version__",torchvision.__version__)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -89,14 +91,24 @@ def getResNet50_model(num_classes):
     model.eval()
     return model, model_transforms
 
+def getResNet152_model(num_classes):
+    weights = ResNet152_Weights.DEFAULT
+    model_transforms = weights.transforms(antialias=True)
+    model = resnet152(weights=weights)
+    model._name="ResNet152"
+    model.fc =nn.Linear(model.fc.in_features, num_classes)
+    model.eval()
+    return model, model_transforms
+
 def getEfficientNet_V2_S_model(num_classes):
     weights = EfficientNet_V2_S_Weights.DEFAULT
-    #model_transforms = weights.transforms(antialias=True) ??
-    model_transforms = weights.transforms()
+    model_transforms = weights.transforms(antialias=True)
+    #model_transforms = weights.transforms()
     model = efficientnet_v2_s(weights=weights)
     model._name="EfficientNet_V2_S"
-    model._fc = nn.Linear(model._fc.in_features, num_classes)
+    #model.fc = nn.Linear(model._fc.in_features, num_classes)
     #model.classifier = nn.Linear(model.classifier.in_features, num_classes)
+    model.classifier[1] = nn.Linear(1280, num_classes)
     model.eval()
     return model, model_transforms
 
@@ -105,27 +117,38 @@ def getInception_V3_model(num_classes):
     model_transforms = weights.transforms(antialias=True)
     model = inception_v3(weights=weights)
     model._name="Inception_V3"
-    model._fc = nn.Linear(model.fc.in_features, num_classes)
+    model.fc = nn.Linear(model.fc.in_features, num_classes)
+    model.aux_logits=False
     #model.classifier = nn.Linear(model.classifier.in_features, num_classes)
     model.eval()
     return model, model_transforms
 
+def getConvnext_tiny_model(num_classes):
+# from torchvision.models import convnext_tiny,ConvNeXt_Tiny_Weights
+    weights = ConvNeXt_Tiny_Weights.DEFAULT
+    model = convnext_tiny(weights=weights)
+    model_transforms = weights.transforms(antialias=True)
+    model._name = "ConvNeXt_Tiny"
+    #model._fc = nn.Linear(model.fc.in_features, num_classes)
+    model.classifier[2] = nn.Linear(768, num_classes)
+    model.eval()
+    return model, model_transforms
 
 def get_existing_trained_model(save_path, ml_filename,num_classes):  
     # Loads the model at annotation_json_file["ml_model_filename"] and returns it
     model = torch.load(os.path.join(save_path, ml_filename),map_location=torch.device('cpu'))
-    if "ResNet50" in ml_filename:
+    if "ResNet18" in ml_filename:
+        weights = ResNet18_Weights.DEFAULT #to get the transforms
+    elif "ResNet50" in ml_filename:
         weights = ResNet50_Weights.DEFAULT #to get the transforms
-        #model.fc =nn.Linear(model.fc.in_features, num_classes)
+    elif "ResNet152" in ml_filename:
+        weights = ResNet152_Weights.DEFAULT #to get the transforms
     elif "EfficientNet_V2_S" in ml_filename:
         weights = EfficientNet_V2_S_Weights.DEFAULT #to get the transforms
-        #model._fc = nn.Linear(model._fc.in_features, num_classes)
-    elif "ResNet18" in ml_filename:
-        weights = ResNet18_Weights.DEFAULT #to get the transforms
-        #model._fc = nn.Linear(model._fc.in_features, num_classes)
     elif "Inception_V3" in ml_filename:
         weights = Inception_V3_Weights.DEFAULT #to get the transforms
-        #model._fc = nn.Linear(model._fc.in_features, num_classes)
+    elif "ConvNeXt_Tiny" in ml_filename:
+        weights = ConvNeXt_Tiny_Weights.DEFAULT #to get the transforms
     model_transforms = weights.transforms(antialias=True)
     #model.eval()
     return model, model_transforms

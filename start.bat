@@ -13,7 +13,7 @@ REM Optionally, enable debug mxode
 REM set FLASK_ENV=development
 
 REM Start the Flask server
-start cmd /k flask run --debugger
+start cmd /k flask run
 
 REM Navigate to your Node.js server directory
 cd ../../node/
