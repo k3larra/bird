@@ -22,23 +22,24 @@ from torchvision.models import resnet50, ResNet50_Weights
 from torchvision.models import resnet18, ResNet18_Weights
 from torchvision.models import resnet152, ResNet152_Weights
 from torchvision.models import convnext_tiny,ConvNeXt_Tiny_Weights
-from birdnest import app
+from birdnest import get_logger
+import firebase_admin
+from firebase_admin import db
 #print("torch.__version__",torch.__version__)
 #print("torchvision.__version__",torchvision.__version__)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("device",device)
-app.logger.info("device is:",device)
-import firebase_admin
-from firebase_admin import db
+get_logger().info("device is:",device)
+
 # print("sys.path",sys.path)
 if torch.cuda.is_available():
-    app.logger.info("torch.cuda.is_available()",torch.cuda.is_available())
-    app.logger.info("torch.version.cuda",torch.version.cuda)
+    get_logger().info("torch.cuda.is_available()",torch.cuda.is_available())
+    get_logger().info("torch.version.cuda",torch.version.cuda)
 else:
-    app.logger.info("torch.cuda.is_available()",torch.cuda.is_available())
-    app.logger.info("torch.version.cuda","None")
-app.logger.info("torch.__version__",torch.__version__)
-app.logger.info("python3 --version",sys.version)
+    get_logger().info("torch.cuda.is_available()",torch.cuda.is_available())
+    get_logger().info("torch.version.cuda","None")
+get_logger().info("torch.__version__",torch.__version__)
+get_logger().info("python3 --version",sys.version)
 #annotation_json_file = './json_file.json'
 #image_path_resized = '../ottenbyresized'
 #save_path='./'
