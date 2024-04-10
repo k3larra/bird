@@ -20,6 +20,9 @@ file_handler = logging.FileHandler('flask.log')
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 file_handler.setFormatter(formatter)
 app.logger.addHandler(file_handler)
+def get_logger():
+    return app.logger
+##
 app.logger.info("_____________birdnest started New session_______ddd_____________")
 model_queue = queue.Queue()
 pred_queue = queue.Queue()
@@ -43,6 +46,8 @@ def json_endpoint():
     #image_path_resized = '../../ottenbyresized'
     image_path_resized = '../../images/ottenby/training'
     save_path = "../../models"
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
     #print(metaData["training_set_ref"])
     app.logger.info(metaData["training_set_ref"])
     #print(metaData["uid"])
@@ -141,6 +146,8 @@ def delete_model():
     projID = request.get_json()
     projID=projID["projectID"]
     save_path = "../../models"
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
     if "ml_model_filename" in metaData and metaData["ml_model_filename"]:
         for filename in os.listdir(save_path):
             if filename.startswith(metaData["ml_model_filename"]):
@@ -213,6 +220,8 @@ def predict():
     projID = request.get_json()
     projID=projID["projectID"]
     save_path = "../../models"
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
     #image_path_resized = '../../ottenbyresized'
     image_path_resized = '../../images/ottenby/training'
     app.logger.info("in predict: "+projID)
