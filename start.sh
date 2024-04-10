@@ -5,7 +5,7 @@ git update-index --assume-unchanged start.sh
 git pull origin main 
 # cd ~/ottenby/bird/flask/birdweb/
 cd ~/bird/flask/birdweb/
-# source .venv/bin/activate
+source .venv/bin/activate
 export FLASK_APP=birdnest
 # Optionally, enable debug mode
 export FLASK_ENV=development
