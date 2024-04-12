@@ -2,6 +2,7 @@
 Description=Autostart bird service
 
 [Service]
+WorkingDirectory=/home/lars_rauer/bird
 ExecStart=/home/lars_rauer/bird/start.sh
 
 [Install]
