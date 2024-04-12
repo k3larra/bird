@@ -1,0 +1,8 @@
+[Unit]
+Description=Autostart bird service
+
+[Service]
+ExecStart=/home/lars_rauer/bird/start.sh
+
+[Install]
+WantedBy=multi-user.target
