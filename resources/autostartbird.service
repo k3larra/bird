@@ -4,6 +4,7 @@ Description=Autostart bird service
 [Service]
 WorkingDirectory=/home/lars_rauer/bird
 ExecStart=/home/lars_rauer/bird/start.sh
+User=lars_rauer
 
 [Install]
 WantedBy=multi-user.target
