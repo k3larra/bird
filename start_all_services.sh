@@ -1,4 +1,5 @@
 #!/bin/bash
+#get the latest version of the code
 cd /home/lars_rauer/bird
 git checkout -- start.sh
 git update-index --assume-unchanged start.sh
