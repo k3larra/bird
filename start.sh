@@ -8,7 +8,8 @@ source .venv/bin/activate
 # Start the Flask server
 export FLASK_APP=birdnest
 export FLASK_ENV=development
-flask run > flask.log 2>&1 &
+flask run > flask.log 2>&1
+#flask run > flask.log 2>&1 &
 #Start node server fir connecting to bird firebase and flask server
 cd /home/lars_rauer/bird/node
 node nodebird.js > node_firebase.log 2>&1 &
