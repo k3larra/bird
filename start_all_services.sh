@@ -1,8 +1,8 @@
 #!/bin/bash
 #get the latest version of the code
 cd /home/lars_rauer/bird
-git checkout -- start.sh
-git update-index --assume-unchanged start.sh
+git checkout -- start_all_services.sh
+git update-index --assume-unchanged start_all_services.sh
 git pull origin main 
 # Start the Flask server
 /home/lars_rauer/bird/flask/birdweb/start_flask.sh
