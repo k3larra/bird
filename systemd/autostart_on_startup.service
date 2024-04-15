@@ -1,9 +1,9 @@
 [Unit]
-Description=Autostart bird service
+Description=Autostart bHIC_ML/AI service
 
 [Service]
 WorkingDirectory=/home/lars_rauer/bird
-ExecStart=/home/lars_rauer/bird/start.sh
+ExecStart=/home/lars_rauer/bird/start_all_services.sh
 User=lars_rauer
 
 [Install]
