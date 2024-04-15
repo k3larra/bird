@@ -5,11 +5,11 @@ git checkout -- start_all_services.sh
 git update-index --assume-unchanged start_all_services.sh
 git pull origin main 
 # Start the Flask server
-/home/lars_rauer/bird/flask/birdweb/start_flask.sh &
+/home/lars_rauer/bird/flask/birdweb/start_flask.sh
 echo "Flask server started"
 # Start node server for connecting to bird firebase and flask server
-/home/lars_rauer/bird/node/start_connect_firebase_to_flask.sh &
+/home/lars_rauer/bird/node/start_connect_firebase_to_flask.sh
 echo "Node server for connecting to bird firebase and flask server started"
 # Start the web server
-/home/lars_rauer/bird/start_webserver.sh &
+/home/lars_rauer/bird/start_webserver.sh
 echo "Web server started"
