@@ -11,7 +11,8 @@ Scripts/
 node_modules/
 npm-debug.log
 dist/
-
+.venv/
+node/functions
 # General
 .DS_Store
 Thumbs.db
@@ -20,6 +21,7 @@ secrets/bird-ad15f-firebase-adminsdk-hzlhg-4ccf1a7271.json
 Notebooks/
 tests/
 images/
+models/
 ottenbysesized2/
 .vscode/
 ```
