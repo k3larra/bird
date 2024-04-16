@@ -1,0 +1,11 @@
+[Unit]
+Description=Web server
+After=network.target autostart_firebase_flask.service
+
+[Service]
+ExecStart=/home/lars_rauer/bird/start_webserver.sh
+WorkingDirectory=/home/lars_rauer/bird/
+User=lars_rauer
+
+[Install]
+WantedBy=multi-user.target

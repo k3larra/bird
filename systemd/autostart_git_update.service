@@ -1,9 +1,10 @@
 [Unit]
-Description=Autostart bHIC_ML/AI service
+Description=Git pull service
+After=network.target
 
 [Service]
+ExecStart=/home/lars_rauer/bird/git_pull.sh
 WorkingDirectory=/home/lars_rauer/bird
-ExecStart=/home/lars_rauer/bird/start_all_services.sh
 User=lars_rauer
 
 [Install]

@@ -1,0 +1,11 @@
+[Unit]
+Description=Firebase to flask over nodejs
+After=network.target autostart_flask.service
+
+[Service]
+ExecStart=/home/lars_rauer/bird/node/start_connect_firebase_to_flask.sh
+WorkingDirectory=/home/lars_rauer/bird/node/
+User=lars_rauer
+
+[Install]
+WantedBy=multi-user.target

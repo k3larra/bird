@@ -1,0 +1,13 @@
+[Unit]
+Description=Flask server
+After=network.target autostart_git_update.service
+
+[Service]
+ExecStart=/home/lars_rauer/bird/flask/birdweb/start_flask.sh
+WorkingDirectory=/home/lars_rauer/bird/flask/birdweb
+User=lars_rauer
+Environment=FLASK_APP=birdnest
+Environment=FLASK_ENV=development
+
+[Install]
+WantedBy=multi-user.target
