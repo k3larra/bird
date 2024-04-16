@@ -13,7 +13,7 @@ sudo cp /home/lars_rauer/bird/systemd/autostart_webserver.service .
 sudo systemctl daemon-reload
 sudo systemctl enable autostart_gitupdate.service
 sudo systemctl enable autostart_flask.service
-sudo systemctl enable autostart_firebase_to_flask.service
-sudo systemctl enable autostart_web_server.service
+sudo systemctl enable autostart_firebase_flask.service
+sudo systemctl enable autostart_webserver.service
 #sudo systemctl start autostart_on_startup.service # Start the service directely
 #sudo systemctl status autostart_on_startup.service # Check the status of the service
