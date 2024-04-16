@@ -6,7 +6,7 @@ sudo systemctl disable autostart_gitupdate.service
 sudo rm /etc/systemd/system/autostart_gitupdate.service
 sudo systemctl stop autostart_flask.service
 sudo systemctl disable autostart_flask.service
-sudo rm /etc/systemd/system/autostart_flaskrt_flask.service
+sudo rm /etc/systemd/system/autostart_flask.service
 sudo systemctl stop autostart_firebase_flask.service
 sudo systemctl disable autostart_firebase_flask.service
 sudo rm /etc/systemd/system/autostart_firebase_flask.service
