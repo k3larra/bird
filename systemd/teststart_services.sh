@@ -4,6 +4,9 @@
 # Then run this script to start the services
 # Then check the status of the services with systemctl status <service_name>
 # Start the git pull service
+### Seems to not work only gets the first service but not the other
+### But the instlled services are working and starting.....
+##I leave this for now since this is more of a check....
 sudo systemctl start autostart_gitupdate.service
 # Check the status of the git pull service
 sudo systemctl status autostart_gitupdate.service
