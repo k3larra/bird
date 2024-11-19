@@ -43,7 +43,7 @@ clientRequestRef.on('child_added', (snapshot) => {
   }).catch(error => {
     console.error(error);
   }); */
-  if (projectIDsToRunOnThisServer.includes(snapshot.val().projectID)) {
+  //if (projectIDsToRunOnThisServer.includes(snapshot.val().projectID)) {
     console.log("Project runs on this server")
     let ml_train = snapshot.val() && snapshot.val().metadata && snapshot.val().metadata.ml_train;
     if (ml_train) {
@@ -66,9 +66,9 @@ clientRequestRef.on('child_added', (snapshot) => {
         }
     }
     snapshot.ref.remove();
-  }else{
-    console.log("Project not to run on this server")
-  }
+  //}else{
+  //  console.log("Project not to run on this server")
+  //}
 }); 
 
 
